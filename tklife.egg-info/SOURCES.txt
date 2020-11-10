@@ -1,0 +1,9 @@
+README.md
+setup.py
+tklife/__init__.py
+tklife/shortcuts.py
+tklife/simpledialog.py
+tklife.egg-info/PKG-INFO
+tklife.egg-info/SOURCES.txt
+tklife.egg-info/dependency_links.txt
+tklife.egg-info/top_level.txt
