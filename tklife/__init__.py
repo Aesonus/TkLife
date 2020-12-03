@@ -14,8 +14,8 @@ class Common:
             master = None
         super().__init__(master, **kwargs)
         self._create_vars()
-        self._create_events()
         self._create_widgets()
+        self._create_events()
         self._layout_widgets()
 
     def _create_events(self):
@@ -23,7 +23,7 @@ class Common:
 
     def _create_vars(self):
         """Creates variables for widgets"""
-        
+
     def _create_widgets(self):
         """Creates the widgets for the class"""
 

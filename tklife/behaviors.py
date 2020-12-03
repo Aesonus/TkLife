@@ -45,6 +45,11 @@ class CommandHistory:
         while self.cursor != until:
             self.undo()
 
+    def reset(self):
+        """Clears the history completely"""
+        self.history.clear()
+        self.cursor = None
+
     def _clear(self):
         """
         Clears the history after the cursor
