@@ -48,9 +48,9 @@ class Autogrid:
 
     def grid_dicts(self, element_count, keynames):
         """Yields grid coordinates as a dict using keynames as keys"""
-        if len(tuple(iter(keynames))) != self.group_size:
-            raise ValueError("'colnames' must be of length %s" %
-                             (self.group_size))
+        if len(tuple(iter(keynames))) != 2:
+            raise ValueError("'keynames' must be of length %s" %
+                             (2))
         return (
             dict(zip(iter(keynames), coords))
             for coords in self.grid_tuples(element_count)
