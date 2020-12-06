@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="tklife", # Replace with your own username
-    version="0.1.1",
+    version="0.2.1",
     author="Cory Laughlin",
     author_email="corylcomposinger@gmail.com",
     description="COntains some basic classes for Tkinter Applications",
