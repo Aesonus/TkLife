@@ -58,6 +58,9 @@ class CommandHistory:
             self.history = []
             return
         self.history = self.history[:self.cursor + 1]
+    
+    def __len__(self):
+        return len(self.history)
 
 class Command:
     """Abstract class for a command"""
