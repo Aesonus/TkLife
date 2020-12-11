@@ -77,13 +77,17 @@ class Command:
         """
         raise NotImplementedError
 
+class ThreadEvent:
+    def __init__(self, args=(), kwargs={}):
+        self.args = args
+        self.kwargs = kwargs
+
 class ThreadEventDispatcher:
     def __init__(self, *listeners, queue=None) -> None:
         self.queue = Queue() if queue is None else queue()
         self.__listeners = dict()
         for event, listener in listeners:
             self.register_listener(event, listener)
-        #[(function, [args[, kwargs]]), (...)]
 
     def register_listener(self, event, listener):
         try:
@@ -97,6 +101,6 @@ class ThreadEventDispatcher:
         except Empty:
             return None
         for event_queue, listeners in self.__listeners.items():
-            if not event_queue == event:
+            if not isinstance(event, event_queue):
                 continue
-            [listener(event) for listener in listeners]    
+            [listener(*event.args, **event.kwargs) for listener in listeners]    
