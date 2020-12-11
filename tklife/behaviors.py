@@ -1,4 +1,5 @@
 """Contains behaviors for ui functionality"""
+from queue import Empty, Queue
 
 class CommandHistory:
     """Saves command history for undo and redo"""
@@ -76,88 +77,26 @@ class Command:
         """
         raise NotImplementedError
 
-class PlayerLevelIncrease(Command):
-    """Increase in level command"""
-    def __init__(self, player):
-        """
-        Sets the actor and window for the actor
-        """
-        self.player = player
+class ThreadEventDispatcher:
+    def __init__(self, *listeners, queue=None) -> None:
+        self.queue = Queue() if queue is None else queue()
+        self.__listeners = dict()
+        for event, listener in listeners:
+            self.register_listener(event, listener)
+        #[(function, [args[, kwargs]]), (...)]
 
-    def execute(self):
-        """
-        Executes the level increase
-        """
-        self.player.actor['level'] += 1
+    def register_listener(self, event, listener):
+        try:
+            self.__listeners[event].append(listener)
+        except KeyError:
+            self.__listeners[event] = [listener]
 
-    def reverse(self):
-        """
-        Reverses the level increase
-        """
-        self.player.actor['level'] -= 1
-
-class PlayerLevelDecrease(Command):
-    """Increase in level command"""
-    def __init__(self, player):
-        """
-        Sets the actor and window for the actor
-        """
-        self.player = player
-
-    def execute(self):
-        """
-        Executes the level decrease
-        """
-        self.player.actor['level'] -= 1
-
-    def reverse(self):
-        """
-        Reverses the level decrease
-        """
-        self.player.actor['level'] += 1
-
-class SkillLevelIncrease(Command):
-    """
-    A skill level increase. Woo!
-    """
-    def __init__(self, player, skill_name):
-        """
-        Sets the actor and window for the actor
-        """
-        self.skill_name = skill_name
-        self.player = player
-
-    def execute(self):
-        """
-        Executes the level decrease
-        """
-        self.player.update_skill_level(self.skill_name, 1, relative=True)
-
-    def reverse(self):
-        """
-        Reverses the level decrease
-        """
-        self.player.update_skill_level(self.skill_name, -1, relative=True)
-
-class SkillLevelDecrease(Command):
-    """
-    A skill level decrease. Boo!
-    """
-    def __init__(self, player, skill_name):
-        """
-        Sets the actor and window for the actor
-        """
-        self.skill_name = skill_name
-        self.player = player
-
-    def execute(self):
-        """
-        Executes the level decrease
-        """
-        self.player.update_skill_level(self.skill_name, -1, relative=True)
-
-    def reverse(self):
-        """
-        Reverses the level decrease
-        """
-        self.player.update_skill_level(self.skill_name, 1, relative=True)
+    def poll(self):
+        try:
+            event = self.queue.get_nowait()
+        except Empty:
+            return None
+        for event_queue, listeners in self.__listeners.items():
+            if not event_queue == event:
+                continue
+            [listener(event) for listener in listeners]    
