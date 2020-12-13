@@ -1,8 +1,15 @@
 README.md
 setup.py
+tests/__init__.py
+tests/test_command_history.py
+tests/test_get_grid.py
+tests/test_thread_event_dispatcher.py
 tklife/__init__.py
+tklife/arrange.py
+tklife/behaviors.py
 tklife/shortcuts.py
 tklife/simpledialog.py
+tklife/widgets.py
 tklife.egg-info/PKG-INFO
 tklife.egg-info/SOURCES.txt
 tklife.egg-info/dependency_links.txt

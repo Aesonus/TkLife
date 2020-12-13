@@ -1,5 +1,7 @@
 """Contains behaviors for ui functionality"""
+import functools
 from queue import Empty, Queue
+from typing import Any
 
 class CommandHistory:
     """Saves command history for undo and redo"""
@@ -61,17 +63,29 @@ class CommandHistory:
         self.history = self.history[:self.cursor + 1]
     
     def __len__(self):
-        return len(self.history)
+        """
+        Returns the commands that can be reversed (undo)
+        Useful for unsaved indicators and warnings
+        """
+        return len(tuple(self.iter_history()))
+
+    def iter_history(self):
+        """
+        Yields each item in history up to the cursor position
+        Useful for displaying all changes
+        """
+        for command in (self.history[:self.cursor + 1] if self.cursor is not None else []):
+            yield command
 
 class Command:
     """Abstract class for a command"""
-    def execute(self):
+    def execute(self) -> None:
         """
         Executes this command
         """
         raise NotImplementedError
 
-    def reverse(self):
+    def reverse(self) -> None:
         """
         Reverses this command
         """
@@ -115,16 +129,23 @@ class ThreadEventDispatcher:
         except KeyError:
             self.__listeners[event] = [listener]
 
-    def poll(self):
+    def poll(self, call_after=None):
         """
         Gets the next event from the queue and calls all of the
         listeners with the arguments given to the event instance
+
+        Calls the call_after function if it is given. Usually this
+        should be the tkinter.Widget.after method to run this method
+        on a schedule
         """
         try:
             event = self.queue.get_nowait()
         except Empty:
-            return None
-        for event_queue, listeners in self.__listeners.items():
-            if not isinstance(event, event_queue):
-                continue
-            [listener(*event.args, **event.kwargs) for listener in listeners]    
+            pass
+        else:
+            for event_queue, listeners in self.__listeners.items():
+                if not isinstance(event, event_queue):
+                    continue
+                [listener(*event.args, **event.kwargs) for listener in listeners]
+        if callable(call_after):
+            call_after()

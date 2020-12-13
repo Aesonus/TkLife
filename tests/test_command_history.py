@@ -3,15 +3,18 @@ from tklife.behaviors import CommandHistory, Command
 
 class MockCommand(Command):
     """Mocks a command"""
+    readable_name = 'MockCommand'
     def __init__(self):
         super().__init__()
         self.last_call = None
 
     def execute(self):
         self.last_call = self.execute
+        return '1'
 
     def reverse(self):
         self.last_call = self.reverse
+        return '-1'
 
 @pytest.fixture
 def command_history_no_history():
@@ -109,3 +112,19 @@ def test_undo_all_reverts_entire_history(command_history_with_some_history):
     assert command2.last_call == command2.reverse
     assert command3.last_call == command3.reverse
     
+@pytest.fixture(params=[None, 0, 1, 2])
+def command_history_with_different_cursor_positions(request, command_history_with_some_history):
+    test_obj, command1, command2, command3 = command_history_with_some_history
+    test_obj.cursor = request.param
+    expected = (command1, command2, command3)[0:request.param + 1] if request.param is not None else ()
+    return (test_obj, expected)
+
+def test_iter_history_iterates_through_items_in_history_up_to_the_cursor(command_history_with_different_cursor_positions):
+    test_obj, expected = command_history_with_different_cursor_positions
+    actual = tuple(test_obj.iter_history())
+    assert actual == expected
+
+def test_len_history_returns_count_of_items_in_history_up_to_the_cursor(command_history_with_different_cursor_positions):
+    test_obj, expected = command_history_with_different_cursor_positions
+    expected = len(expected)
+    assert len(test_obj) == expected

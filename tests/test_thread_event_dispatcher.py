@@ -1,3 +1,4 @@
+from _pytest.python_api import raises
 from tklife.behaviors import ThreadEvent, ThreadEventDispatcher
 import pytest
 
@@ -30,3 +31,10 @@ def test_poll_calls_methods_in_listeners_list(calls_fixture):
     with pytest.raises(Listened) as info:
         dispatcher.poll()
     assert info.value.args == expected_args
+
+def test_poll_calls_call_after_function():
+    dispatcher = ThreadEventDispatcher()
+    def call_after():
+        raise Listened
+    with pytest.raises(Listened):
+        dispatcher.poll(call_after=call_after)
