@@ -79,23 +79,47 @@ class Command:
 
 class ThreadEvent:
     def __init__(self, args=(), kwargs={}):
+        """
+        Class that describes the event from a thread.
+        args and kwargs will be passed to the listener function
+        by the event dispatcher
+        """
         self.args = args
         self.kwargs = kwargs
 
 class ThreadEventDispatcher:
     def __init__(self, *listeners, queue=None) -> None:
+        """
+        Sets up the event queue
+
+        You may pass listeners in the following format:
+        iterable(
+            tuple(event_class, listener_function),
+            ...
+        )
+
+        You may specify your own queue class if desired
+        """
         self.queue = Queue() if queue is None else queue()
         self.__listeners = dict()
         for event, listener in listeners:
             self.register_listener(event, listener)
 
     def register_listener(self, event, listener):
+        """
+        Registers a listener for the given event class
+        The listeners are called in the same order they are added
+        """
         try:
             self.__listeners[event].append(listener)
         except KeyError:
             self.__listeners[event] = [listener]
 
     def poll(self):
+        """
+        Gets the next event from the queue and calls all of the
+        listeners with the arguments given to the event instance
+        """
         try:
             event = self.queue.get_nowait()
         except Empty:
