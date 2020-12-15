@@ -28,8 +28,7 @@ class CommandHistory:
         command.reverse()
         new_cursor = self.cursor - 1
         if new_cursor < 0:
-            self.cursor = None
-            return command
+            new_cursor = None
         self.cursor = new_cursor
         return command
 

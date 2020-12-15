@@ -47,7 +47,7 @@ class ModalDialog(Common, Toplevel):
         self.withdraw()
         self.cancelled = False
         self.protocol("WM_DELETE_WINDOW", self._on_cancel)
-        self.bind('<Escape>', self._on_cancel)
+        self.bind('<Escape>', lambda _: self._on_cancel())
 
     def _on_cancel(self):
         """
