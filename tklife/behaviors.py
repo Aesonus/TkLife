@@ -1,5 +1,4 @@
 """Contains behaviors for ui functionality"""
-import functools
 from queue import Empty, Queue
 from typing import Any
 
@@ -24,24 +23,28 @@ class CommandHistory:
     def undo(self):
         """Calls reverse on the previous command"""
         if self.cursor is None:
-            return
-        self.history[self.cursor].reverse()
+            return None
+        command = self.history[self.cursor]
+        command.reverse()
         new_cursor = self.cursor - 1
         if new_cursor < 0:
             self.cursor = None
-            return
+            return None
         self.cursor = new_cursor
+        return command
 
     def redo(self):
         """Calls execute on the next command"""
         if self.cursor is None and len(self.history) == 0:
-            return
+            return None
         if self.cursor is None and len(self.history) > 0:
             self.cursor = -1
         if self.cursor == self.history.index(self.history[-1]):
-            return
+            return None
         self.cursor += 1
-        self.history[self.cursor].execute()
+        command = self.history[self.cursor]
+        command.execute()
+        return command
 
     def undo_all(self, until=None):
         """Calls undo on all of the history"""
@@ -128,6 +131,16 @@ class ThreadEventDispatcher:
             self.__listeners[event].append(listener)
         except KeyError:
             self.__listeners[event] = [listener]
+
+    def remove_listener(self, event, listener):
+        """
+        Removes the listener given for the given event.
+        Does nothing if there is no event listeners registered
+        """
+        try:
+            self.__listeners[event].remove(listener)
+        except KeyError:
+            pass
 
     def poll(self, call_after=None):
         """
