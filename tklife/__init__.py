@@ -47,6 +47,7 @@ class ModalDialog(Common, Toplevel):
         self.withdraw()
         self.cancelled = False
         self.protocol("WM_DELETE_WINDOW", self._on_cancel)
+        self.bind('<Escape>', self._on_cancel)
 
     def _on_cancel(self):
         """
@@ -61,6 +62,7 @@ class ModalDialog(Common, Toplevel):
         new = dialog_class(master=master, **kwargs)
         new.deiconify()
         new.grab_set()
+        new.focus_set()
         new.wait_window()
         if (new.cancelled):
             return None
