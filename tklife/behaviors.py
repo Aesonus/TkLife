@@ -29,7 +29,7 @@ class CommandHistory:
         new_cursor = self.cursor - 1
         if new_cursor < 0:
             self.cursor = None
-            return None
+            return command
         self.cursor = new_cursor
         return command
 

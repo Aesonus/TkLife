@@ -55,14 +55,15 @@ def test_undo_calls_reverse_on_last_command_and_moves_cursor_position_back(
     command_history_with_some_history
 ):
     test_obj, command1, command2, command3 = command_history_with_some_history
-    test_obj.undo()
+    command_reversed = test_obj.undo()
 
     assert command3.last_call == command3.reverse
     assert test_obj.cursor == test_obj.history.index(command2)
+    assert command_reversed == command3
 
 def test_undo_does_nothing_if_no_history(command_history_no_history):
     test_obj = command_history_no_history
-    test_obj.undo()
+    assert test_obj.undo() is None
 
 def test_add_history_deletes_history_after_cursor(command_history_with_some_history):
     test_obj, command1, command2, command3 = command_history_with_some_history
@@ -80,18 +81,20 @@ def test_redo_executes_command_at_cursor_and_advances_it_to_next_command(command
     test_obj, command1, command2, command3 = command_history_with_some_history
     test_obj.cursor = 1
 
-    test_obj.redo()
+    redo = test_obj.redo()
     assert command2.last_call is None
     assert command3.last_call == command3.execute
     assert test_obj.cursor == test_obj.history.index(command3)
+    assert redo == command3
 
 def test_redo_does_nothing_if_cursor_is_on_last_command(command_history_with_some_history):
     test_obj, command1, command2, command3 = command_history_with_some_history
 
-    test_obj.redo()
+    redo = test_obj.redo()
 
     assert command3.last_call is None
     assert test_obj.cursor == test_obj.history.index(command3)
+    assert redo is None
 
 def test_redo_does_nothing_if_no_history(command_history_no_history):
     test_obj = command_history_no_history
@@ -102,7 +105,8 @@ def test_redo_does_nothing_if_no_history(command_history_no_history):
 def test_redo_executes_next_command_if_cursor_is_none_and_commands_are_in_history(command_history_with_some_history):
     test_obj, command1, command2, command3 = command_history_with_some_history
     test_obj.cursor = None
-    test_obj.redo()
+    redo = test_obj.redo()
+    assert redo is command1
     assert command1.last_call == command1.execute
 
 def test_undo_all_reverts_entire_history(command_history_with_some_history):
