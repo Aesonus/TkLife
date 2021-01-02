@@ -3,6 +3,7 @@ setup.py
 tests/__init__.py
 tests/test_command_history.py
 tests/test_get_grid.py
+tests/test_labelled_widgets.py
 tests/test_thread_event_dispatcher.py
 tklife/__init__.py
 tklife/arrange.py

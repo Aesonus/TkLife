@@ -1,6 +1,7 @@
 """Module for gridding out lists of elements"""
 from math import floor
 from itertools import accumulate
+from typing import Dict, Tuple
 
 class Autogrid:
     """
@@ -46,7 +47,7 @@ class Autogrid:
             y_val = self._get_row_index(index) + self._get_y_offset(index)
             yield (x_val, y_val)
 
-    def grid_dicts(self, element_count, keynames):
+    def grid_dicts(self, element_count, keynames: Tuple[str]=('column', 'row')):
         """Yields grid coordinates as a dict using keynames as keys"""
         if len(tuple(iter(keynames))) != 2:
             raise ValueError("'keynames' must be of length %s" %
@@ -56,8 +57,9 @@ class Autogrid:
             for coords in self.grid_tuples(element_count)
         )
 
-    def zip_dicts(self, elements, keynames):
+    def zip_dicts(self, elements, keynames: Tuple[str]=('column', 'row')):
         length = len(elements)
+        grid_coords = self.grid_dicts(length, keynames=keynames)
         return (
-            zip(elements, self.grid_dicts(length, keynames))
+            zip(elements, grid_coords)
         )
