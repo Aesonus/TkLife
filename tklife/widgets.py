@@ -1,6 +1,7 @@
 """Creates some common widgets"""
 from tkinter import Text, Canvas, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
 from tkinter.ttk import Frame, Button, Scrollbar
+from tklife.constants import EXPAND, FILL
 from tklife import CommonFrame
 
 
@@ -8,8 +9,8 @@ class Table(CommonFrame):
     sort_up = " ▲"
     sort_down = " ▼"
     col_pack_options = {
-        'fill': X,
-        'expand': True
+        FILL: X,
+        EXPAND: True
     }
 
     def __init__(self, column_headers, data, **kwargs):
