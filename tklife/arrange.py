@@ -58,13 +58,15 @@ class Autogrid:
             for coords in self.grid_tuples(element_count)
         )
 
-    def zip_dicts(self, elements, keynames: Sequence[str] = ('column', 'row'), grid_kwargs: Sequence[Mapping] = None, default_grid_kwargs: Mapping = {}):
+    def zip_dicts(self,
+                  elements,
+                  keynames: Sequence[str] = ('column', 'row'),
+                  grid_kwargs: Sequence[Mapping] = None,
+                  default_grid_kwargs: Mapping = {}):
         length = len(elements)
         grid_coords = self.grid_dicts(length, keynames=keynames)
         if grid_kwargs is None:
-            return (
-                zip(elements, grid_coords)
-            )
+            return zip(elements, grid_coords)
         else:
             grid_kwargs = list(grid_kwargs)
             while len(grid_kwargs) < length:
