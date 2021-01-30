@@ -1,7 +1,8 @@
 """Module for gridding out lists of elements"""
-from math import floor
 from itertools import accumulate
-from typing import Dict, Tuple
+from math import floor
+from typing import Mapping, Sequence
+
 
 class Autogrid:
     """
@@ -47,7 +48,7 @@ class Autogrid:
             y_val = self._get_row_index(index) + self._get_y_offset(index)
             yield (x_val, y_val)
 
-    def grid_dicts(self, element_count, keynames: Tuple[str]=('column', 'row')):
+    def grid_dicts(self, element_count, keynames: Sequence[str] = ('column', 'row')):
         """Yields grid coordinates as a dict using keynames as keys"""
         if len(tuple(iter(keynames))) != 2:
             raise ValueError("'keynames' must be of length %s" %
@@ -57,10 +58,15 @@ class Autogrid:
             for coords in self.grid_tuples(element_count)
         )
 
-    #TODO: Add in another argument for grid kwargs
-    def zip_dicts(self, elements, keynames: Tuple[str]=('column', 'row')):
+    def zip_dicts(self, elements, keynames: Sequence[str] = ('column', 'row'), grid_kwargs: Sequence[Mapping] = None, default_grid_kwargs: Mapping = {}):
         length = len(elements)
         grid_coords = self.grid_dicts(length, keynames=keynames)
-        return (
-            zip(elements, grid_coords)
-        )
+        if grid_kwargs is None:
+            return (
+                zip(elements, grid_coords)
+            )
+        else:
+            grid_kwargs = list(grid_kwargs)
+            while len(grid_kwargs) < length:
+                grid_kwargs.append(default_grid_kwargs)
+            return zip(elements, grid_coords, tuple(grid_kwargs))
