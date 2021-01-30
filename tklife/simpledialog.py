@@ -31,7 +31,7 @@ class BaseSimpleDialog(ModalDialog):
         self._button_box()
         self.entry_label = Label(self, text=self.prompt)
         self.entry = Entry(self, textvariable=self.input_var)
-    
+
     def _button_box(self):
         """Creates buttons for the modal, override to use your own"""
         self.ok_button = Button(self.button_box, text="OK", command=self._on_okay)
@@ -77,7 +77,7 @@ class AskString(BaseSimpleDialog):
     """
     Displays a dialog asking for a string value
     """
-    
+
     def _return_values(self):
         """
         Returns the input string value

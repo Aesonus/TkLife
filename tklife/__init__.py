@@ -67,7 +67,7 @@ class ModalDialog(Common, Toplevel):
         if (new.cancelled):
             return None
         return new._return_values()
-    
+
     def _return_values(self):
         """Returns the result of this dialog, if any"""
         return None
