@@ -1,7 +1,7 @@
 from tkinter import StringVar, LEFT, END
 from tkinter.ttk import Label, Entry, Button, Frame
 from tkinter.messagebox import showwarning
-from tklife import ModalDialog
+from .widgets import ModalDialog
 
 class BaseSimpleDialog(ModalDialog):
     """
