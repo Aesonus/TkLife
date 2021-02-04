@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="tklife",
-    version="0.4.0",
+    version="0.4.1",
     author="Cory Laughlin",
     author_email="corylcomposinger@gmail.com",
     description="""Contains some basic classes and convenience functions and methods
