@@ -4,14 +4,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="tklife", # Replace with your own username
-    version="0.3.6",
+    name="tklife",
+    version="0.4.0",
     author="Cory Laughlin",
     author_email="corylcomposinger@gmail.com",
-    description="COntains some basic classes for Tkinter Applications",
+    description="""Contains some basic classes and convenience functions and methods
+for Tkinter Applications""",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/Aesonus/TkLife",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
