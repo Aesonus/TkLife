@@ -1,7 +1,9 @@
 """Shows a sample tklife application"""
 
 from tkinter import StringVar, Widget
+from tkinter.constants import END
 from tkinter.ttk import Button, Entry, Label
+from .widgets import NewTable
 from .constants import COLUMNSPAN, PADX, PADY
 from .mixins import generate_event_for
 from . import Main
@@ -18,8 +20,8 @@ def show_dialog_for(widget):
     return '<<ShowDialog>>'
 
 class App(Main):
-    def __init__(self, master: Widget = None, **kwargs):
-        super().__init__(master=master, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.title('Sample Application')
 
     def _create_vars(self):
@@ -32,10 +34,19 @@ class App(Main):
         button.configure(command=self.show_dialog_for(button))
         button = Button(self, text='Show For This Button',)
         button.configure(command=show_dialog_for(button))
+        def get_widget_text(widget: Entry):
+            return widget.get()
+        table = NewTable(self, headers=(('Test', get_widget_text), ('The', get_widget_text), ('Table', get_widget_text), ))
+        widgets_ = []
+        for row in range(4):
+            for col in range(3):
+                widgets_.append(Entry(table.table))
+                widgets_[-1].insert(0, 'Row {}; Col {}'.format(row, col))
+        table.cell_widgets = widgets_
 
     def _layout_widgets(self):
-        for widget, grid_coords, kwargs in Autogrid((2, 1), group_size=1).zip_dicts(self.winfo_children(), grid_kwargs=({}, {},), default_grid_kwargs={COLUMNSPAN: 2}):
-            widget.grid(**grid_coords, **PADDING, **kwargs)
+        for widget, grid_coords in Autogrid((2, 1), 1).zip_dicts(self.winfo_children(), grid_kwargs_list=({}, {},), fill_grid_kwargs={COLUMNSPAN: 2}):
+            widget.grid(**grid_coords, **PADDING)
 
     def _create_events(self):
         self.bind('<<ShowDialog>>', lambda e: print(e.widget))

@@ -1,4 +1,5 @@
 from tkinter import Widget
+from typing import Optional
 
 __all__ = ['Common']
 
@@ -28,7 +29,7 @@ class Common:
     Defines common abstract methods for Toplevel and Tk
     """
 
-    def __init__(self, master: Widget = None, **kwargs):
+    def __init__(self, master: Optional[Widget] = None, **kwargs):
         """
         Initialize the Toplevel
         """

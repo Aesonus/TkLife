@@ -79,20 +79,20 @@ def test_zip_dicts():
 
 def test_zip_dicts_with_kwargs():
     expected = (
-        ('elema', {'a': 0, 'b':0}, {"arg1": 1}), ('elemb', {'a': 1, 'b':0}, {"arg2": 2}),
-        ('elemc', {'a': 0, 'b':1}, {"arg3": 3}), ('elemd', {'a': 1, 'b':1}, {"arg4": 4}),
+        ('elema', {'a': 0, 'b':0, "arg1": 1}), ('elemb', {'a': 1, 'b':0, "arg2": 2}),
+        ('elemc', {'a': 0, 'b':1, "arg3": 3}), ('elemd', {'a': 1, 'b':1, "arg4": 4}),
     )
-    actual = Autogrid((1, )).zip_dicts(('elema', 'elemb', 'elemc', 'elemd'), 'ab', grid_kwargs=(
+    actual = Autogrid((1, )).zip_dicts(('elema', 'elemb', 'elemc', 'elemd'), 'ab', grid_kwargs_list=(
         {"arg1": 1}, {"arg2": 2}, {"arg3": 3}, {"arg4": 4}
     ))
     assert tuple(actual) == expected
 
 def test_zip_dicts_with_kwargs_and_default_kwargs():
     expected = (
-        ('elema', {'a': 0, 'b':0}, {"arg1": 1}), ('elemb', {'a': 1, 'b':0}, {"arg2": 2}),
-        ('elemc', {'a': 0, 'b':1}, {"arg3": 3}), ('elemd', {'a': 1, 'b':1}, {'default': 'arg'}),
+        ('elema', {'a': 0, 'b':0, "arg1": 1}), ('elemb', {'a': 1, 'b':0, "arg2": 2}),
+        ('elemc', {'a': 0, 'b':1, "arg3": 3}), ('elemd', {'a': 1, 'b':1, 'default': 'arg'}),
     )
-    actual = Autogrid((1, )).zip_dicts(('elema', 'elemb', 'elemc', 'elemd'), 'ab', grid_kwargs=(
+    actual = Autogrid((1, )).zip_dicts(('elema', 'elemb', 'elemc', 'elemd'), 'ab', grid_kwargs_list=(
         {"arg1": 1}, {"arg2": 2}, {"arg3": 3},
-    ), default_grid_kwargs={'default': 'arg'})
+    ), fill_grid_kwargs={'default': 'arg'})
     assert tuple(actual) == expected

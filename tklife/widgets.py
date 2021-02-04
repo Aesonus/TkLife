@@ -1,7 +1,11 @@
 """Creates some common widgets"""
 from tkinter import Text, Canvas, Tk, Toplevel, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
+from tkinter.constants import E, W
 from tkinter.ttk import Frame, Button, Scrollbar
-from typing import Any
+
+from aesonutil import chunked
+from .arrange import Autogrid
+from typing import Any, Callable, List, Optional, Sequence, Tuple
 from .mixins import Common
 from .constants import EXPAND, FILL
 
@@ -65,13 +69,13 @@ class Table(CommonFrame):
         EXPAND: True
     }
 
-    def __init__(self, column_headers, data, **kwargs):
+    def __init__(self, master, column_headers, data, **kwargs):
         """
         Creates a table
         """
         self.column_headers = column_headers
         self.data = data
-        super().__init__(**kwargs)
+        super().__init__(master, **kwargs)
 
     def _create_events(self):
         """Create events"""
@@ -176,3 +180,89 @@ class Table(CommonFrame):
             if button is not except_button:
                 button.configure(text=button['text'].replace(
                     self.sort_up, '').replace(self.sort_down, ''))
+
+HeaderRow = Tuple[str, Callable[[Widget], Any]]
+
+class NewTable(CommonFrame):
+    sort_up = " ▲"
+    sort_down = " ▼"
+    def __init__(self, master: Widget, headers: Optional[Tuple[HeaderRow, ...]] = None, **kwargs):
+        self.__headers = []
+        self.__sort_keys = []
+        self.__cell_widgets = []
+        super().__init__(master=master, **kwargs)
+        self.headers = headers
+
+    @property
+    def headers(self):
+        return self.__headers
+
+    @headers.deleter
+    def headers(self):
+        for button in self.headers:
+            button.destroy()
+        self.__headers = []
+        self.__sort_keys = []
+
+    @headers.setter
+    def headers(self, headers: Tuple[HeaderRow,]):
+        self.__headers = []
+        self.__sort_keys = []
+        for label, key in headers:
+            self.__headers.append(self._create_header_button(label))
+            self.__sort_keys.append(lambda widget=self.__headers[-1]: key(widget))
+
+        self._layout_table_widgets()
+
+    @property
+    def cell_widgets(self) -> List[Widget]:
+        return self.__cell_widgets
+
+    @cell_widgets.setter
+    def cell_widgets(self, widgets: Sequence[Widget]):
+        self.__cell_widgets = list(widgets)
+        self._layout_table_widgets()
+
+    def sort_data(self, column_index: int, sort_by:Optional[Callable] = None):
+        rows = chunked(self.cell_widgets, len(self.headers))
+        def sort_key(row):
+            widget = row[column_index]
+            return self.__sort_keys[column_index](widget)
+        if sort_by is not None:
+            sort_key = sort_by
+        new_rows = sorted(rows, key=sort_key)
+        widgets = []
+        for row in new_rows:
+            widgets.extend(row)
+        self.cell_widgets = widgets
+
+    def _create_header_button(self, text) -> Button:
+        button = Button(self.table, text=text)
+        button.configure(command=lambda index=len(self.__headers): self.sort_data(index))
+        return button
+
+    def _create_widgets(self):
+        self.table_frame = Frame(self)
+        self.scrollable_canvas = Canvas(self.table_frame)
+        self.x_scroll = Scrollbar(
+            self, orient=HORIZONTAL, command=self.scrollable_canvas.xview)
+        self.y_scroll = Scrollbar(
+            self.table_frame, orient=VERTICAL, command=self.scrollable_canvas.yview)
+        self.scrollable_canvas.configure(yscrollcommand=self.y_scroll.set,
+                                         xscrollcommand=self.x_scroll.set)
+        self.table = Frame(self.scrollable_canvas)
+
+    def _layout_widgets(self):
+        self.x_scroll.pack(side=BOTTOM, fill=X)
+        self.y_scroll.pack(side=RIGHT, fill=Y)
+        self.scrollable_canvas.pack(expand=True, fill=BOTH)
+        self.scrollable_canvas.create_window(
+            (0, 0), window=self.table, anchor="nw")
+        self.table_frame.pack(expand=True, fill=BOTH)
+        self._layout_table_widgets()
+
+    def _layout_table_widgets(self):
+        #Configure the grid to expand
+        all_widgets = self.headers + self.cell_widgets
+        for button, coords in Autogrid((len(self.headers), ), 1).zip_dicts(all_widgets):
+            button.grid(**coords, sticky=E+W)

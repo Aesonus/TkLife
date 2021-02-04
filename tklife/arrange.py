@@ -1,7 +1,8 @@
 """Module for gridding out lists of elements"""
 from itertools import accumulate
 from math import floor
-from typing import Mapping, Sequence
+from tkinter import Widget
+from typing import Any, Dict, Mapping, Tuple, Union, Sequence
 
 
 class Autogrid:
@@ -9,7 +10,7 @@ class Autogrid:
     Class for getting grid coordinates based on an enumeration
     """
 
-    def __init__(self, row_lengths, group_size=2):
+    def __init__(self, row_lengths: Tuple[int, ...], group_size: int=2):
         """
         Sets the row lengths and group size for generators
         """
@@ -59,16 +60,23 @@ class Autogrid:
         )
 
     def zip_dicts(self,
-                  elements,
+                  elements: Sequence[Widget],
                   keynames: Sequence[str] = ('column', 'row'),
-                  grid_kwargs: Sequence[Mapping] = None,
-                  default_grid_kwargs: Mapping = {}):
+                  grid_kwargs_list: Sequence[Mapping] = [],
+                  fill_grid_kwargs: Mapping = {},
+                  all_grid_kwargs: Mapping = {}) -> Tuple[Widget, Dict]:
+        """
+        Returns a tuple of tuples containing the widget to grid, a dict containing coordinate and
+        all_grid_kwargs mappings, and optionally a dict corresponding to the index in the grid_kwargs_list.
+        If there are less elements in the grid_kwargs_list than in the elements list, then the
+        fill_grid_kwargs will be used instead.
+        """
         length = len(elements)
-        grid_coords = self.grid_dicts(length, keynames=keynames)
-        if grid_kwargs is None:
-            return zip(elements, grid_coords)
-        else:
-            grid_kwargs = list(grid_kwargs)
-            while len(grid_kwargs) < length:
-                grid_kwargs.append(default_grid_kwargs)
-            return zip(elements, grid_coords, tuple(grid_kwargs))
+        for (index, coords), widget in zip(enumerate(self.grid_dicts(length, keynames=keynames)), elements):
+            grid_kwargs = coords.copy()
+            grid_kwargs.update(all_grid_kwargs)
+            try:
+                grid_kwargs.update(grid_kwargs_list[index])
+            except IndexError:
+                grid_kwargs.update(fill_grid_kwargs)
+            yield (widget, grid_kwargs)
