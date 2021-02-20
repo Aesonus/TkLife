@@ -41,3 +41,24 @@ COLUMNSPAN = 'columnspan'
 ROW = 'row'
 ROWSPAN = 'rowspan'
 STICKY = 'sticky'
+
+#Checkbutton vars
+VARIABLE = 'variable'
+ONVALUE = 'onvalue'
+OFFVALUE = 'offvalue'
+
+#Combobox vars
+VALUES = 'values'
+
+#Listbox vars
+ACTIVE_STYLE = 'activestyle'
+LISTVARIABLE = 'listvariable'
+
+#State var
+READONLY = 'readonly'
+
+#Progressvar vars
+ORIENT = 'orient'
+MODE = 'mode'
+DETERMINATE = 'determinate'
+INDETERMINATE = 'in' + DETERMINATE
