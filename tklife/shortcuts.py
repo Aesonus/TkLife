@@ -1,10 +1,11 @@
 from functools import reduce
-from typing import Dict, Iterable, Tuple
+from tkinter.constants import W
+from typing import Dict, Iterable, List, Sequence, Tuple, Type
 
 from tkinter.ttk import Label, Entry
 
 from tkinter import Widget
-
+from aesonutil import MapTo, mapper
 
 def labelled_entry(master, entry_kwargs={}, label_kwargs={}, **label_groups):
     """
@@ -24,12 +25,19 @@ def labelled_entry(master, entry_kwargs={}, label_kwargs={}, **label_groups):
     return returnval
 
 
-def labelled_widgets(master: Widget, labels: Iterable[str], widgets: Iterable[Widget], kwargs: Iterable[Dict], widget_kwargs: Dict = {}, label_kwargs: Dict = {},):
+def labelled_widgets(master: Widget,
+                     labels: Sequence[str],
+                     widgets: Sequence[Type[Widget]],
+                     kwargs: Sequence[Dict],
+                     widget_kwargs: Dict = {},
+                     label_kwargs: Dict = {},
+                     ) -> List[Widget]:
     args = (labels, widgets, kwargs)
-    size = sum(map(len, args))
+    size = sum(map(MapTo(len), args))
     if size % 3 != 0:
-        raise ValueError("'{}', '{}', and '{}' must be of same length".format('labels', 'widgets', 'kwargs'))
-    return_ = []
+        raise ValueError("'{}', '{}', and '{}' must be of same length".format(
+            'labels', 'widgets', 'kwargs'))
+    return_: List[Widget] = []
     for (label, widget, kwarg) in zip(*args):
         return_.append(
             Label(master, text=label, **label_kwargs),

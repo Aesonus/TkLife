@@ -2,7 +2,7 @@
 from itertools import accumulate
 from math import floor
 from tkinter import Widget
-from typing import Any, Dict, Mapping, Tuple, Union, Sequence
+from typing import Any, Dict, Generator, Iterator, Mapping, Tuple, Union, Sequence
 
 
 class Autogrid:
@@ -64,12 +64,12 @@ class Autogrid:
                   keynames: Sequence[str] = ('column', 'row'),
                   grid_kwargs_list: Sequence[Mapping] = [],
                   fill_grid_kwargs: Mapping = {},
-                  all_grid_kwargs: Mapping = {}) -> Tuple[Widget, Dict]:
+                  all_grid_kwargs: Mapping = {}) -> Iterator[Tuple[Widget, Dict]]:
         """
-        Returns a tuple of tuples containing the widget to grid, a dict containing coordinate and
-        all_grid_kwargs mappings, and optionally a dict corresponding to the index in the grid_kwargs_list.
-        If there are less elements in the grid_kwargs_list than in the elements list, then the
-        fill_grid_kwargs will be used instead.
+        Generate a tuple containing each widget and a dict containing coordinate and
+        all_grid_kwargs mappings, optionally merged with a each dict in
+        grid_kwargs_list. If there are less elements in the grid_kwargs_list than in the
+        elements list, then the fill_grid_kwargs will be used after kwargs_list is consumed.
         """
         length = len(elements)
         for (index, coords), widget in zip(enumerate(self.grid_dicts(length, keynames=keynames)), elements):
