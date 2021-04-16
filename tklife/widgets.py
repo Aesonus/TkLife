@@ -3,7 +3,6 @@ from tkinter import Text, Canvas, Tk, Toplevel, Widget, X, VERTICAL, HORIZONTAL,
 from tkinter.constants import E, W
 from tkinter.ttk import Frame, Button, Scrollbar
 
-from aesonutil import chunked
 from .arrange import Autogrid
 from typing import Any, Callable, List, Optional, Sequence, Tuple
 from .mixins import Common
@@ -15,6 +14,9 @@ class Main(Common, Tk):
     """
     A main application window
     """
+    def __new__(cls) -> Any:
+        cls.__doc__ = Frame.__doc__
+        return super().__new__(cls)
 
 class Window(Common, Toplevel):
     """
@@ -61,6 +63,8 @@ class ModalDialog(Common, Toplevel):
         """Returns the result of this dialog, if any"""
         return None
 
+
+
 class Table(CommonFrame):
     sort_up = " ▲"
     sort_down = " ▼"
@@ -76,6 +80,7 @@ class Table(CommonFrame):
         self.column_headers = column_headers
         self.data = data
         super().__init__(master, **kwargs)
+
 
     def _create_events(self):
         """Create events"""
@@ -224,6 +229,8 @@ class NewTable(CommonFrame):
         self._layout_table_widgets()
 
     def sort_data(self, column_index: int, sort_by:Optional[Callable] = None):
+        def chunked(sequence: Sequence, chunk_size: int) -> List[Sequence]:
+            return [sequence[i: i + chunk_size] for i in range(0, len(sequence), chunk_size)]
         rows = chunked(self.cell_widgets, len(self.headers))
         def sort_key(row):
             widget = row[column_index]

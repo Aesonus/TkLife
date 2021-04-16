@@ -5,7 +5,6 @@ from typing import Dict, Iterable, List, Sequence, Tuple, Type
 from tkinter.ttk import Label, Entry
 
 from tkinter import Widget
-from aesonutil import MapTo, mapper
 
 def labelled_entry(master, entry_kwargs={}, label_kwargs={}, **label_groups):
     """
@@ -33,7 +32,7 @@ def labelled_widgets(master: Widget,
                      label_kwargs: Dict = {},
                      ) -> List[Widget]:
     args = (labels, widgets, kwargs)
-    size = sum(map(MapTo(len), args))
+    size = sum(map(len, args))
     if size % 3 != 0:
         raise ValueError("'{}', '{}', and '{}' must be of same length".format(
             'labels', 'widgets', 'kwargs'))
