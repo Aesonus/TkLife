@@ -1,0 +1,1 @@
+Expand EventEnum class to allow for bind_all and bind_class
