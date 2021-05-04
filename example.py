@@ -1,8 +1,8 @@
-from tkinter.constants import E, N, S, W
-from tklife.skel.main import tk_vars
+from tkinter.constants import COMMAND, E, N, S, W
+from tklife.event import EventsEnum
 from tklife.skel.shortcuts import LabelledWidget
 from typing import Dict, Mapping, Type
-from tklife.skel import widgets, layout, layout_cfg, TkVars, Skeleton
+from tklife.skel import tk_vars, widgets, layout, layout_cfg, Skeleton
 from tkinter import StringVar, Tk
 from tkinter.ttk import Label, Entry, Button
 from tklife.constants import *
@@ -10,12 +10,17 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-class ExVars(TkVars):
-    store_as = 'mapping'
-    line1_entry1_var = StringVar
-    line1_entry2_var = StringVar
+class Events(EventsEnum):
+    TEST_BUTTON = '<<TestButton>>'
 
 class Main(Skeleton, Tk):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        Events.TEST_BUTTON.bind(self, self.test_handler)
+
+    def test_handler(self, event):
+        print(event.widget)
+
     def skeleton_configure(self):
         return super().skeleton_configure(grid_kw={PADX: 6, PADY: 6}, debug=True)
 
@@ -30,7 +35,7 @@ class Main(Skeleton, Tk):
             widgets: [
                 [(Label, {TEXT: 'Label 1:'}), (Entry, {TEXTVARIABLE: vars.entry_vars.line1})],
                 [*LabelledWidget('Label 2:', Entry, {TEXTVARIABLE: vars.entry_vars.line2})],
-                [(Button, {TEXT: 'Button'})]
+                [(Button, {TEXT: 'Button', COMMAND: Events.TEST_BUTTON})]
             ],
             layout: [
                 [{STICKY: E}, {STICKY: E+W}],

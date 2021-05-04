@@ -2,25 +2,30 @@ import logging
 import tkinter.ttk as ttk
 from abc import abstractmethod
 from tkinter import Frame, LabelFrame, Variable, Widget
-from .dummy import DummyAttr
-from typing import (Any, Dict, Iterable, Literal, Mapping, Tuple,
-                    Type, TypeVar, Union)
+from tkinter.constants import COMMAND
+from typing import (Any, Dict, Iterable, Literal, Mapping, Tuple, Type,
+                    TypeVar, Union)
 
 from ..constants import COLUMN, ROW, TEXTVARIABLE, VARIABLE
+from ..event import EventsEnum
+from .dummy import DummyAttr
 
 _Container = TypeVar('_Container', Frame, ttk.Frame,
                      LabelFrame, ttk.Labelframe, 'Skeleton')
-_WRow = TypeVar('_WRow', bound=Iterable[Iterable[Tuple[Type[Widget], Mapping[str, Any]]]])
+_WRow = TypeVar(
+    '_WRow', bound=Iterable[Iterable[Tuple[Type[Widget], Mapping[str, Any]]]])
 _LRow = TypeVar('_LRow', bound=Iterable[Iterable[Mapping[str, Any]]])
-_LCfg = TypeVar('_LCfg', bound=Tuple[Iterable[Dict[str, Any]], Iterable[Dict[str, Any]]])
+_LCfg = TypeVar(
+    '_LCfg', bound=Tuple[Iterable[Dict[str, Any]], Iterable[Dict[str, Any]]])
 
 __all__ = [
-    'TkVars',
+    'tk_vars',
     'widgets',
     'layout',
     'layout_cfg',
     'Skeleton',
 ]
+
 
 class _MetaTkVars(type):
     def __new__(cls, name, bases, namespace):
@@ -62,7 +67,7 @@ class _MetaTkVars(type):
                     mapping = mapping[key]
                 except KeyError:
                     if i == len(keys):
-                        #Create the value since it does not exist
+                        # Create the value since it does not exist
                         var = self._make_var(name)
                         mapping[key] = var
                         return var
@@ -73,15 +78,14 @@ class _MetaTkVars(type):
                     return mapping
 
 
-
 class TkVars(object, metaclass=_MetaTkVars):
     store_as: Literal['attribute', 'mapping'] = 'attribute'
-
 
 
 T_TkVarDef = Tuple[str, Type[Variable], Mapping[str, str]]
 T_TkVarLvlDef = Tuple[str, Iterable[T_TkVarDef]]
 T_TkVarCfg = Iterable[Union[T_TkVarDef, T_TkVarLvlDef]]
+
 
 class TkVarsMap(dict):
     """
@@ -104,7 +108,7 @@ class TkVarsMap(dict):
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name in self and isinstance(self[name], Variable):
-            self[name].set(value = value)
+            self[name].set(value=value)
         else:
             self[name] = value
 
@@ -114,14 +118,16 @@ class TkVarsMap(dict):
         except KeyError:
             raise AttributeError
 
+
 def tk_vars(master: _Container, var_cfg: T_TkVarCfg):
     logging.getLogger('skel.tk_vars').debug('Creating vars')
+
     def flatten(var_cfg=var_cfg, var_obj=None):
         var_obj = TkVarsMap() if var_obj is None else var_obj
         for name, *params in var_cfg:
             if len(params) > 1:
-                #This is me, go ahead and put me down
-                #in the current var_obj
+                # This is me, go ahead and put me down
+                # in the current var_obj
                 vartype, kwargs = params
                 kw = {
                     'master': master
@@ -153,15 +159,29 @@ def widgets(frame: _Container, widget_rows: _WRow) -> None:
         for w, kw in row:
             kwargs = frame._widget_kw.copy()
             kwargs.update(kw)
-            update_with = {}
-            for key, value in kw.items():
-                # Only replaces the value if it is a dummy attribute
-                if (key == TEXTVARIABLE or key == VARIABLE) and isinstance(value, DummyAttr):
-                    update_with[key] = value.get_real(frame.vars_)
-            kwargs.update(update_with)
-            w(master=frame, **kwargs)
+            # Use late binding for variables if needed
+            for key in (VARIABLE, TEXTVARIABLE):
+                try:
+                    value = kwargs.pop(key)
+                    if isinstance(value, DummyAttr):
+                        kwargs[key] = value.get_real(frame.vars_)
+                    else:
+                        kwargs[key] = value
+                except KeyError:
+                    # Do nothing on purpose
+                    pass
+            created = w(master=frame, **kwargs)
+            # Use late binding on event generation if needed
+            try:
+                event = kwargs.pop(COMMAND)
+                if isinstance(event, EventsEnum):
+                    created.configure(command=event.generate(created))
+            except KeyError:
+                # Do nothing on purpose
+                pass
         if frame._debug:
-            logging.getLogger('skel.widgets').debug("'%s': row %s: %s", frame, index, row)
+            logging.getLogger('skel.widgets').debug(
+                "'%s': row %s: %s", frame, index, row)
 
 
 def layout(frame: _Container, layout_rows: _LRow) -> None:
@@ -178,7 +198,8 @@ def layout(frame: _Container, layout_rows: _LRow) -> None:
             w.grid(**kwargs)
         mod += len(row) - 1
         if frame._debug:
-            logging.getLogger('skel.layout').debug("'%s': row %s: %s", frame, y, row)
+            logging.getLogger('skel.layout').debug(
+                "'%s': row %s: %s", frame, y, row)
 
 
 def layout_cfg(frame: _Container, configuration: _LCfg) -> None:
@@ -186,11 +207,13 @@ def layout_cfg(frame: _Container, configuration: _LCfg) -> None:
     for col, cfg in enumerate(col_cfg):
         frame.grid_columnconfigure(col, **cfg)
         if frame._debug:
-            logging.getLogger('skel.layout_cfg').debug("'%s': col %s: %s", frame, col, cfg)
+            logging.getLogger('skel.layout_cfg').debug(
+                "'%s': col %s: %s", frame, col, cfg)
     for row, cfg in enumerate(row_cfg):
         frame.grid_rowconfigure(row, **cfg)
         if frame._debug:
-            logging.getLogger('skel.layout_cfg').debug("'%s': row %s: %s", frame, row, cfg)
+            logging.getLogger('skel.layout_cfg').debug(
+                "'%s': row %s: %s", frame, row, cfg)
 
 
 class Skeleton(object):
@@ -198,6 +221,7 @@ class Skeleton(object):
     Mixin to be used with a container type widget to elegantly configure its
     widgets. This should come BEFORE the tk widget. (eg: class Test(Skeleton, Tk): ...)
     """
+
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.skeleton_configure()
