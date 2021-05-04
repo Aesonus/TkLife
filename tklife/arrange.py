@@ -10,7 +10,7 @@ class Autogrid:
     Class for getting grid coordinates based on an enumeration
     """
 
-    def __init__(self, row_lengths: Tuple[int, ...], group_size: int=2):
+    def __init__(self, row_lengths: Tuple[int, ...], group_size: int=1):
         """
         Sets the row lengths and group size for generators
         """
