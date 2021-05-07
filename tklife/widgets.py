@@ -1,6 +1,6 @@
 """Creates some common widgets"""
-from tkinter import Event, Listbox, Misc, StringVar, Text, Canvas, Tk, Toplevel, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
-from tkinter.constants import ACTIVE, E, W
+from tkinter import Event, Grid, Listbox, Misc, Pack, Place, StringVar, Text, Canvas, Tk, Toplevel, Variable, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
+from tkinter.constants import ACTIVE, E, INSERT, SINGLE, W
 from tkinter.ttk import Entry, Frame, Button, Scrollbar
 
 from .arrange import Autogrid
@@ -8,49 +8,158 @@ from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple
 from .mixins import Common
 from .constants import EXPAND, FILL
 
-__all__ = ['Main', 'Window', 'CommonFrame', 'ModalDialog']
+__all__ = ['Main', 'Window', 'CommonFrame', 'ModalDialog', 'ScrolledListbox', 'AutoSearchCombobox']
+
+
+class ScrolledListbox(Listbox):
+    """
+    A scrolled listbox, based on tkinter.scrolledtext.ScrolledText
+
+    Arguments:
+        Listbox {[type]} -- [description]
+    """
+    def __init__(self, master=None, **kw):
+        self.frame = Frame(master)
+        self.vbar = Scrollbar(self.frame)
+        self.vbar.pack(side=RIGHT, fill=Y)
+
+        kw.update({'yscrollcommand': self.vbar.set})
+        Listbox.__init__(self, self.frame, **kw)
+        self.pack(side=LEFT, fill=BOTH, expand=True)
+        self.vbar['command'] = self.yview
+
+        # Copy geometry methods of self.frame without overriding Listbox
+        # methods -- hack!
+        text_meths = vars(Listbox).keys()
+        methods = vars(Pack).keys() | vars(Grid).keys() | vars(Place).keys()
+        methods = methods.difference(text_meths)
+
+        for m in methods:
+            if m[0] != '_' and m != 'config' and m != 'configure':
+                setattr(self, m, getattr(self.frame, m))
+
+    def __str__(self):
+        return str(self.frame)
 
 
 # TODO: Finish figuring out exact behavior for this crazy widget idea
 class AutoSearchCombobox(Entry):
-    def __init__(self, master: Widget, values: Optional[Iterable[str]]=None, textvariable=None, **kwargs):
-        self.values = tuple(sorted(values)) if values is not None else tuple()
-        textvariable = textvariable if textvariable is not None else StringVar()
-        super().__init__(master, textvariable=textvariable, **kwargs)
+    def __init__(self, master: Widget, values: Optional[Iterable[str]] = None, height: Optional[int]=None, **kwargs):
+        super().__init__(master, **kwargs)
         self._tl = Toplevel(self, takefocus=False)
         self._tl.wm_overrideredirect(True)
-        self._lb = Listbox(self._tl, width=self['width'])
-        self._txtvar = textvariable
-        self._lb.insert(END, *self.values)
+        self._lb = ScrolledListbox(self._tl, width=kwargs.pop('width', None), height=height, selectmode=SINGLE)
+        self.values = values
         self._lb.pack(expand=True, fill=BOTH)
-        self.hide_tl()
+        self._hide_tl()
         self.bind('<KeyRelease>', self._handle_keyrelease)
         self.bind('<FocusOut>', self._handle_focusout)
         self.bind_all('<Configure>', self._handle_configure)
-        self.bind('<KeyPress>', self.handle_keypress)
+        self.bind('<KeyPress>', self._handle_keypress)
 
-    def handle_keypress(self, event: Event):
-        if event.keysym == 'Tab':
-            return
+    @property
+    def values(self):
+        """
+        Gets the values
+        """
+        try:
+            return self.__values
+        except AttributeError:
+            self.values = ()
+            return self.values
 
-    def _handle_keyrelease(self, event: Event):
-        if 'Tab' in event.keysym:
-            return
-        if self.get() != '':
-            new_values = [value for value in self.values if self.get().lower() in value.lower()]
-        else:
-            new_values = iter(self.values)
-        self._lb.delete(0, END)
-        self._lb.insert(END, *new_values)
+    @values.setter
+    def values(self, values: Optional[Iterable]):
+        """
+        Sorts and sets the values
+        """
+        self.__values = tuple(sorted(values)) if values is not None else tuple()
+        self._lb.insert(END, *self.values)
         self._lb.selection_clear(0, END)
         self._lb.selection_set(0)
-        selected = self._lb.get(ACTIVE)
-        self.show_tl()
+        self._lb.activate(0)
+
+    @property
+    def _lb_current_selection(self) -> str:
+        """
+        Returns the current selection in the listbox
+        """
+        try:
+            sel = self._lb.curselection()[0]
+        except IndexError:
+            return None
+        return self._lb.get(sel)
+
+    def _set_lb_index(self, index):
+        self._lb.selection_clear(0, END)
+        self._lb.selection_set(index)
+        self._lb.activate(index)
+        self._lb.see(index)
+
+    @property
+    def text_after_cursor(self) -> str:
+        """
+        Gets the entry text after the cursor
+        """
+        contents = self.get()
+        return contents[self.index(INSERT):]
+
+    @property
+    def dropdown_is_visible(self):
+        return self._tl.winfo_ismapped()
+
+    def _handle_keypress(self, event: Event):
+        if 'Left' in event.keysym:
+            if self.dropdown_is_visible:
+                self._hide_tl()
+                return 'break'
+            else:
+                return
+        elif (('Right' in event.keysym and self.text_after_cursor == '') or event.keysym in ['Return', 'Tab']) and self.dropdown_is_visible:
+            #Completion and block next action
+            self.delete(0, END)
+            self.insert(0, self._lb_current_selection)
+            self._hide_tl()
+            return 'break'
+
+    def _handle_keyrelease(self, event: Event):
+        if 'Up' in event.keysym and self.dropdown_is_visible:
+            previous_index = self._lb.index(ACTIVE)
+            new_index = max(0, self._lb.index(ACTIVE) - 1)
+            self._set_lb_index(new_index)
+            if previous_index == new_index:
+                self._hide_tl()
+            return
+        if 'Down' in event.keysym:
+            if self.dropdown_is_visible:
+                current_index = self._lb.index(ACTIVE)
+                new_index = min(current_index + 1, self._lb.size() - 1)
+                self._set_lb_index(new_index)
+                return 'break'
+            if not self.dropdown_is_visible and self._lb.size() > 0:
+                self._show_tl()
+        #if any((event.keysym for test in ('Tab', 'Shift', 'Left') if test in event.keysym)) \
+        #        or ('Right' in event.keysym and self.text_after_cursor != ''):
+        #    return
+
+        if len(event.keysym) == 1 or ('Right' in event.keysym and self.text_after_cursor == '') or event.keysym in ['BackSpace']:
+            if self.get() != '':
+                new_values = [value for value in self.values if value.lower(
+                ).startswith(self.get().lower())]
+            else:
+                new_values = self.values
+            self._lb.delete(0, END)
+            self._lb.insert(END, *new_values)
+            self._set_lb_index(0)
+            if self._lb.size() < 1 or self.get() == self._lb_current_selection:
+                self._hide_tl()
+            else:
+                self._show_tl()
 
     def _handle_focusout(self, event: Event):
         def cf():
             if self.focus_get() != self._tl and self.focus_get() != self._lb:
-                self.hide_tl()
+                self._hide_tl()
             else:
                 self.focus_set()
         self.after(1, cf)
@@ -59,16 +168,17 @@ class AutoSearchCombobox(Entry):
         if self._tl.winfo_ismapped():
             self._update_tl_pos()
 
-    def show_tl(self):
+    def _show_tl(self) -> None:
         if self._tl.winfo_ismapped() == False:
             self._update_tl_pos()
             self._tl.deiconify()
             self._tl.attributes("-topmost", True)
 
-    def _update_tl_pos(self):
-        self._tl.geometry('+{}+{}'.format(self.winfo_rootx(), self.winfo_rooty() + self.winfo_height() - 1))
+    def _update_tl_pos(self) -> None:
+        self._tl.geometry('+{}+{}'.format(self.winfo_rootx(),
+                          self.winfo_rooty() + self.winfo_height() - 1))
 
-    def hide_tl(self):
+    def _hide_tl(self) -> None:
         self._tl.withdraw()
 
 
@@ -80,10 +190,12 @@ class Main(Common, Tk):
         cls.__doc__ = Frame.__doc__
         return super().__new__(cls)
 
+
 class Window(Common, Toplevel):
     """
     A sub window that is not a dialog, unless you want it to be
     """
+
 
 class CommonFrame(Common, Frame):
     """A nice Frame to use with common setup methods"""
@@ -93,6 +205,7 @@ class ModalDialog(Common, Toplevel):
     """
     A modal dialog that demands attention
     """
+
     def __init__(self, master: Widget = None, **kwargs):
         """
         Initializes the dialog, instantiate this directly if you don't care about return values
@@ -126,7 +239,6 @@ class ModalDialog(Common, Toplevel):
         return None
 
 
-
 class Table(CommonFrame):
     sort_up = " ▲"
     sort_down = " ▼"
@@ -142,7 +254,6 @@ class Table(CommonFrame):
         self.column_headers = column_headers
         self.data = data
         super().__init__(master, **kwargs)
-
 
     def _create_events(self):
         """Create events"""
@@ -206,7 +317,8 @@ class Table(CommonFrame):
         column_data = [
             tuple(enumerate(column.pack_slaves())) for column in self.table.children.values()
         ]
-        column_to_sort_by = [col for col in column_data if col[0][1] == button][0]
+        column_to_sort_by = [
+            col for col in column_data if col[0][1] == button][0]
         sort_kwargs = {
             'key': self.__sort_key
         }
@@ -248,11 +360,14 @@ class Table(CommonFrame):
                 button.configure(text=button['text'].replace(
                     self.sort_up, '').replace(self.sort_down, ''))
 
+
 HeaderRow = Tuple[str, Callable[[Widget], Any]]
+
 
 class NewTable(CommonFrame):
     sort_up = " ▲"
     sort_down = " ▼"
+
     def __init__(self, master: Widget, headers: Optional[Tuple[HeaderRow, ...]] = None, **kwargs):
         self.__headers = []
         self.__sort_keys = []
@@ -272,12 +387,13 @@ class NewTable(CommonFrame):
         self.__sort_keys = []
 
     @headers.setter
-    def headers(self, headers: Tuple[HeaderRow,]):
+    def headers(self, headers: Tuple[HeaderRow, ]):
         self.__headers = []
         self.__sort_keys = []
         for label, key in headers:
             self.__headers.append(self._create_header_button(label))
-            self.__sort_keys.append(lambda widget=self.__headers[-1]: key(widget))
+            self.__sort_keys.append(
+                lambda widget=self.__headers[-1]: key(widget))
 
         self._layout_table_widgets()
 
@@ -290,10 +406,11 @@ class NewTable(CommonFrame):
         self.__cell_widgets = list(widgets)
         self._layout_table_widgets()
 
-    def sort_data(self, column_index: int, sort_by:Optional[Callable] = None):
+    def sort_data(self, column_index: int, sort_by: Optional[Callable] = None):
         def chunked(sequence: Sequence, chunk_size: int) -> List[Sequence]:
             return [sequence[i: i + chunk_size] for i in range(0, len(sequence), chunk_size)]
         rows = chunked(self.cell_widgets, len(self.headers))
+
         def sort_key(row):
             widget = row[column_index]
             return self.__sort_keys[column_index](widget)
@@ -307,7 +424,8 @@ class NewTable(CommonFrame):
 
     def _create_header_button(self, text) -> Button:
         button = Button(self.table, text=text)
-        button.configure(command=lambda index=len(self.__headers): self.sort_data(index))
+        button.configure(command=lambda index=len(
+            self.__headers): self.sort_data(index))
         return button
 
     def _create_widgets(self):
@@ -331,7 +449,7 @@ class NewTable(CommonFrame):
         self._layout_table_widgets()
 
     def _layout_table_widgets(self):
-        #Configure the grid to expand
+        # Configure the grid to expand
         all_widgets = self.headers + self.cell_widgets
         for button, coords in Autogrid((len(self.headers), ), 1).zip_dicts(all_widgets):
             button.grid(**coords, sticky=E+W)

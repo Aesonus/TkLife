@@ -37,7 +37,8 @@ class Main(Skeleton, Tk):
                 [(Label, {TEXT: 'Label 1:'}), (Entry, {TEXTVARIABLE: vars.entry_vars.line1})],
                 [*LabelledWidget('Label 2:', AutoSearchCombobox, {
                     TEXTVARIABLE: vars.entry_vars.line2,
-                    VALUES: ['Test', 'This', 'Autocomplete', 'Awesomeness']
+                    VALUES: ['Test', 'This', 'Saws', 'Stew', 'Autocomplete', 'Awesomeness', 'Also', 'Arrows'],
+                    HEIGHT: '4'
                 })],
                 [(Button, {TEXT: 'Button', COMMAND: Events.TEST_BUTTON})]
             ],
@@ -47,8 +48,8 @@ class Main(Skeleton, Tk):
                 [{COLUMNSPAN: 2, STICKY: N+E+S+W}],
             ],
             layout_cfg: (
-                [{'weight': 1}, {'weight': 5},], # col config
-                [{'weight': 1}, {'weight': 1}, {'weight': 2},], # row config
+                [{WEIGHT: 1}, {WEIGHT: 5},], # col config
+                [{WEIGHT: 1}, {WEIGHT: 1}, {WEIGHT: 2},], # row config
             ),
         }
 
