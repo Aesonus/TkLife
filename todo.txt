@@ -1,1 +1,2 @@
 Expand EventEnum class to allow for bind_all and bind_class
+Tests for skeleton creation of windows

@@ -1,4 +1,5 @@
 from tkinter.constants import COMMAND, E, N, S, W
+from tklife.widgets import AutoSearchCombobox
 from tklife.event import EventsEnum
 from tklife.skel.shortcuts import LabelledWidget
 from typing import Dict, Mapping, Type
@@ -29,12 +30,15 @@ class Main(Skeleton, Tk):
             tk_vars: (
                 ('entry_vars', [
                     ('line1', StringVar, {'value': 'Line 1'}),
-                    ('line2', StringVar, {'value': 'Line 2'}),
+                    ('line2', StringVar, {'value': ''}),
                 ]),
             ),
             widgets: [
                 [(Label, {TEXT: 'Label 1:'}), (Entry, {TEXTVARIABLE: vars.entry_vars.line1})],
-                [*LabelledWidget('Label 2:', Entry, {TEXTVARIABLE: vars.entry_vars.line2})],
+                [*LabelledWidget('Label 2:', AutoSearchCombobox, {
+                    TEXTVARIABLE: vars.entry_vars.line2,
+                    VALUES: ['Test', 'This', 'Autocomplete', 'Awesomeness']
+                })],
                 [(Button, {TEXT: 'Button', COMMAND: Events.TEST_BUTTON})]
             ],
             layout: [

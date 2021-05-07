@@ -26,64 +26,9 @@ __all__ = [
     'Skeleton',
 ]
 
-
-class _MetaTkVars(type):
-    def __new__(cls, name, bases, namespace):
-        obj = super().__new__(cls, name, bases, namespace)
-        obj._current_frame = None
-        return obj
-
-    def __getattribute__(self, name: str) -> Variable:
-        print('TkVars is deprecated and will be removed')
-        if name.startswith('_') or name in ['attribute', 'mapping', 'sequence', 'store_as']:
-            return type.__getattribute__(self, name)
-        if self._current_frame is None:
-            return
-        return getattr(self, self.store_as)(name)
-
-    def _make_var(self, var_name: str) -> Variable:
-        # Make the tk var
-        var = type.__getattribute__(
-            self, var_name)(master=self._current_frame)
-        return var
-
-    def attribute(self, name: str) -> Variable:
-        try:
-            return getattr(self._current_frame, name)
-        except AttributeError:
-            setattr(self._current_frame, name, self._make_var(name))
-            return self.attribute(name)
-
-    def mapping(self, name: str) -> Variable:
-        keys = name.split('_')[0:-1]
-        try:
-            mapping: Dict = getattr(self._current_frame, 'tkvars')
-        except AttributeError:
-            self._current_frame.tkvars = {}
-            return self.mapping(name)
-        else:
-            for i, key in enumerate(keys, 1):
-                try:
-                    mapping = mapping[key]
-                except KeyError:
-                    if i == len(keys):
-                        # Create the value since it does not exist
-                        var = self._make_var(name)
-                        mapping[key] = var
-                        return var
-                    else:
-                        mapping[key] = {}
-                        mapping = mapping[key]
-                if i == len(keys):
-                    return mapping
-
-
-class TkVars(object, metaclass=_MetaTkVars):
-    store_as: Literal['attribute', 'mapping'] = 'attribute'
-
-
-T_TkVarDef = Tuple[str, Type[Variable], Mapping[str, str]]
-T_TkVarLvlDef = Tuple[str, Iterable[T_TkVarDef]]
+T_Name = str
+T_TkVarDef = Tuple[T_Name, Type[Variable], Mapping[str, str]]
+T_TkVarLvlDef = Tuple[T_Name, Iterable[T_TkVarDef]]
 T_TkVarCfg = Iterable[Union[T_TkVarDef, T_TkVarLvlDef]]
 
 
@@ -222,8 +167,8 @@ class Skeleton(object):
     widgets. This should come BEFORE the tk widget. (eg: class Test(Skeleton, Tk): ...)
     """
 
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self.skeleton_configure()
         self._dummy_vars = DummyAttr()
         self.vars_: TkVarsMap

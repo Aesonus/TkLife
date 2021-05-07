@@ -4,6 +4,12 @@ from typing import Optional
 __all__ = ['Common']
 
 def generate_event(function):
+    """
+    DEPRECATED. Please use EventEnum.generate() method instead.
+
+    Arguments:
+        function {[type]} -- [description]
+    """
     def decorated(master: Widget = None):
         master.event_generate(function(master))
     return decorated

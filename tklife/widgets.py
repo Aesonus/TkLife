@@ -1,14 +1,76 @@
 """Creates some common widgets"""
-from tkinter import Text, Canvas, Tk, Toplevel, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
-from tkinter.constants import E, W
-from tkinter.ttk import Frame, Button, Scrollbar
+from tkinter import Event, Listbox, Misc, StringVar, Text, Canvas, Tk, Toplevel, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
+from tkinter.constants import ACTIVE, E, W
+from tkinter.ttk import Entry, Frame, Button, Scrollbar
 
 from .arrange import Autogrid
-from typing import Any, Callable, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple
 from .mixins import Common
 from .constants import EXPAND, FILL
 
 __all__ = ['Main', 'Window', 'CommonFrame', 'ModalDialog']
+
+
+# TODO: Finish figuring out exact behavior for this crazy widget idea
+class AutoSearchCombobox(Entry):
+    def __init__(self, master: Widget, values: Optional[Iterable[str]]=None, textvariable=None, **kwargs):
+        self.values = tuple(sorted(values)) if values is not None else tuple()
+        textvariable = textvariable if textvariable is not None else StringVar()
+        super().__init__(master, textvariable=textvariable, **kwargs)
+        self._tl = Toplevel(self, takefocus=False)
+        self._tl.wm_overrideredirect(True)
+        self._lb = Listbox(self._tl, width=self['width'])
+        self._txtvar = textvariable
+        self._lb.insert(END, *self.values)
+        self._lb.pack(expand=True, fill=BOTH)
+        self.hide_tl()
+        self.bind('<KeyRelease>', self._handle_keyrelease)
+        self.bind('<FocusOut>', self._handle_focusout)
+        self.bind_all('<Configure>', self._handle_configure)
+        self.bind('<KeyPress>', self.handle_keypress)
+
+    def handle_keypress(self, event: Event):
+        if event.keysym == 'Tab':
+            return
+
+    def _handle_keyrelease(self, event: Event):
+        if 'Tab' in event.keysym:
+            return
+        if self.get() != '':
+            new_values = [value for value in self.values if self.get().lower() in value.lower()]
+        else:
+            new_values = iter(self.values)
+        self._lb.delete(0, END)
+        self._lb.insert(END, *new_values)
+        self._lb.selection_clear(0, END)
+        self._lb.selection_set(0)
+        selected = self._lb.get(ACTIVE)
+        self.show_tl()
+
+    def _handle_focusout(self, event: Event):
+        def cf():
+            if self.focus_get() != self._tl and self.focus_get() != self._lb:
+                self.hide_tl()
+            else:
+                self.focus_set()
+        self.after(1, cf)
+
+    def _handle_configure(self, event: Event):
+        if self._tl.winfo_ismapped():
+            self._update_tl_pos()
+
+    def show_tl(self):
+        if self._tl.winfo_ismapped() == False:
+            self._update_tl_pos()
+            self._tl.deiconify()
+            self._tl.attributes("-topmost", True)
+
+    def _update_tl_pos(self):
+        self._tl.geometry('+{}+{}'.format(self.winfo_rootx(), self.winfo_rooty() + self.winfo_height() - 1))
+
+    def hide_tl(self):
+        self._tl.withdraw()
+
 
 class Main(Common, Tk):
     """
