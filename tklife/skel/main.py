@@ -6,7 +6,7 @@ from tkinter.constants import COMMAND
 from typing import (Any, Dict, Iterable, Literal, Mapping, Tuple, Type,
                     TypeVar, Union)
 
-from ..constants import COLUMN, ROW, TEXTVARIABLE, VARIABLE
+from ..constants import COLUMN, LISTVARIABLE, ROW, TEXTVARIABLE, VARIABLE
 from ..event import EventsEnum
 from .dummy import DummyAttr
 
@@ -64,8 +64,9 @@ class TkVarsMap(dict):
             raise AttributeError
 
 
-def tk_vars(master: _Container, var_cfg: T_TkVarCfg):
-    logging.getLogger('skel.tk_vars').debug('Creating vars')
+def tk_vars(frame: _Container, var_cfg: T_TkVarCfg):
+    if frame._debug:
+        logging.getLogger('skel.tk_vars').debug('Creating vars')
 
     def flatten(var_cfg=var_cfg, var_obj=None):
         var_obj = TkVarsMap() if var_obj is None else var_obj
@@ -75,28 +76,31 @@ def tk_vars(master: _Container, var_cfg: T_TkVarCfg):
                 # in the current var_obj
                 vartype, kwargs = params
                 kw = {
-                    'master': master
+                    'master': frame
                 }
                 kw.update(**kwargs)
                 var_obj[name] = vartype(**kw)
-                logging.getLogger('skel.tk_vars').debug(
-                    'Created %s with name %s', vartype, name
-                )
+                if frame._debug:
+                    logging.getLogger('skel.tk_vars').debug(
+                        'Created %s with name %s', vartype, name
+                    )
             elif hasattr(var_obj, name):
                 cfg, = params
-                logging.getLogger('skel.tk_vars').debug(
-                    'Ascending to level %s', name
-                )
+                if frame._debug:
+                    logging.getLogger('skel.tk_vars').debug(
+                        'Ascending to level %s', name
+                    )
                 flatten(cfg, var_obj[name])
             else:
-                logging.getLogger('skel.tk_vars').debug(
-                    'Ascending to level %s', name
-                )
+                if frame._debug:
+                    logging.getLogger('skel.tk_vars').debug(
+                        'Ascending to level %s', name
+                    )
                 cfg, = params
                 upper_vars = var_obj.__class__()
                 var_obj[name] = flatten(cfg, upper_vars)
         return var_obj
-    master.vars_ = flatten()
+    frame.vars_ = flatten()
 
 
 def widgets(frame: _Container, widget_rows: _WRow) -> None:
@@ -105,7 +109,7 @@ def widgets(frame: _Container, widget_rows: _WRow) -> None:
             kwargs = frame._widget_kw.copy()
             kwargs.update(kw)
             # Use late binding for variables if needed
-            for key in (VARIABLE, TEXTVARIABLE):
+            for key in (VARIABLE, TEXTVARIABLE, LISTVARIABLE):
                 try:
                     value = kwargs.pop(key)
                     if isinstance(value, DummyAttr):
@@ -127,13 +131,17 @@ def widgets(frame: _Container, widget_rows: _WRow) -> None:
         if frame._debug:
             logging.getLogger('skel.widgets').debug(
                 "'%s': row %s: %s", frame, index, row)
-
+class LayoutException(RuntimeError):
+    pass
 
 def layout(frame: _Container, layout_rows: _LRow) -> None:
     mod = 0
     for y, row in enumerate(layout_rows):
         for x, kw in enumerate(row):
-            w = frame.winfo_children()[x + y + mod]
+            try:
+                w = frame.winfo_children()[x + y + mod]
+            except IndexError:
+                raise LayoutException("Layout coordinate invalid: ({}, {})".format(x, y))
             kwargs = {
                 COLUMN: x,
                 ROW: y,
