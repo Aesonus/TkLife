@@ -56,8 +56,21 @@ class AutoSearchCombobox(Entry):
         self.bind('<FocusOut>', self._handle_focusout)
         self.bind('<KeyPress>', self._handle_keypress)
         #toplevel bindings
-        cfg_handler = self.winfo_toplevel().bind('<Configure>', self._handle_configure)
-        self.bind('<Destroy>', lambda __, cfg_handler=cfg_handler: self.winfo_toplevel().unbind('<Configure>', cfg_handler))
+        cfg_handler = self.winfo_toplevel().bind('<Configure>', self._handle_configure, add="+")
+        self.bind('<Destroy>', lambda __, cfg_handler=cfg_handler: self._unbind_my_configure(cfg_handler))
+
+    def _unbind_my_configure(self, cfg_handler):
+        """Internal function. Allows for JUST this widget's associated callback. Getting around tkinter bug"""
+        root_tl = self.winfo_toplevel()
+        if not cfg_handler:
+            root_tl.tk.call('bind', self._w, '<Configure>', '')
+            return
+        func_callbacks = root_tl.tk.call(
+            'bind', root_tl._w, '<Configure>', None).split('\n')
+        new_callbacks = [
+            l for l in func_callbacks if l[6:6 + len(cfg_handler)] != cfg_handler]
+        root_tl.tk.call('bind', root_tl._w, '<Configure>', '\n'.join(new_callbacks))
+        root_tl.deletecommand(cfg_handler)
 
     @property
     def values(self):
