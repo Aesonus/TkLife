@@ -54,8 +54,10 @@ class AutoSearchCombobox(Entry):
         self.winfo_toplevel().focus_set()
         self.bind('<KeyRelease>', self._handle_keyrelease)
         self.bind('<FocusOut>', self._handle_focusout)
-        self.winfo_toplevel().bind('<Configure>', self._handle_configure)
         self.bind('<KeyPress>', self._handle_keypress)
+        #toplevel bindings
+        cfg_handler = self.winfo_toplevel().bind('<Configure>', self._handle_configure)
+        self.bind('<Destroy>', lambda __, cfg_handler=cfg_handler: self.winfo_toplevel().unbind('<Configure>', cfg_handler))
 
     @property
     def values(self):
