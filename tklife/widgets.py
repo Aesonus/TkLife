@@ -1,6 +1,6 @@
 """Creates some common widgets"""
 from tkinter import Event, Grid, Listbox, Misc, Pack, Place, StringVar, Text, Canvas, Tk, Toplevel, Variable, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
-from tkinter.constants import ACTIVE, E, INSERT, SINGLE, W
+from tkinter.constants import ACTIVE, E, GROOVE, INSERT, RIDGE, SINGLE, W
 from tkinter.ttk import Entry, Frame, Button, Scrollbar
 
 from .arrange import Autogrid
@@ -42,19 +42,19 @@ class ScrolledListbox(Listbox):
         return str(self.frame)
 
 
-# TODO: Finish figuring out exact behavior for this crazy widget idea
 class AutoSearchCombobox(Entry):
     def __init__(self, master: Widget, values: Optional[Iterable[str]] = None, height: Optional[int]=None, **kwargs):
         super().__init__(master, **kwargs)
-        self._tl = Toplevel(self, takefocus=False)
+        self._tl = Toplevel(self, takefocus=False, relief=GROOVE, borderwidth=1)
         self._tl.wm_overrideredirect(True)
         self._lb = ScrolledListbox(self._tl, width=kwargs.pop('width', None), height=height, selectmode=SINGLE)
         self.values = values
         self._lb.pack(expand=True, fill=BOTH)
         self._hide_tl()
+        self.winfo_toplevel().focus_set()
         self.bind('<KeyRelease>', self._handle_keyrelease)
         self.bind('<FocusOut>', self._handle_focusout)
-        self.bind_all('<Configure>', self._handle_configure)
+        self.winfo_toplevel().bind('<Configure>', self._handle_configure)
         self.bind('<KeyPress>', self._handle_keypress)
 
     @property
@@ -138,9 +138,6 @@ class AutoSearchCombobox(Entry):
                 return 'break'
             if not self.dropdown_is_visible and self._lb.size() > 0:
                 self._show_tl()
-        #if any((event.keysym for test in ('Tab', 'Shift', 'Left') if test in event.keysym)) \
-        #        or ('Right' in event.keysym and self.text_after_cursor != ''):
-        #    return
 
         if len(event.keysym) == 1 or ('Right' in event.keysym and self.text_after_cursor == '') or event.keysym in ['BackSpace']:
             if self.get() != '':
