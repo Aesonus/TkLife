@@ -3,7 +3,7 @@ import tkinter.ttk as ttk
 from abc import abstractmethod
 from tkinter import Frame, LabelFrame, Variable, Widget
 from tkinter.constants import COMMAND
-from typing import (Any, Dict, Iterable, Literal, Mapping, Tuple, Type,
+from typing import (Any, Dict, Iterable, List, Literal, Mapping, Tuple, Type,
                     TypeVar, Union)
 
 from ..constants import COLUMN, LISTVARIABLE, ROW, TEXTVARIABLE, VARIABLE
@@ -104,8 +104,10 @@ def tk_vars(frame: _Container, var_cfg: T_TkVarCfg):
 
 
 def widgets(frame: _Container, widget_rows: _WRow) -> None:
-    for index, row in enumerate(widget_rows):
-        for w, kw in row:
+    skel_widgets = []
+    for y_i, row in enumerate(widget_rows):
+        skel_row = []
+        for x_i, (w, kw) in enumerate(row):
             kwargs = frame._widget_kw.copy()
             kwargs.update(kw)
             # Use late binding for variables if needed
@@ -120,6 +122,7 @@ def widgets(frame: _Container, widget_rows: _WRow) -> None:
                     # Do nothing on purpose
                     pass
             created = w(master=frame, **kwargs)
+            skel_row.append(created)
             # Use late binding on event generation if needed
             try:
                 event = kwargs.pop(COMMAND)
@@ -128,9 +131,11 @@ def widgets(frame: _Container, widget_rows: _WRow) -> None:
             except KeyError:
                 # Do nothing on purpose
                 pass
+            skel_widgets.append(skel_row)
         if frame._debug:
             logging.getLogger('skel.widgets').debug(
-                "'%s': row %s: %s", frame, index, row)
+                "'%s': row %s: %s", frame, y_i, row)
+    frame.skel_widgets = skel_widgets
 class LayoutException(RuntimeError):
     pass
 
@@ -180,6 +185,7 @@ class Skeleton(object):
         self.skeleton_configure()
         self._dummy_vars = DummyAttr()
         self.vars_: TkVarsMap
+        self.skel_widgets: List[List[Widget]]
         for func, input in self.skeleton(self._dummy_vars).items():
             if self._debug:
                 logging.getLogger(__name__).debug('Call: %s', func)
