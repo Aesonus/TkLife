@@ -1,6 +1,6 @@
 """Creates some common widgets"""
 from tkinter import Event, Grid, Listbox, Misc, Pack, Place, StringVar, Text, Canvas, Tk, Toplevel, Variable, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
-from tkinter.constants import ACTIVE, E, GROOVE, INSERT, RIDGE, SINGLE, W
+from tkinter.constants import ACTIVE, ALL, E, GROOVE, INSERT, N, NW, RIDGE, S, SE, SINGLE, W
 from tkinter.ttk import Entry, Frame, Button, Scrollbar
 
 from .arrange import Autogrid
@@ -11,12 +11,61 @@ from .constants import EXPAND, FILL
 __all__ = ['Main', 'Window', 'CommonFrame', 'ModalDialog', 'ScrolledListbox', 'AutoSearchCombobox']
 
 
+class ScrolledFrame(Frame):
+    """
+    A scrolling frame inside a canvas. Based on tkinter.scrolledtext.ScrolledText
+    """
+    def __init__(self, master: Widget ,**kwargs):
+        self.container = Frame(master)
+        self.canvas = Canvas(self.container, relief=None, highlightthickness=0)
+        self.v_scroll = Scrollbar(self.container, orient=VERTICAL)
+        self.h_scroll = Scrollbar(self.container, orient=HORIZONTAL)
+        kwargs.update({'master': self.canvas})
+        Frame.__init__(self, **kwargs)
+        self.__layout()
+        self.__commands()
+        # Copy geometry methods of self.container without overriding Frame
+        # methods -- hack!
+        text_meths = vars(Listbox).keys()
+        methods = vars(Pack).keys() | vars(Grid).keys() | vars(Place).keys()
+        methods = methods.difference(text_meths)
+
+        for m in methods:
+            if m[0] != '_' and m != 'config' and m != 'configure':
+                setattr(self, m, getattr(self.container, m))
+
+    def __layout(self):
+        self.canvas.grid(column=0, row=0, sticky=NW+SE)
+        self.v_scroll.grid(column=1, row=0, sticky=N+S+E)
+        self.h_scroll.grid(column=0, row=1, sticky=E+W+S)
+        self.scrolled_frame = self.canvas.create_window((0,0), window=self, anchor=NW)
+        self.columnconfigure((0, 1), weight=1)
+        self.rowconfigure((0, 1), weight=1)
+
+    def __commands(self):
+        self.v_scroll.configure(command=self.canvas.yview)
+        self.h_scroll.configure(command=self.canvas.xview)
+        self.canvas.configure(yscrollcommand=self.v_scroll.set)
+        self.canvas.configure(xscrollcommand=self.h_scroll.set)
+        self.container.bind('<Configure>', self._container_configure_handler)
+        self.bind('<Configure>', self._self_configure_handler)
+        self.canvas.bind('<Configure>', self._canvas_configure_handler)
+
+    def _container_configure_handler(self, event: Event):
+        self.canvas.configure(
+            width=event.width - self.v_scroll.winfo_width(),
+            height=event.height - self.h_scroll.winfo_height()
+        )
+
+    def _self_configure_handler(self, *__):
+        self.canvas.configure(scrollregion=self.canvas.bbox(ALL))
+
+    def _canvas_configure_handler(self, *__):
+        self.canvas.itemconfigure(self.scrolled_frame, width=self.canvas.winfo_width())
+
 class ScrolledListbox(Listbox):
     """
     A scrolled listbox, based on tkinter.scrolledtext.ScrolledText
-
-    Arguments:
-        Listbox {[type]} -- [description]
     """
     def __init__(self, master=None, **kw):
         self.frame = Frame(master)

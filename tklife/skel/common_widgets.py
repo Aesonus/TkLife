@@ -1,6 +1,7 @@
-from . import Skeleton
-from tkinter import ttk
 import tkinter as tk
+from tkinter import ttk
+
+from . import Skeleton
 
 __all__ = ['SkelMain', 'SkelFrame', 'SkelLabelFrame', 'SkelToplevel']
 
@@ -15,5 +16,4 @@ class SkelLabelFrame(Skeleton, ttk.Labelframe):
 
 class SkelToplevel(Skeleton, tk.Toplevel):
     pass
-
 

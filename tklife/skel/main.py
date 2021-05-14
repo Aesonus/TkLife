@@ -1,7 +1,7 @@
 import logging
 import tkinter.ttk as ttk
 from abc import abstractmethod
-from tkinter import Frame, LabelFrame, Variable, Widget
+from tkinter import Frame, LabelFrame, Misc, Variable, Widget
 from tkinter.constants import COMMAND
 from typing import (Any, Dict, Iterable, List, Literal, Mapping, Tuple, Type,
                     TypeVar, Union)
@@ -104,9 +104,8 @@ def tk_vars(frame: _Container, var_cfg: T_TkVarCfg):
 
 
 def widgets(frame: _Container, widget_rows: _WRow) -> None:
-    skel_widgets = []
+    skel_widgets = {}
     for y_i, row in enumerate(widget_rows):
-        skel_row = []
         for x_i, (w, kw) in enumerate(row):
             kwargs = frame._widget_kw.copy()
             kwargs.update(kw)
@@ -122,20 +121,21 @@ def widgets(frame: _Container, widget_rows: _WRow) -> None:
                     # Do nothing on purpose
                     pass
             created = w(master=frame, **kwargs)
-            skel_row.append(created)
+            skel_widgets[x_i, y_i] = created
             # Use late binding on event generation if needed
             try:
                 event = kwargs.pop(COMMAND)
                 if isinstance(event, EventsEnum):
                     created.configure(command=event.generate(created))
+                else:
+                    kwargs[COMMAND] = event
             except KeyError:
                 # Do nothing on purpose
                 pass
-            skel_widgets.append(skel_row)
         if frame._debug:
             logging.getLogger('skel.widgets').debug(
                 "'%s': row %s: %s", frame, y_i, row)
-    frame.skel_widgets = skel_widgets
+    frame.widget_grid = skel_widgets
 class LayoutException(RuntimeError):
     pass
 
@@ -144,8 +144,8 @@ def layout(frame: _Container, layout_rows: _LRow) -> None:
     for y, row in enumerate(layout_rows):
         for x, kw in enumerate(row):
             try:
-                w = frame.winfo_children()[x + y + mod]
-            except IndexError:
+                w = frame.widget_grid[(x, y)]
+            except KeyError:
                 raise LayoutException("Layout coordinate invalid: ({}, {})".format(x, y))
             kwargs = {
                 COLUMN: x,
@@ -172,8 +172,9 @@ def layout_cfg(frame: _Container, configuration: _LCfg) -> None:
         if frame._debug:
             logging.getLogger('skel.layout_cfg').debug(
                 "'%s': row %s: %s", frame, row, cfg)
-
-
+_X = int
+_Y = int
+T_WidgetGrid = Dict[Tuple[_X, _Y], Misc]
 class Skeleton(object):
     """
     Mixin to be used with a container type widget to elegantly configure its
@@ -185,7 +186,7 @@ class Skeleton(object):
         self.skeleton_configure()
         self._dummy_vars = DummyAttr()
         self.vars_: TkVarsMap
-        self.skel_widgets: List[List[Widget]]
+        self.widget_grid: T_WidgetGrid
         for func, input in self.skeleton(self._dummy_vars).items():
             if self._debug:
                 logging.getLogger(__name__).debug('Call: %s', func)
@@ -213,5 +214,5 @@ class Skeleton(object):
         self._grid_kw = grid_kw
 
     @abstractmethod
-    def skeleton(self, vars: DummyAttr) -> Dict:
+    def skeleton(self, vars) -> Dict:
         """Defines the skeleton for creating widgets and layout and layout configuration"""
