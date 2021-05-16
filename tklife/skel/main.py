@@ -144,7 +144,7 @@ def layout(frame: _Container, layout_rows: _LRow) -> None:
     for y, row in enumerate(layout_rows):
         for x, kw in enumerate(row):
             try:
-                w = frame.widget_grid[(x, y)]
+                w = frame.widget_grid[x, y]
             except KeyError:
                 raise LayoutException("Layout coordinate invalid: ({}, {})".format(x, y))
             kwargs = {

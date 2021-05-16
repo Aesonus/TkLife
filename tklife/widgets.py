@@ -39,8 +39,6 @@ class ScrolledFrame(Frame):
         self.v_scroll.grid(column=1, row=0, sticky=N+S+E)
         self.h_scroll.grid(column=0, row=1, sticky=E+W+S)
         self.scrolled_frame = self.canvas.create_window((0,0), window=self, anchor=NW)
-        self.columnconfigure((0, 1), weight=1)
-        self.rowconfigure((0, 1), weight=1)
 
     def __commands(self):
         self.v_scroll.configure(command=self.canvas.yview)
