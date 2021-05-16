@@ -47,7 +47,6 @@ class ScrolledFrame(Frame):
         self.canvas.configure(xscrollcommand=self.h_scroll.set)
         self.container.bind('<Configure>', self._container_configure_handler)
         self.bind('<Configure>', self._self_configure_handler)
-        self.canvas.bind('<Configure>', self._canvas_configure_handler)
 
     def _container_configure_handler(self, event: Event):
         self.canvas.configure(
@@ -58,8 +57,6 @@ class ScrolledFrame(Frame):
     def _self_configure_handler(self, *__):
         self.canvas.configure(scrollregion=self.canvas.bbox(ALL))
 
-    def _canvas_configure_handler(self, *__):
-        self.canvas.itemconfigure(self.scrolled_frame, width=self.canvas.winfo_width())
 
 class ScrolledListbox(Listbox):
     """
