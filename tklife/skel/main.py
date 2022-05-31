@@ -39,6 +39,7 @@ class TkVarsMap(dict):
 
     + Set attr and get attr will set and get the underlying Variable
     + Nested TkVars objects will only set/get the TkVars instance
+    + Use dict access to get at the actual Variable instance
     """
 
     def __getattr__(self, name):
@@ -192,15 +193,12 @@ class Skeleton(object):
                 logging.getLogger(__name__).debug('Call: %s', func)
             func(self, input)
 
-    @abstractmethod
     def skeleton_configure(self, debug: bool = False, widget_kw: Mapping = None, grid_kw: Mapping = None):
         """
         Configures skeleton configuration settings. Override this in your child class
-        and use super().skeleton_configure(**kwargs) to set specific settings. This method must
-        be implemented
+        and use super().skeleton_configure(**kwargs) to set specific settings.
 
         Keyword Arguments:
-            vars {Type[TkVars]} -- DEPRECATED: Sets the vars to be used in the skeleton method (default: {None})
             debug {bool} -- Logs debug information if set to true (default: {False})
             widget_kw {Mapping} -- kwargs that are used with every widget instantiation. These are updated with each discreet widget's kwargs to allow for overriding of the default value (default: {dict})
             grid_kw {Mapping} -- kwargs that are used with every widget grid method. These are updated with each discreet widget's grid kwargs to allow for overriding of the default value (default: {dict})
