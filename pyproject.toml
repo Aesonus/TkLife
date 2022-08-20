@@ -1,6 +1,28 @@
+[tool.poetry]
+name = "tklife"
+version = "2.0.0-dev0"
+description = ""
+authors = ["Cory Laughlin <corylcomposinger@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+autopep8 = "^1.6.0"
+mypy = "^0.960"
+pytest-cov = "^3.0.0"
+pytest-mock = "^3.7.0"
+
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = 7.0
+addopts = '--cov=tklife --cov-report html --cov-report xml'
+
+[tool.mypy]
+python_version = "3.9"
+files = "tklife"

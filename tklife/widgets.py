@@ -26,7 +26,7 @@ class ScrolledFrame(Frame):
         self.__commands()
         # Copy geometry methods of self.container without overriding Frame
         # methods -- hack!
-        text_meths = vars(Listbox).keys()
+        text_meths = vars(Frame).keys()
         methods = vars(Pack).keys() | vars(Grid).keys() | vars(Place).keys()
         methods = methods.difference(text_meths)
 

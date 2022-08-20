@@ -1,18 +1,10 @@
+import abc
 from tkinter import Widget
-from typing import Optional
+import tkinter
+from typing import Any, Mapping, NamedTuple, Optional, Sequence
+from tklife.constants import COLUMN, ROW, VARIABLE, TEXTVARIABLE
 
 __all__ = ['Common']
-
-def generate_event(function):
-    """
-    DEPRECATED. Please use EventEnum.generate() method instead.
-
-    Arguments:
-        function {[type]} -- [description]
-    """
-    def decorated(master: Widget = None):
-        master.event_generate(function(master))
-    return decorated
 
 def generate_event_for(function):
     """
@@ -30,12 +22,12 @@ def generate_event_for(function):
     return decorated
 
 
-class Common:
+class Common(object):
     """
     Defines common abstract methods for Toplevel and Tk
     """
 
-    def __init__(self, master: Optional[Widget] = None, **kwargs):
+    def __init__(self, master: Widget = None, **kwargs):
         """
         Initialize the Toplevel
         """
@@ -56,3 +48,55 @@ class Common:
 
     def _layout_widgets(self):
         """Layout of the widgets for the class"""
+
+
+class WidgetConfig(NamedTuple):
+    widget_type: Widget
+    widget_kwargs: Mapping[str, Any]
+    grid_kwargs: Mapping[str, Any]
+    label: Optional[str] = None
+
+GridConfig = Sequence[Sequence[WidgetConfig]]
+
+class Skeleton(object):
+    def __init__(self, master: Optional[Widget] = None, **kwargs):
+        """
+        Initialize the Toplevel
+        """
+        self.vars = {}
+        self.named_widgets = {}
+        super().__init__(master, **kwargs)
+        self._create_all()
+
+    @property
+    @abc.abstractmethod
+    def skeleton(self) -> GridConfig:
+        pass
+
+    @property
+    def all_grid_kwargs(self):
+        return {}
+
+    def _create_all(self):
+        config = self.skeleton
+        for row_index, row in enumerate(config):
+            for col_index, (widget_type, widget_kw, grid_kw, label) in enumerate(row):
+                for key in (VARIABLE, TEXTVARIABLE):
+                    try:
+                        value = widget_kw[key]
+                        if isinstance(value, tkinter.Variable):
+                            widget_kw[key] = value(self)
+                        elif isinstance(value, tuple):
+                            var_type, initial_value = value
+                            widget_kw[key] = var_type(self, value=initial_value)
+                    except KeyError:
+                        continue
+                    if label:
+                        self.vars[label] = widget_kw[key]
+                    else:
+                        raise ValueError("WidgetConfig with tkinter.variable must have label")
+
+                w = widget_type(self, **widget_kw)
+                w.grid(**{ROW: row_index, COLUMN: col_index, **grid_kw, **self.all_grid_kwargs})
+                if label:
+                    self.named_widgets[label] = w
