@@ -78,7 +78,7 @@ class AskString(BaseSimpleDialog):
     Displays a dialog asking for a string value
     """
 
-    def _return_values(self):
+    def return_values(self):
         """
         Returns the input string value
         """
@@ -99,7 +99,7 @@ class AskInteger(BaseSimpleDialog):
         else:
             super()._on_okay()
 
-    def _return_values(self):
+    def return_values(self):
         """
         Returns the input int value
         """
@@ -120,7 +120,7 @@ class AskFloat(BaseSimpleDialog):
         else:
             super()._on_okay()
 
-    def _return_values(self):
+    def return_values(self):
         """
         Returns the input string value
         """

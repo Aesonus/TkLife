@@ -269,13 +269,14 @@ class ModalDialog(Common, Toplevel):
         super().__init__(**kwargs)
         self.transient(master)
         self.withdraw()
-        self.cancelled = False
+        self._cancelled = False
         self.protocol("WM_DELETE_WINDOW", self._on_cancel)
-        self.bind('<Escape>', lambda _: self._on_cancel())
+        self.bind('<Escape>', self._on_cancel)
+        self.bind('<Destroy>', self._get_return_values)
 
-    def _on_cancel(self):
+    def _on_cancel(self, *__):
         """Default behavior is to set self.cancelled = True and destroy the dialog"""
-        self.cancelled = True
+        self._cancelled = True
         self.destroy()
 
     @classmethod
@@ -286,12 +287,15 @@ class ModalDialog(Common, Toplevel):
         new.grab_set()
         new.focus_set()
         new.wait_window()
-        if (new.cancelled):
+        if (new._cancelled):
             return None
-        return new._return_values()
+        return new.returned
 
-    def _return_values(self):
-        """Returns the result of this dialog, if any"""
+    def _get_return_values(self, *__):
+        self.returned = self.return_values()
+
+    def return_values(self):
+        """Returns the result of this dialog, if any. Override to set your own"""
         return None
 
 
