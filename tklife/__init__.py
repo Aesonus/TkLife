@@ -1,5 +1,2 @@
-from .mixins import *
-from .widgets import *
 
-name = 'tklife'
-__version__ = '1.0.0-alpha12'
+__version__ = '2.1.0-dev0'
