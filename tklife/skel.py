@@ -6,7 +6,7 @@ from .controller import ControllerABC
 
 
 class SkelWidget(typing.NamedTuple):
-    widget: tkinter.Misc
+    widget: typing.Type[tkinter.Misc]
     init_args: dict[str, typing.Any]
     grid_args: dict[str, typing.Any]
     label: typing.Optional[str] = None
@@ -59,6 +59,6 @@ class SkeletonMixin(abc.ABC):
     @controller.setter
     def controller(self, controller: ControllerABC):
         if not isinstance(controller, ControllerABC):
-            raise ValueError()
+            raise TypeError(f"Controller must be of type {ControllerABC.__name__}")
         self.__controller = controller
         controller.set_view(self)
