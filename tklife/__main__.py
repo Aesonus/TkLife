@@ -1,6 +1,6 @@
 """Shows an example of a skeleton window"""
 
-from tkinter import E, W, StringVar, Tk, ttk
+from tkinter import E, W, Misc, StringVar, Tk, ttk
 from tklife.constants import COMMAND, STICKY, TEXT, TEXTVARIABLE
 from tklife.controller import ControllerABC
 from tklife.skel import SkelWidget, SkeletonMixin
@@ -14,6 +14,9 @@ class ExampleController(ControllerABC):
         print(self.view.created['entry_b']['textvariable'].get())
 
 class ExampleView(SkeletonMixin, ttk.Frame):
+    def __init__(self, master: 'Misc', controller: ControllerABC, **kwargs) -> None:
+        super().__init__(master, controller, **kwargs)
+        self.created['entry_b']['textvariable'].set("Default value")
     @property
     def template(self):
         return (

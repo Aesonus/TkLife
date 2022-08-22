@@ -1,8 +1,8 @@
+import abc
 import tkinter
 import typing
 
-if typing.TYPE_CHECKING:
-    from .controller import ControllerABC
+from .controller import ControllerABC
 
 
 class SkelWidget(typing.NamedTuple):
@@ -12,7 +12,7 @@ class SkelWidget(typing.NamedTuple):
     label: typing.Optional[str] = None
 
 
-class SkeletonMixin(object):
+class SkeletonMixin(abc.ABC):
     def __init__(self, master: tkinter.Misc, controller: 'ControllerABC', **kwargs) -> None:
         # Set the controller first
         self.controller = controller
@@ -20,8 +20,13 @@ class SkeletonMixin(object):
         # Init the frame or whatever
         super().__init__(master, **kwargs)
 
-        self.created = {}
+        self.created: dict[str, dict] = {}
         self.create_all()
+
+    @property
+    @abc.abstractmethod
+    def template(self) -> typing.Iterable[typing.Iterable[SkelWidget]]:
+        pass
 
     def create_all(self):
         for row_index, row in enumerate(self.template):
@@ -36,12 +41,15 @@ class SkeletonMixin(object):
                 w.grid(row=row_index, column=col_index,
                        **skel_widget.grid_args)
                 if skel_widget.label is not None:
+                    # And what is the vardict?
                     vardict = {
                         arg: val for arg, val in skel_widget.init_args.items() if isinstance(val, tkinter.Variable)
                     }
+
+                    # Widgets!
                     self.created[skel_widget.label] = {
                         'widget': w,
-                        **vardict
+                        **vardict,
                     }
 
     @property
@@ -49,6 +57,8 @@ class SkeletonMixin(object):
         return self.__controller
 
     @controller.setter
-    def controller(self, controller: 'ControllerABC'):
+    def controller(self, controller: ControllerABC):
+        if not isinstance(controller, ControllerABC):
+            raise ValueError()
         self.__controller = controller
         controller.set_view(self)
