@@ -1,8 +1,9 @@
-from typing import Any, Callable
-from tkinter import Widget, Event
 from enum import Enum
+from tkinter import Event, Widget
+from typing import Any, Callable
 
 T_ActionCallable = Callable[[Event], Any]
+
 
 class EventsEnum(Enum):
     def generate(self, widget: Widget):

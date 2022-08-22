@@ -1,13 +1,12 @@
 """Creates some common widgets"""
-from tkinter import Event, Grid, Listbox, Pack, Place,  Text, Canvas,  Toplevel, Widget, X, VERTICAL, HORIZONTAL, LEFT, BOTTOM, RIGHT, Y, BOTH, END
-from tkinter.constants import ACTIVE, ALL, E, GROOVE, INSERT, N, NW, S, SE, SINGLE, W
-from tkinter.ttk import Entry, Frame, Button, Scrollbar
+from tkinter import (BOTH, END, HORIZONTAL, LEFT, RIGHT, VERTICAL, Canvas,
+                     Event, Grid, Listbox, Pack, Place, Toplevel, Widget, Y)
+from tkinter.constants import (ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E,
+                               N, S, W)
+from tkinter.ttk import Entry, Frame, Scrollbar
+from typing import Iterable, Optional
 
-from .arrange import Autogrid
-from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple
-from .constants import EXPAND, FILL
-
-__all__ = ['ScrolledListbox', 'AutoSearchCombobox']
+__all__ = ['ScrolledListbox', 'AutoSearchCombobox', 'ScrolledFrame']
 
 
 class ScrolledFrame(Frame):

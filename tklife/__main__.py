@@ -1,9 +1,10 @@
 """Shows an example of a skeleton window"""
 
-from tkinter import BOTH, E, W, Misc, StringVar, Tk, ttk
+from tkinter import BOTH, E, Misc, StringVar, Tk, W, ttk
+
 from tklife.constants import COMMAND, STICKY, TEXT, TEXTVARIABLE
 from tklife.controller import ControllerABC
-from tklife.skel import SkelWidget, SkeletonMixin
+from tklife.skel import SkeletonMixin, SkelWidget
 
 
 class ExampleController(ControllerABC):
@@ -25,13 +26,17 @@ class ExampleView(SkeletonMixin, ttk.Frame):
         return (
             [
                 SkelWidget(ttk.Label, {TEXT: "Label A:"}, {}),
-                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {STICKY: E + W}, 'entry_a'),
-                SkelWidget(ttk.Button, {TEXT: "Print contents", COMMAND: self.controller.button_a_command}, {})
+                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {
+                           STICKY: E + W}, 'entry_a'),
+                SkelWidget(ttk.Button, {
+                           TEXT: "Print contents", COMMAND: self.controller.button_a_command}, {})
             ],
             [
                 SkelWidget(ttk.Label, {TEXT: "Label B:"}, {}),
-                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {STICKY: E + W}, 'entry_b'),
-                SkelWidget(ttk.Button, {TEXT: "Print contents", COMMAND: self.controller.button_b_command}, {})
+                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {
+                           STICKY: E + W}, 'entry_b'),
+                SkelWidget(ttk.Button, {
+                           TEXT: "Print contents", COMMAND: self.controller.button_b_command}, {})
             ],
         )
 

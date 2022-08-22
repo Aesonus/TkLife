@@ -2,8 +2,10 @@
 
 __all__ = ['CommandHistory', 'Command']
 
+
 class CommandHistory:
     """Saves command history for undo and redo"""
+
     def __init__(self):
         """
         Initializes the tracking dict
@@ -79,8 +81,10 @@ class CommandHistory:
         for command in (self.history[:self.cursor + 1] if self.cursor is not None else []):
             yield command
 
+
 class Command:
     """Abstract class for a command"""
+
     def execute(self) -> None:
         """
         Executes this command
