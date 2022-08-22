@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from pytest_mock import MockerFixture
 from tklife.controller import ControllerABC
-from tklife.skel import SkelWidget, SkeletonMixin
+from tklife.skel import SkeletonMixin, SkelWidget
 
 
 class TestSkeletonMixin(object):
@@ -65,12 +65,15 @@ class TestSkeletonMixin(object):
             [mocker.Mock(), mocker.Mock()],
             [mocker.Mock(), mocker.Mock()],
         ]
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mocked_widgets[0][0], {}, {}), SkelWidget(mocked_widgets[0][1], {}, {})],
-                    [SkelWidget(mocked_widgets[1][0], {}, {}), SkelWidget(mocked_widgets[1][1], {}, {})],
+                    [SkelWidget(mocked_widgets[0][0], {}, {}),
+                     SkelWidget(mocked_widgets[0][1], {}, {})],
+                    [SkelWidget(mocked_widgets[1][0], {}, {}),
+                     SkelWidget(mocked_widgets[1][1], {}, {})],
                 )
         skeleton = Tested(mock_master, mock_controller)
         mocked_widgets[0][0].assert_called_once_with(skeleton)
@@ -78,26 +81,33 @@ class TestSkeletonMixin(object):
         mocked_widgets[1][0].assert_called_once_with(skeleton)
         mocked_widgets[1][1].assert_called_once_with(skeleton)
 
-        mocked_widgets[0][0].return_value.grid.assert_called_once_with(row=0, column=0)
-        mocked_widgets[0][1].return_value.grid.assert_called_once_with(row=0, column=1)
-        mocked_widgets[1][0].return_value.grid.assert_called_once_with(row=1, column=0)
-        mocked_widgets[1][1].return_value.grid.assert_called_once_with(row=1, column=1)
+        mocked_widgets[0][0].return_value.grid.assert_called_once_with(
+            row=0, column=0)
+        mocked_widgets[0][1].return_value.grid.assert_called_once_with(
+            row=0, column=1)
+        mocked_widgets[1][0].return_value.grid.assert_called_once_with(
+            row=1, column=0)
+        mocked_widgets[1][1].return_value.grid.assert_called_once_with(
+            row=1, column=1)
 
     def test_create_all_creates_and_grids_widgets_from_template_with_init_args(self,
-                                                                mock_master,
-                                                                mock_controller,
-                                                                mock_mixin_class,
-                                                                mocker: MockerFixture):
+                                                                               mock_master,
+                                                                               mock_controller,
+                                                                               mock_mixin_class,
+                                                                               mocker: MockerFixture):
         mocked_widgets = [
             [mocker.Mock(), mocker.Mock()],
             [mocker.Mock(), mocker.Mock()],
         ]
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mocked_widgets[0][0], {'arg1': True}, {}), SkelWidget(mocked_widgets[0][1], {'arg2': True}, {})],
-                    [SkelWidget(mocked_widgets[1][0], {'arg3': True}, {}), SkelWidget(mocked_widgets[1][1], {'arg4': True}, {})],
+                    [SkelWidget(mocked_widgets[0][0], {'arg1': True}, {}), SkelWidget(
+                        mocked_widgets[0][1], {'arg2': True}, {})],
+                    [SkelWidget(mocked_widgets[1][0], {'arg3': True}, {}), SkelWidget(
+                        mocked_widgets[1][1], {'arg4': True}, {})],
                 )
         skeleton = Tested(mock_master, mock_controller)
         mocked_widgets[0][0].assert_called_once_with(skeleton, arg1=True)
@@ -105,26 +115,33 @@ class TestSkeletonMixin(object):
         mocked_widgets[1][0].assert_called_once_with(skeleton, arg3=True)
         mocked_widgets[1][1].assert_called_once_with(skeleton, arg4=True)
 
-        mocked_widgets[0][0].return_value.grid.assert_called_once_with(row=0, column=0)
-        mocked_widgets[0][1].return_value.grid.assert_called_once_with(row=0, column=1)
-        mocked_widgets[1][0].return_value.grid.assert_called_once_with(row=1, column=0)
-        mocked_widgets[1][1].return_value.grid.assert_called_once_with(row=1, column=1)
+        mocked_widgets[0][0].return_value.grid.assert_called_once_with(
+            row=0, column=0)
+        mocked_widgets[0][1].return_value.grid.assert_called_once_with(
+            row=0, column=1)
+        mocked_widgets[1][0].return_value.grid.assert_called_once_with(
+            row=1, column=0)
+        mocked_widgets[1][1].return_value.grid.assert_called_once_with(
+            row=1, column=1)
 
     def test_create_all_creates_and_grids_widgets_from_template_with_grid_args(self,
-                                                                mock_master,
-                                                                mock_controller,
-                                                                mock_mixin_class,
-                                                                mocker: MockerFixture):
+                                                                               mock_master,
+                                                                               mock_controller,
+                                                                               mock_mixin_class,
+                                                                               mocker: MockerFixture):
         mocked_widgets = [
             [mocker.Mock(), mocker.Mock()],
             [mocker.Mock(), mocker.Mock()],
         ]
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mocked_widgets[0][0], {}, {'arg1': True}), SkelWidget(mocked_widgets[0][1], {}, {'arg2': True})],
-                    [SkelWidget(mocked_widgets[1][0], {}, {'arg3': True}), SkelWidget(mocked_widgets[1][1], {}, {'arg4': True})],
+                    [SkelWidget(mocked_widgets[0][0], {}, {'arg1': True}), SkelWidget(
+                        mocked_widgets[0][1], {}, {'arg2': True})],
+                    [SkelWidget(mocked_widgets[1][0], {}, {'arg3': True}), SkelWidget(
+                        mocked_widgets[1][1], {}, {'arg4': True})],
                 )
         skeleton = Tested(mock_master, mock_controller)
         mocked_widgets[0][0].assert_called_once_with(skeleton)
@@ -132,25 +149,31 @@ class TestSkeletonMixin(object):
         mocked_widgets[1][0].assert_called_once_with(skeleton)
         mocked_widgets[1][1].assert_called_once_with(skeleton)
 
-        mocked_widgets[0][0].return_value.grid.assert_called_once_with(row=0, column=0, arg1=True)
-        mocked_widgets[0][1].return_value.grid.assert_called_once_with(row=0, column=1, arg2=True)
-        mocked_widgets[1][0].return_value.grid.assert_called_once_with(row=1, column=0, arg3=True)
-        mocked_widgets[1][1].return_value.grid.assert_called_once_with(row=1, column=1, arg4=True)
+        mocked_widgets[0][0].return_value.grid.assert_called_once_with(
+            row=0, column=0, arg1=True)
+        mocked_widgets[0][1].return_value.grid.assert_called_once_with(
+            row=0, column=1, arg2=True)
+        mocked_widgets[1][0].return_value.grid.assert_called_once_with(
+            row=1, column=0, arg3=True)
+        mocked_widgets[1][1].return_value.grid.assert_called_once_with(
+            row=1, column=1, arg4=True)
 
     def test_create_all_creates_and_grids_widgets_from_template_skipping_none(self,
-                                                                mock_master,
-                                                                mock_controller,
-                                                                mock_mixin_class,
-                                                                mocker: MockerFixture):
+                                                                              mock_master,
+                                                                              mock_controller,
+                                                                              mock_mixin_class,
+                                                                              mocker: MockerFixture):
         mocked_widgets = [
             [mocker.Mock(), mocker.Mock()],
             [None, mocker.Mock()],
         ]
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mocked_widgets[0][0], {}, {}), SkelWidget(mocked_widgets[0][1], {}, {})],
+                    [SkelWidget(mocked_widgets[0][0], {}, {}),
+                     SkelWidget(mocked_widgets[0][1], {}, {})],
                     [None, SkelWidget(mocked_widgets[1][1], {}, {})],
                 )
         skeleton = Tested(mock_master, mock_controller)
@@ -158,17 +181,21 @@ class TestSkeletonMixin(object):
         mocked_widgets[0][1].assert_called_once_with(skeleton)
         mocked_widgets[1][1].assert_called_once_with(skeleton)
 
-        mocked_widgets[0][0].return_value.grid.assert_called_once_with(row=0, column=0)
-        mocked_widgets[0][1].return_value.grid.assert_called_once_with(row=0, column=1)
-        mocked_widgets[1][1].return_value.grid.assert_called_once_with(row=1, column=1)
+        mocked_widgets[0][0].return_value.grid.assert_called_once_with(
+            row=0, column=0)
+        mocked_widgets[0][1].return_value.grid.assert_called_once_with(
+            row=0, column=1)
+        mocked_widgets[1][1].return_value.grid.assert_called_once_with(
+            row=1, column=1)
 
     def test_create_all_creates_and_grids_widgets_from_template_with_var_in_init_args(self,
-                                                                    mock_master,
-                                                                    mock_controller,
-                                                                    mock_mixin_class,
-                                                                    mock_tk_var,
-                                                                    mocker: MockerFixture):
+                                                                                      mock_master,
+                                                                                      mock_controller,
+                                                                                      mock_mixin_class,
+                                                                                      mock_tk_var,
+                                                                                      mocker: MockerFixture):
         mock_widget = mocker.Mock()
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
@@ -176,26 +203,30 @@ class TestSkeletonMixin(object):
                     [SkelWidget(mock_widget, {'arg1': mock_tk_var}, {})],
                 )
         skeleton = Tested(mock_master, mock_controller)
-        mock_widget.assert_called_once_with(skeleton, arg1=mock_tk_var.return_value)
+        mock_widget.assert_called_once_with(
+            skeleton, arg1=mock_tk_var.return_value)
 
         mock_widget.return_value.grid.assert_called_once_with(row=0, column=0)
 
     def test_create_all_creates_and_grids_widgets_from_template_with_var_in_init_args_and_creates_label(self,
-                                                                    mock_master,
-                                                                    mock_controller,
-                                                                    mock_mixin_class,
-                                                                    mock_tk_var,
-                                                                    mocker: MockerFixture):
+                                                                                                        mock_master,
+                                                                                                        mock_controller,
+                                                                                                        mock_mixin_class,
+                                                                                                        mock_tk_var,
+                                                                                                        mocker: MockerFixture):
         mock_widget = mocker.Mock()
         mock_tk_var.return_value = mocker.Mock(Variable)
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mock_widget, {'arg1': mock_tk_var}, {}, 'test_label')],
+                    [SkelWidget(
+                        mock_widget, {'arg1': mock_tk_var}, {}, 'test_label')],
                 )
         skeleton = Tested(mock_master, mock_controller)
-        mock_widget.assert_called_once_with(skeleton, arg1=mock_tk_var.return_value)
+        mock_widget.assert_called_once_with(
+            skeleton, arg1=mock_tk_var.return_value)
 
         mock_widget.return_value.grid.assert_called_once_with(row=0, column=0)
         assert skeleton.created["test_label"] == {

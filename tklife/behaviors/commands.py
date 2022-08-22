@@ -3,7 +3,10 @@
 __all__ = ['CommandHistory', 'Command']
 
 
-class CommandHistory:
+import abc
+
+
+class CommandHistory(object):
     """Saves command history for undo and redo"""
 
     def __init__(self):
@@ -82,17 +85,13 @@ class CommandHistory:
             yield command
 
 
-class Command:
+class Command(abc.ABC):
     """Abstract class for a command"""
 
+    @abc.abstractmethod
     def execute(self) -> None:
-        """
-        Executes this command
-        """
-        raise NotImplementedError
+        """Executes this command"""
 
+    @abc.abstractmethod
     def reverse(self) -> None:
-        """
-        Reverses this command
-        """
-        raise NotImplementedError
+        """Reverses this command"""

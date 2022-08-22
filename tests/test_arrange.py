@@ -1,6 +1,7 @@
 import pytest
 from tklife.arrange import Autogrid
 
+
 def test_Autogrid_call():
     expected = (
         ('elema', {'column': 0, 'row': 0}), ('elemb', {'column': 1, 'row': 0}),
