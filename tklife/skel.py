@@ -12,6 +12,16 @@ class SkelWidget(typing.NamedTuple):
     label: typing.Optional[str] = None
 
 
+class CreatedVariables(typing.TypedDict, total=False):
+    textvariable: tkinter.Variable
+    variable: tkinter.Variable
+    listvariable: tkinter.Variable
+
+
+class CreatedWidget(CreatedVariables):
+    widget: tkinter.Misc
+
+
 class SkeletonMixin(abc.ABC):
     def __init__(self, master: tkinter.Misc, controller: 'ControllerABC', global_grid_args=None, **kwargs) -> None:
         # Set the controller first
@@ -20,7 +30,7 @@ class SkeletonMixin(abc.ABC):
         # Init the frame or whatever
         super().__init__(master, **kwargs)
 
-        self.created: dict[str, dict] = {}
+        self.created: dict[str, CreatedWidget] = {}
         self._create_all(global_grid_args if global_grid_args else {})
         self.create_events()
 
