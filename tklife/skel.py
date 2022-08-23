@@ -13,7 +13,7 @@ class SkelWidget(typing.NamedTuple):
 
 
 class SkeletonMixin(abc.ABC):
-    def __init__(self, master: tkinter.Misc, controller: 'ControllerABC', **kwargs) -> None:
+    def __init__(self, master: tkinter.Misc, controller: 'ControllerABC', global_grid_args=None, **kwargs) -> None:
         # Set the controller first
         self.controller = controller
 
@@ -21,7 +21,7 @@ class SkeletonMixin(abc.ABC):
         super().__init__(master, **kwargs)
 
         self.created: dict[str, dict] = {}
-        self.create_all()
+        self.create_all(global_grid_args if global_grid_args else {})
         self.create_events()
 
     @property
@@ -29,7 +29,7 @@ class SkeletonMixin(abc.ABC):
     def template(self) -> typing.Iterable[typing.Iterable[SkelWidget]]:
         pass
 
-    def create_all(self):
+    def create_all(self, global_grid_args: dict):
         for row_index, row in enumerate(self.template):
             for col_index, skel_widget in enumerate(row):
                 if skel_widget is None:
@@ -40,6 +40,7 @@ class SkeletonMixin(abc.ABC):
 
                 w = skel_widget.widget(self, **skel_widget.init_args)
                 w.grid(row=row_index, column=col_index,
+                       **global_grid_args,
                        **skel_widget.grid_args)
                 if skel_widget.label is not None:
                     # And what is the vardict?

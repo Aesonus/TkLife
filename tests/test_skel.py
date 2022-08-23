@@ -141,6 +141,31 @@ class TestSkeletonMixin(object):
             call(skeleton), call().grid(row=1, column=1, arg4=True),
         ]
 
+    def test_create_all_creates_and_grids_widgets_from_template_with_global_grid_args(
+            self,
+            mock_master,
+            mock_controller,
+            mock_mixin_class,
+            mocked_widget):
+
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [SkelWidget(mocked_widget, {}, {'arg1': True}), SkelWidget(
+                        mocked_widget, {}, {'arg2': True})],
+                    [SkelWidget(mocked_widget, {}, {'arg3': True}), SkelWidget(
+                        mocked_widget, {}, {'arg4': True})],
+                )
+        skeleton = Tested(mock_master, mock_controller, {'garg': True})
+        actual = mocked_widget.mock_calls
+        assert actual == [
+            call(skeleton), call().grid(row=0, column=0, garg=True, arg1=True),
+            call(skeleton), call().grid(row=0, column=1, garg=True, arg2=True),
+            call(skeleton), call().grid(row=1, column=0, garg=True, arg3=True),
+            call(skeleton), call().grid(row=1, column=1, garg=True, arg4=True),
+        ]
+
 
     def test_create_all_creates_and_grids_widgets_from_template_skipping_none(
             self,
