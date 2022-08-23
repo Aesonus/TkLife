@@ -11,7 +11,7 @@ class TestSkeletonMixin(object):
 
     @pytest.fixture
     def mock_master(self, mocker: MockerFixture):
-        return mocker.MagicMock()
+        return mocker.Mock()
 
     @pytest.fixture
     def mock_controller(self, mocker: MockerFixture):
@@ -33,6 +33,8 @@ class TestSkeletonMixin(object):
                 return (
                     [],
                 )
+            def create_events(self):
+                self.created_events = True
         return TestedSkeleton
 
     @pytest.fixture
@@ -53,6 +55,10 @@ class TestSkeletonMixin(object):
         assert skeleton._init_kwargs == {}
         assert skeleton.controller == mock_controller
         mock_controller.set_view.assert_called_once_with(skeleton)
+
+    def test_init_calls_create_events(self, no_template_skeleton, mock_master, mock_controller: MagicMock):
+        skeleton = no_template_skeleton(mock_master, mock_controller)
+        assert skeleton.created_events == True
 
     def test_controller_setter_raises_exception_if_invalid_controller(
             self,

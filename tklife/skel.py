@@ -22,6 +22,7 @@ class SkeletonMixin(abc.ABC):
 
         self.created: dict[str, dict] = {}
         self.create_all()
+        self.create_events()
 
     @property
     @abc.abstractmethod
@@ -52,6 +53,9 @@ class SkeletonMixin(abc.ABC):
                         **vardict,
                     }
 
+    def create_events(self):
+        pass
+
     @property
     def controller(self):
         return self.__controller
@@ -59,6 +63,7 @@ class SkeletonMixin(abc.ABC):
     @controller.setter
     def controller(self, controller: ControllerABC):
         if not isinstance(controller, ControllerABC):
-            raise TypeError(f"Controller must be of type {ControllerABC.__name__}")
+            raise TypeError(
+                f"Controller must be of type {ControllerABC.__name__}")
         self.__controller = controller
         controller.set_view(self)
