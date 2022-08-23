@@ -21,7 +21,7 @@ class SkeletonMixin(abc.ABC):
         super().__init__(master, **kwargs)
 
         self.created: dict[str, dict] = {}
-        self.create_all(global_grid_args if global_grid_args else {})
+        self._create_all(global_grid_args if global_grid_args else {})
         self.create_events()
 
     @property
@@ -29,7 +29,7 @@ class SkeletonMixin(abc.ABC):
     def template(self) -> typing.Iterable[typing.Iterable[SkelWidget]]:
         pass
 
-    def create_all(self, global_grid_args: dict):
+    def _create_all(self, global_grid_args: dict):
         for row_index, row in enumerate(self.template):
             for col_index, skel_widget in enumerate(row):
                 if skel_widget is None:
