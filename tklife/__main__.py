@@ -1,6 +1,7 @@
 """Shows an example of a skeleton window"""
 
 from tkinter import BOTH, E, Misc, StringVar, Tk, W, ttk
+from tkinter.messagebox import showinfo
 
 from tklife.constants import COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE
 from tklife.controller import ControllerABC
@@ -33,14 +34,14 @@ class ExampleModal(ModalDialog):
 
 class ExampleController(ControllerABC):
     def button_a_command(self, *__):
-        print(self.view.created['entry_a']['textvariable'].get())
+        showinfo(title="Information", message=self.view.created['entry_a']['textvariable'].get(), parent=self.view)
 
     def button_b_command(self, *__):
-        print(self.view.created['entry_b']['textvariable'].get())
+        showinfo(title="Information", message=self.view.created['entry_b']['textvariable'].get(), parent=self.view)
 
     def button_c_command(self, *__):
         d = ExampleModal.show(self.view)
-        print(d)
+        showinfo(title="Information", message=f"{d}", parent=self.view)
 
 
 class ExampleView(SkeletonMixin, Tk):
@@ -52,7 +53,10 @@ class ExampleView(SkeletonMixin, Tk):
         self.created['entry_b']['textvariable'].set("Default value")
 
     def create_events(self):
+        # Standard event
         TkEvent.ESCAPE.bind(self, lambda __: self.destroy())
+
+        # Composite event
         (TkEventMod.CONTROL + TkEvent.RETURN).bind(self, lambda __: self.destroy())
 
     @property
