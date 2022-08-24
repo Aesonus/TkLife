@@ -6,6 +6,7 @@ from tklife.constants import COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
 from tklife.skel import SkeletonMixin, SkelWidget
+from tklife.widgets import ModalDialog
 
 
 class ExampleController(ControllerABC):
@@ -14,6 +15,9 @@ class ExampleController(ControllerABC):
 
     def button_b_command(self, *__):
         print(self.view.created['entry_b']['textvariable'].get())
+
+    def button_c_command(self, *__):
+        d = ModalDialog.show(self.view)
 
 
 class ExampleView(SkeletonMixin, Tk):
@@ -44,6 +48,7 @@ class ExampleView(SkeletonMixin, Tk):
                 SkelWidget(ttk.Button, {
                            TEXT: "Print contents", COMMAND: self.controller.button_b_command}, {})
             ],
+            [None, SkelWidget(ttk.Button, {TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None]
         )
 
 

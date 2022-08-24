@@ -5,9 +5,44 @@ from tkinter.constants import (ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E,
                                N, S, W)
 from tkinter.ttk import Entry, Frame, Scrollbar
 from typing import Iterable, Optional
+from tklife.event import TkEvent
 
-__all__ = ['ScrolledListbox', 'AutoSearchCombobox', 'ScrolledFrame']
+__all__ = ['ScrolledListbox', 'AutoSearchCombobox', 'ScrolledFrame', 'ModalDialog']
 
+
+class ModalDialog(Toplevel):
+    """A dialog that demands focus"""
+    def __init__(self, master, **kwargs):
+        super().__init__(**kwargs)
+        self.transient(master)
+        self.withdraw()
+        self.return_value = None
+        self.cancelled = False
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        TkEvent.ESCAPE.bind(self, self.cancel)
+        TkEvent.RETURN.bind(self, lambda __: self.destroy())
+        TkEvent.DESTROY.bind(self, self.set_return_values)
+
+    @classmethod
+    def show(cls, master: Widget, **kwargs):
+        dialog = cls(master, **kwargs)
+        dialog.deiconify()
+        dialog.grab_set()
+        dialog.focus_set()
+        dialog.wait_window()
+        return dialog.return_value
+
+    def set_return_values(self, event: Event):
+        """
+        Sets the return value if dialog not cancelled.
+        Called in the <Destroy> event if cancelled = True.
+        You must override this method for return value to work
+        """
+        pass
+
+    def cancel(self, *__):
+        self.cancelled = True
+        self.destroy()
 
 class ScrolledFrame(Frame):
     """
