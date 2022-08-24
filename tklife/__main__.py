@@ -2,8 +2,9 @@
 
 from tkinter import BOTH, E, Misc, StringVar, Tk, W, ttk
 
-from tklife.constants import COMMAND, STICKY, TEXT, TEXTVARIABLE
+from tklife.constants import COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE
 from tklife.controller import ControllerABC
+from tklife.event import TkEvent, TkEventMod
 from tklife.skel import SkeletonMixin, SkelWidget
 
 
@@ -15,11 +16,16 @@ class ExampleController(ControllerABC):
         print(self.view.created['entry_b']['textvariable'].get())
 
 
-class ExampleView(SkeletonMixin, ttk.Frame):
+class ExampleView(SkeletonMixin, Tk):
     def __init__(self, master: 'Misc', controller: ExampleController, **kwargs) -> None:
         self.controller: ExampleController
-        super().__init__(master, controller, **kwargs)
+        super().__init__(master, controller, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
+        self.title("TkLife Example")
         self.created['entry_b']['textvariable'].set("Default value")
+
+    def create_events(self):
+        TkEvent.ESCAPE.bind(self, lambda __: self.destroy())
+        (TkEventMod.CONTROL + TkEvent.RETURN).bind(self, lambda __: self.destroy())
 
     @property
     def template(self):
@@ -42,8 +48,6 @@ class ExampleView(SkeletonMixin, ttk.Frame):
 
 
 if __name__ == "__main__":
-    main = Tk()
-    main.title("Skeleton Example")
-    example_view = ExampleView(main, ExampleController())
-    example_view.pack(fill=BOTH)
-    main.mainloop()
+    example_view = ExampleView(None, None)
+    example_view.controller = ExampleController()
+    example_view.mainloop()

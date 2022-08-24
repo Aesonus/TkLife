@@ -3,6 +3,7 @@ import tkinter
 import typing
 
 from .controller import ControllerABC
+from .proxy import CallProxy, CallProxyFactory
 
 
 class SkelWidget(typing.NamedTuple):
@@ -23,9 +24,12 @@ class CreatedWidget(CreatedVariables):
 
 
 class SkeletonMixin(abc.ABC):
-    def __init__(self, master: tkinter.Misc, controller: 'ControllerABC', global_grid_args=None, **kwargs) -> None:
+    def __init__(self, master: tkinter.Misc, controller: 'typing.Optional[ControllerABC]' = None, global_grid_args=None, **kwargs) -> None:
         # Set the controller first
+
         self.controller = controller
+        if controller is None:
+            self.__proxy_factory = CallProxyFactory(self)
 
         # Init the frame or whatever
         super().__init__(master, **kwargs)
@@ -69,12 +73,16 @@ class SkeletonMixin(abc.ABC):
 
     @property
     def controller(self):
-        return self.__controller
+        if not self.__controller:
+            return self.__proxy_factory
+        else:
+            return self.__controller
 
     @controller.setter
     def controller(self, controller: ControllerABC):
-        if not isinstance(controller, ControllerABC):
+        if not isinstance(controller, ControllerABC) and controller is not None:
             raise TypeError(
                 f"Controller must be of type {ControllerABC.__name__}")
         self.__controller = controller
-        controller.set_view(self)
+        if controller is not None:
+            controller.set_view(self)

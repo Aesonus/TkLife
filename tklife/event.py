@@ -51,7 +51,9 @@ class CompositeEvent(_EventMixin):
 
     @classmethod
     def factory(cls, modifier, event) -> 'CompositeEvent':
-        return cls(f"{modifier.value[0:-1]}-{event.value[1:]}")
+        mod_value = modifier.value if not isinstance(modifier, str) else modifier
+        event_value = event.value if not isinstance(event, str) else event
+        return cls(f"{mod_value[0:-1]}-{event_value[1:]}")
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.value})"
