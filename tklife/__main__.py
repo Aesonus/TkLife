@@ -9,6 +9,28 @@ from tklife.skel import SkeletonMixin, SkelWidget
 from tklife.widgets import ModalDialog
 
 
+class ExampleModal(ModalDialog):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
+
+    @property
+    def template(self):
+        return (
+            [
+                SkelWidget(ttk.Label, {TEXT: "Enter data:"}, {}),
+                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {}, 'entry')],
+            [
+                SkelWidget(ttk.Button, {TEXT: "Okay",
+                           COMMAND: self.destroy}, {STICKY: W}),
+                SkelWidget(ttk.Button, {TEXT: "Cancel",
+                           COMMAND: self.cancel}, {STICKY: E})
+            ],
+        )
+
+    def set_return_values(self):
+        self.return_value = self.created['entry'][TEXTVARIABLE].get()
+
+
 class ExampleController(ControllerABC):
     def button_a_command(self, *__):
         print(self.view.created['entry_a']['textvariable'].get())
@@ -17,13 +39,15 @@ class ExampleController(ControllerABC):
         print(self.view.created['entry_b']['textvariable'].get())
 
     def button_c_command(self, *__):
-        d = ModalDialog.show(self.view)
+        d = ExampleModal.show(self.view)
+        print(d)
 
 
 class ExampleView(SkeletonMixin, Tk):
     def __init__(self, master: 'Misc', controller: ExampleController, **kwargs) -> None:
         self.controller: ExampleController
-        super().__init__(master, controller, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
+        super().__init__(master, controller,
+                         global_grid_args={PADX: 3, PADY: 3}, **kwargs)
         self.title("TkLife Example")
         self.created['entry_b']['textvariable'].set("Default value")
 
@@ -48,7 +72,8 @@ class ExampleView(SkeletonMixin, Tk):
                 SkelWidget(ttk.Button, {
                            TEXT: "Print contents", COMMAND: self.controller.button_b_command}, {})
             ],
-            [None, SkelWidget(ttk.Button, {TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None]
+            [None, SkelWidget(ttk.Button, {
+                              TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None]
         )
 
 

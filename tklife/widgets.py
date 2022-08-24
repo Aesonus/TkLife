@@ -1,4 +1,5 @@
 """Creates some common widgets"""
+from abc import abstractmethod
 from tkinter import (BOTH, END, HORIZONTAL, LEFT, RIGHT, VERTICAL, Canvas,
                      Event, Grid, Listbox, Pack, Place, Toplevel, Widget, Y)
 from tkinter.constants import (ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E,
@@ -6,14 +7,15 @@ from tkinter.constants import (ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E,
 from tkinter.ttk import Entry, Frame, Scrollbar
 from typing import Iterable, Optional
 from tklife.event import TkEvent
+from tklife.skel import SkeletonMixin
 
 __all__ = ['ScrolledListbox', 'AutoSearchCombobox', 'ScrolledFrame', 'ModalDialog']
 
 
-class ModalDialog(Toplevel):
+class ModalDialog(SkeletonMixin, Toplevel):
     """A dialog that demands focus"""
     def __init__(self, master, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(None, **kwargs)
         self.transient(master)
         self.withdraw()
         self.return_value = None
@@ -21,7 +23,7 @@ class ModalDialog(Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.cancel)
         TkEvent.ESCAPE.bind(self, self.cancel)
         TkEvent.RETURN.bind(self, lambda __: self.destroy())
-        TkEvent.DESTROY.bind(self, self.set_return_values)
+        TkEvent.DESTROY.bind(self, self.__destoy_event_handler)
 
     @classmethod
     def show(cls, master: Widget, **kwargs):
@@ -32,7 +34,12 @@ class ModalDialog(Toplevel):
         dialog.wait_window()
         return dialog.return_value
 
-    def set_return_values(self, event: Event):
+    def __destoy_event_handler(self, event):
+        if not self.cancelled:
+            self.set_return_values()
+
+    @abstractmethod
+    def set_return_values(self):
         """
         Sets the return value if dialog not cancelled.
         Called in the <Destroy> event if cancelled = True.
