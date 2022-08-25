@@ -141,7 +141,7 @@ class AutoSearchCombobox(Entry):
         self._lb.pack(expand=True, fill=BOTH)
         self._hide_tl()
         self.winfo_toplevel().focus_set()
-        TkEvent.KEYRELEASE.bind(self, self._handle_keypress)
+        TkEvent.KEYRELEASE.bind(self, self._handle_keyrelease)
         TkEvent.FOCUSOUT.bind(self, self._handle_focusout)
         TkEvent.KEYPRESS.bind(self, self._handle_keypress)
         # toplevel bindings
