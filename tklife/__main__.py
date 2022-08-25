@@ -1,19 +1,22 @@
 """Shows an example of a skeleton window"""
 
+from functools import cached_property, partial
 from tkinter import E, NSEW, Misc, StringVar, Tk, W, ttk
+import tkinter
 from tkinter.messagebox import showinfo
 from typing import Optional
 
 from tklife.constants import COLUMNSPAN, COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE, VALUES
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
-from tklife.skel import SkeletonMixin, SkelWidget
+from tklife.skel import Menu, SkeletonMixin, SkelWidget
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 
 class ExampleModal(ModalDialog):
     def __init__(self, master, **kwargs):
         super().__init__(master, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
+        self.title("Example Modal")
 
     @property
     def template(self):
@@ -83,6 +86,17 @@ class ExampleView(SkeletonMixin, Tk):
                               TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None],
             [SkelWidget(ScrolledFrame, {}, {COLUMNSPAN: 3, STICKY: NSEW})]
         )
+
+
+    @property
+    def menu_template(self):
+        return {
+            Menu.cascade(label="File", underline=0): {
+                Menu.command(label="Show Dialog", underline=0): self.controller.button_c_command,
+                Menu.add(): 'separator',
+                Menu.command(label="Exit", underline=1): self.destroy
+            }
+        }
 
 
 if __name__ == "__main__":

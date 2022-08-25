@@ -1,6 +1,7 @@
 import abc
 from collections import UserDict
 import dataclasses
+from functools import partial
 import tkinter
 import typing
 from collections.abc import Iterable
@@ -104,12 +105,17 @@ class SkeletonMixin(abc.ABC):
 
         self.created: CreatedWidgetDict = {}
         self._create_all(global_grid_args if global_grid_args else {})
+        self._create_menu()
         self.create_events()
 
     @property
     @abc.abstractmethod
     def template(self) -> Iterable[Iterable[SkelWidget]]:
         pass
+
+    @property
+    def menu_template(self):
+        return {}
 
     def _create_all(self, global_grid_args: dict):
         for row_index, row in enumerate(self.template):
@@ -135,6 +141,27 @@ class SkeletonMixin(abc.ABC):
                         widget=w, **vardict
                     )
 
+    def _create_menu(self):
+        def submenu(template: dict):
+            menu = tkinter.Menu(self.winfo_toplevel())  # type: ignore
+            for menu_partial, data in template.items():
+                if menu_partial.func == tkinter.Menu.add_command:
+                    menu_partial(menu, command=data)
+                elif menu_partial.func == tkinter.Menu.add_cascade:
+                    if not isinstance(data, dict):
+                        raise ValueError(
+                            f"{menu_partial.func.__name__} must have dict for value")
+                    menu_partial(menu, menu=submenu(data))
+                elif menu_partial.func == tkinter.Menu.add:
+                    menu_partial(menu, data)
+            return menu
+
+        template = self.menu_template
+        if template:
+            self.option_add("*tearOff", 0)
+            main_menu = submenu(template)
+            self['menu'] = main_menu
+
     def create_events(self):
         pass
 
@@ -153,3 +180,20 @@ class SkeletonMixin(abc.ABC):
         self.__controller = controller
         if controller is not None:
             controller.set_view(self)
+
+
+class Menu(object):
+
+    @classmethod
+    def add(cls, **opts: typing.Any):
+        return partial(tkinter.Menu.add, **opts)
+
+    @classmethod
+    def command(cls, **opts: typing.Any) -> typing.Callable[[tkinter.Menu], None]:
+        nf = partial(tkinter.Menu.add_command, **opts)
+        return nf
+
+    @classmethod
+    def cascade(cls, **opts: typing.Any) -> typing.Callable[[tkinter.Menu], None]:
+        nf = partial(tkinter.Menu.add_cascade, **opts)
+        return nf
