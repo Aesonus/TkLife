@@ -8,5 +8,5 @@ if TYPE_CHECKING:
 
 
 class ControllerABC(object):
-    def set_view(self, view: 'Union[SkeletonMixin, tkinter.Misc]'):
+    def set_view(self, view: 'Union[SkeletonMixin, tkinter.Widget]'):
         self.view: 'Union[SkeletonMixin, tkinter.Misc]' = view
