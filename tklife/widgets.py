@@ -87,8 +87,8 @@ class ScrolledFrame(Frame):
         self.h_scroll.configure(command=self.canvas.xview)
         self.canvas.configure(yscrollcommand=self.v_scroll.set)
         self.canvas.configure(xscrollcommand=self.h_scroll.set)
-        self.container.bind('<Configure>', self._container_configure_handler)
-        self.bind('<Configure>', self._self_configure_handler)
+        TkEvent.CONFIGURE.bind(self.container, self._container_configure_handler)
+        TkEvent.CONFIGURE.bind(self, self._self_configure_handler)
 
     def _container_configure_handler(self, event: Event):
         self.canvas.configure(
@@ -141,28 +141,12 @@ class AutoSearchCombobox(Entry):
         self._lb.pack(expand=True, fill=BOTH)
         self._hide_tl()
         self.winfo_toplevel().focus_set()
-        self.bind('<KeyRelease>', self._handle_keyrelease)
-        self.bind('<FocusOut>', self._handle_focusout)
-        self.bind('<KeyPress>', self._handle_keypress)
+        TkEvent.KEYRELEASE.bind(self, self._handle_keypress)
+        TkEvent.FOCUSOUT.bind(self, self._handle_focusout)
+        TkEvent.KEYPRESS.bind(self, self._handle_keypress)
         # toplevel bindings
-        cfg_handler = self.winfo_toplevel().bind(
-            '<Configure>', self._handle_configure, add="+")
-        self.bind('<Destroy>', lambda __,
-                  cfg_handler=cfg_handler: self._unbind_my_configure(cfg_handler))
-
-    def _unbind_my_configure(self, cfg_handler):
-        """Internal function. Allows for JUST this widget's associated callback. Getting around tkinter bug"""
-        root_tl = self.winfo_toplevel()
-        if not cfg_handler:
-            root_tl.tk.call('bind', self._w, '<Configure>', '')
-            return
-        func_callbacks = root_tl.tk.call(
-            'bind', root_tl._w, '<Configure>', None).split('\n')
-        new_callbacks = [
-            l for l in func_callbacks if l[6:6 + len(cfg_handler)] != cfg_handler]
-        root_tl.tk.call('bind', root_tl._w, '<Configure>',
-                        '\n'.join(new_callbacks))
-        root_tl.deletecommand(cfg_handler)
+        cfg_handler = TkEvent.CONFIGURE.bind(self.winfo_toplevel(), self._handle_configure, add='+')
+        TkEvent.DESTROY.bind(self, lambda __: TkEvent.CONFIGURE.unbind(self.winfo_toplevel(), cfg_handler))
 
     @property
     def values(self):
@@ -195,7 +179,7 @@ class AutoSearchCombobox(Entry):
         try:
             sel = self._lb.curselection()[0]
         except IndexError:
-            return None
+            return ""
         return self._lb.get(sel)
 
     def _set_lb_index(self, index):

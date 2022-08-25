@@ -1,26 +1,29 @@
+
 from enum import Enum
-from tkinter import Event, Widget
-from typing import Any, Callable, Optional
+from tkinter import BaseWidget, Event, Tk, Toplevel, Widget
+from typing import Any, Callable, Optional, Union
 
 T_ActionCallable = Callable[[Event], Any]
-
+T_Widget = Union[BaseWidget, Tk, Toplevel]
 
 class _EventMixin(object):
-    def generate(self, widget: Widget) -> T_ActionCallable:
+    value: str
+
+    def generate(self, widget: T_Widget) -> T_ActionCallable:
         def generator(*__, widget=widget):
             widget.event_generate(self.value)
         return generator
 
-    def bind(self, widget: Widget, action: T_ActionCallable, **kwargs):
+    def bind(self, widget: T_Widget, action: T_ActionCallable, **kwargs):
         return widget.bind(self.value, action, **kwargs)
 
-    def bind_all(self, widget: Widget, action: T_ActionCallable, **kwargs):
+    def bind_all(self, widget: T_Widget, action: T_ActionCallable, **kwargs):
         return widget.bind_all(self.value, action, **kwargs)
 
-    def bind_class(self, widget: Widget, classname: str, action: T_ActionCallable, **kwargs):
+    def bind_class(self, widget: T_Widget, classname: str, action: T_ActionCallable, **kwargs):
         return widget.bind_class(classname, self.value, action, **kwargs)
 
-    def unbind(self, widget: Widget, funcid: Optional[str] = None):
+    def unbind(self, widget: T_Widget, funcid: Optional[str] = None):
         '''
         See:
             http://stackoverflow.com/questions/6433369/
@@ -28,13 +31,14 @@ class _EventMixin(object):
             Modified
         '''
         if not funcid:
-            widget.tk.call('bind', widget._w, self.value, '')
+            widget.tk.call('bind', widget._w, self.value, '')  # type: ignore
             return
         func_callbacks = widget.tk.call(
-            'bind', widget._w, self.value, None).split('\n')
+            'bind', widget._w, self.value, None).split('\n')  # type: ignore
         new_callbacks = [
             l for l in func_callbacks if l[6:6 + len(funcid)] != funcid]
-        widget.tk.call('bind', widget._w, self.value, '\n'.join(new_callbacks))
+        widget.tk.call('bind', widget._w, self.value,  # type: ignore
+                       '\n'.join(new_callbacks))
         widget.deletecommand(funcid)
 
     def __add__(self, arg):
@@ -51,7 +55,8 @@ class CompositeEvent(_EventMixin):
 
     @classmethod
     def factory(cls, modifier, event) -> 'CompositeEvent':
-        mod_value = modifier.value if not isinstance(modifier, str) else modifier
+        mod_value = modifier.value if not isinstance(
+            modifier, str) else modifier
         event_value = event.value if not isinstance(event, str) else event
         return cls(f"{mod_value[0:-1]}-{event_value[1:]}")
 

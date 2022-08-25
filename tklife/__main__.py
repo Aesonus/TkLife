@@ -1,14 +1,14 @@
 """Shows an example of a skeleton window"""
 
-from tkinter import E, Misc, StringVar, Tk, W, ttk
+from tkinter import E, NSEW, Misc, StringVar, Tk, W, ttk
 from tkinter.messagebox import showinfo
 from typing import Optional
 
-from tklife.constants import COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE
+from tklife.constants import COLUMNSPAN, COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE, VALUES
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
 from tklife.skel import SkeletonMixin, SkelWidget
-from tklife.widgets import ModalDialog
+from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 
 class ExampleModal(ModalDialog):
@@ -20,7 +20,7 @@ class ExampleModal(ModalDialog):
         return (
             [
                 SkelWidget(ttk.Label, {TEXT: "Enter data:"}, {}),
-                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {}, 'entry')],
+                SkelWidget(AutoSearchCombobox, {TEXTVARIABLE: StringVar, VALUES: ['test', 'value']}, {}, 'entry')],
             [
                 SkelWidget(ttk.Button, {TEXT: "Okay",
                            COMMAND: self.destroy}, {STICKY: W}),
@@ -78,7 +78,8 @@ class ExampleView(SkeletonMixin, Tk):
                            TEXT: "Print contents", COMMAND: self.controller.button_b_command}, {})
             ],
             [None, SkelWidget(ttk.Button, {
-                              TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None]
+                              TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None],
+            [SkelWidget(ScrolledFrame, {}, {COLUMNSPAN: 3, STICKY: NSEW})]
         )
 
 
