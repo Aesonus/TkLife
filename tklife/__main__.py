@@ -35,10 +35,12 @@ class ExampleModal(ModalDialog):
 
 class ExampleController(ControllerABC):
     def button_a_command(self, *__):
-        showinfo(title="Information", message=self.view.created['entry_a']['textvariable'].get(), parent=self.view)
+        showinfo(title="Information",
+                 message=self.view.created['entry_a']['textvariable'].get(), parent=self.view)
 
     def button_b_command(self, *__):
-        showinfo(title="Information", message=self.view.created['entry_b']['textvariable'].get(), parent=self.view)
+        showinfo(title="Information",
+                 message=self.view.created['entry_b']['textvariable'].get(), parent=self.view)
 
     def button_c_command(self, *__):
         d = ExampleModal.show(self.view)
@@ -46,7 +48,7 @@ class ExampleController(ControllerABC):
 
 
 class ExampleView(SkeletonMixin, Tk):
-    def __init__(self, master: 'Optional[Misc]'=None, example_controller: Optional[ExampleController]=None, **kwargs) -> None:
+    def __init__(self, master: 'Optional[Misc]' = None, example_controller: Optional[ExampleController] = None, **kwargs) -> None:
         self.controller: ExampleController
         super().__init__(master, example_controller,
                          global_grid_args={PADX: 3, PADY: 3}, **kwargs)

@@ -9,11 +9,13 @@ from typing import Iterable, Optional
 from tklife.event import TkEvent
 from tklife.skel import SkeletonMixin
 
-__all__ = ['ScrolledListbox', 'AutoSearchCombobox', 'ScrolledFrame', 'ModalDialog']
+__all__ = ['ScrolledListbox', 'AutoSearchCombobox',
+           'ScrolledFrame', 'ModalDialog']
 
 
 class ModalDialog(SkeletonMixin, Toplevel):
     """A dialog that demands focus"""
+
     def __init__(self, master, **kwargs):
         super().__init__(None, **kwargs)
         self.transient(master)
@@ -51,6 +53,7 @@ class ModalDialog(SkeletonMixin, Toplevel):
         self.cancelled = True
         self.destroy()
 
+
 class ScrolledFrame(Frame):
     """
     A scrolling frame inside a canvas. Based on tkinter.scrolledtext.ScrolledText
@@ -58,7 +61,8 @@ class ScrolledFrame(Frame):
 
     def __init__(self, master: Widget, **kwargs):
         self.container = Frame(master)
-        self.canvas = Canvas(self.container, relief='flat', highlightthickness=0)
+        self.canvas = Canvas(self.container, relief='flat',
+                             highlightthickness=0)
         self.v_scroll = Scrollbar(self.container, orient=VERTICAL)
         self.h_scroll = Scrollbar(self.container, orient=HORIZONTAL)
         kwargs.update({'master': self.canvas})
@@ -87,7 +91,8 @@ class ScrolledFrame(Frame):
         self.h_scroll.configure(command=self.canvas.xview)
         self.canvas.configure(yscrollcommand=self.v_scroll.set)
         self.canvas.configure(xscrollcommand=self.h_scroll.set)
-        TkEvent.CONFIGURE.bind(self.container, self._container_configure_handler)
+        TkEvent.CONFIGURE.bind(
+            self.container, self._container_configure_handler)
         TkEvent.CONFIGURE.bind(self, self._self_configure_handler)
 
     def _container_configure_handler(self, event: Event):
@@ -145,8 +150,10 @@ class AutoSearchCombobox(Entry):
         TkEvent.FOCUSOUT.bind(self, self._handle_focusout)
         TkEvent.KEYPRESS.bind(self, self._handle_keypress)
         # toplevel bindings
-        cfg_handler = TkEvent.CONFIGURE.bind(self.winfo_toplevel(), self._handle_configure, add='+')
-        TkEvent.DESTROY.bind(self, lambda __: TkEvent.CONFIGURE.unbind(self.winfo_toplevel(), cfg_handler))
+        cfg_handler = TkEvent.CONFIGURE.bind(
+            self.winfo_toplevel(), self._handle_configure, add='+')
+        TkEvent.DESTROY.bind(self, lambda __: TkEvent.CONFIGURE.unbind(
+            self.winfo_toplevel(), cfg_handler))
 
     @property
     def values(self):

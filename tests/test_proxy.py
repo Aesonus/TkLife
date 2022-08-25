@@ -3,6 +3,7 @@ from pytest_mock import MockerFixture
 
 from tklife.proxy import CallProxy, CallProxyFactory, TklProxyError
 
+
 class TestCallProxy:
     def test_will_call_method_by_name_with_args_on_skel_controller(self, mocker: MockerFixture):
         skel = mocker.Mock()
@@ -20,6 +21,7 @@ class TestCallProxy:
         with pytest.raises(TklProxyError):
             proxy = CallProxy(skel, "func")
             proxy()
+
 
 class TestCallProxyFactory:
     def test_dunder_get_attr_returns_new_call_proxy(self, mocker: MockerFixture):

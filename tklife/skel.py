@@ -88,7 +88,7 @@ CreatedWidgetDict = dict[str, CreatedWidget]
 
 class SkeletonMixin(abc.ABC):
     def __init__(self,
-                 master: typing.Optional[tkinter.Misc]=None,
+                 master: typing.Optional[tkinter.Misc] = None,
                  controller: 'typing.Optional[ControllerABC]' = None,
                  global_grid_args=None,
                  **kwargs) -> None:

@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional, Union
 T_ActionCallable = Callable[[Event], Any]
 T_Widget = Union[BaseWidget, Tk, Toplevel]
 
+
 class _EventMixin(object):
     value: str
 

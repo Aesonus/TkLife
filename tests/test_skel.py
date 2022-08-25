@@ -33,6 +33,7 @@ class TestSkeletonMixin(object):
                 return (
                     [],
                 )
+
             def create_events(self):
                 self.created_events = True
         return TestedSkeleton
@@ -166,7 +167,6 @@ class TestSkeletonMixin(object):
             call(skeleton), call().grid(row=1, column=1, garg=True, arg4=True),
         ]
 
-
     def test_create_all_creates_and_grids_widgets_from_template_skipping_none(
             self,
             mock_master,
@@ -239,6 +239,7 @@ class TestSkeletonMixin(object):
             "arg1": mock_tk_var.return_value
         }
 
+
 class TestCreatedWidget:
     @pytest.fixture
     def mock_widget(self, mocker: MockerFixture):
@@ -293,4 +294,3 @@ class TestCreatedWidget:
     def test_dunder_getitem_for_all_values(self, attr, mock_widget, mock_var):
         created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
         assert created_widget[attr] == mock_var
-
