@@ -1,4 +1,3 @@
-import pytest
 from tklife.arrange import Autogrid
 
 
@@ -8,7 +7,6 @@ def test_Autogrid_call():
         ('elemc', {'column': 0, 'row': 1}), ('elemd', {'column': 1, 'row': 1}),
     )
     actual = Autogrid((2,))(('elema', 'elemb', 'elemc', 'elemd'))
-    # print(tuple(actual))
     assert tuple(actual) == expected
 
 
