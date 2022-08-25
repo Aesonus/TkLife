@@ -21,7 +21,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 minversion = 7.0
-addopts = '--cov=tklife --cov-report html --cov-report xml'
+addopts = '--cov=tklife --ignore __main__.py --cov-report html --cov-report xml'
 
 [tool.mypy]
 python_version = "3.9"

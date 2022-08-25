@@ -1,30 +1,97 @@
 import abc
+from collections import UserDict
+import dataclasses
 import tkinter
 import typing
+from collections.abc import Iterable
 
 from .controller import ControllerABC
-from .proxy import CallProxy, CallProxyFactory
+from .proxy import CallProxyFactory
+
+if typing.TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class SkelWidget(typing.NamedTuple):
-    widget: typing.Type[tkinter.Misc]
+    widget: typing.Type[tkinter.Widget]
     init_args: dict[str, typing.Any]
     grid_args: dict[str, typing.Any]
     label: typing.Optional[str] = None
 
 
-class CreatedVariables(typing.TypedDict, total=False):
-    textvariable: tkinter.Variable
-    variable: tkinter.Variable
-    listvariable: tkinter.Variable
+class CreatedWidget(object):
+    def __init__(self, widget: tkinter.Widget,
+                 textvariable: typing.Optional[tkinter.Variable] = None,
+                 variable: typing.Optional[tkinter.Variable] = None,
+                 listvariable: typing.Optional[tkinter.Variable] = None,
+                 **custom_vars: tkinter.Variable) -> None:
+        self.__widget = widget
+        self.__values: dict[str, tkinter.Variable] = {
+            **{
+                k: v for k, v in zip(("textvariable",
+                                      "variable",
+                                      "listvariable",
+                                      ), (textvariable,
+                                          variable,
+                                          listvariable,))
+                if v is not None
+            },
+            **custom_vars
+        }
+
+    @property
+    def widget(self) -> tkinter.Widget:
+        return self.__widget
+
+    @property
+    def textvariable(self) -> tkinter.Variable:
+        return self['textvariable']
+
+    @property
+    def variable(self) -> tkinter.Variable:
+        return self['variable']
+
+    @property
+    def listvariable(self) -> tkinter.Variable:
+        return self['listvariable']
+
+    def __getattr__(self, attr: str) -> tkinter.Variable:
+        returned = self.__values.get(attr)
+        if returned is None:
+            raise AttributeError
+        else:
+            return returned
+
+    def __getitem__(self, attr: str) -> tkinter.Variable:
+        returned = self.__values.get(attr)
+        if returned is None:
+            raise AttributeError(f"'{attr}' not found")
+        else:
+            return returned
+
+    def __setitem__(self, *args):
+        setattr(self, *args)
+
+    def __setattr__(self, __name: str, __value: typing.Any) -> None:
+        if f"_{self.__class__.__name__}__" in __name:
+            object.__setattr__(self, __name, __value)
+        else:
+            raise AttributeError(
+                f"Cannot set '{__name}'; {self.__class__} is read-only")
+
+    def as_dict(self):
+        return dict(**self.__values, widget=self.widget)
 
 
-class CreatedWidget(CreatedVariables):
-    widget: tkinter.Misc
+CreatedWidgetDict = dict[str, CreatedWidget]
 
 
 class SkeletonMixin(abc.ABC):
-    def __init__(self, master: tkinter.Misc, controller: 'typing.Optional[ControllerABC]' = None, global_grid_args=None, **kwargs) -> None:
+    def __init__(self,
+                 master: typing.Optional[tkinter.Misc]=None,
+                 controller: 'typing.Optional[ControllerABC]' = None,
+                 global_grid_args=None,
+                 **kwargs) -> None:
         # Set the controller first
 
         self.controller = controller
@@ -32,15 +99,16 @@ class SkeletonMixin(abc.ABC):
             self.__proxy_factory = CallProxyFactory(self)
 
         # Init the frame or whatever
-        super().__init__(master, **kwargs)
 
-        self.created: dict[str, CreatedWidget] = {}
+        super().__init__(master, **kwargs)  # type: ignore
+
+        self.created: CreatedWidgetDict = {}
         self._create_all(global_grid_args if global_grid_args else {})
         self.create_events()
 
     @property
     @abc.abstractmethod
-    def template(self) -> typing.Iterable[typing.Iterable[SkelWidget]]:
+    def template(self) -> Iterable[Iterable[SkelWidget]]:
         pass
 
     def _create_all(self, global_grid_args: dict):
@@ -63,10 +131,9 @@ class SkeletonMixin(abc.ABC):
                     }
 
                     # Widgets!
-                    self.created[skel_widget.label] = {
-                        'widget': w,
-                        **vardict,
-                    }
+                    self.created[skel_widget.label] = CreatedWidget(
+                        widget=w, **vardict
+                    )
 
     def create_events(self):
         pass

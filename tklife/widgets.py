@@ -58,7 +58,7 @@ class ScrolledFrame(Frame):
 
     def __init__(self, master: Widget, **kwargs):
         self.container = Frame(master)
-        self.canvas = Canvas(self.container, relief=None, highlightthickness=0)
+        self.canvas = Canvas(self.container, relief='flat', highlightthickness=0)
         self.v_scroll = Scrollbar(self.container, orient=VERTICAL)
         self.h_scroll = Scrollbar(self.container, orient=HORIZONTAL)
         kwargs.update({'master': self.canvas})

@@ -1,7 +1,8 @@
 """Shows an example of a skeleton window"""
 
-from tkinter import BOTH, E, Misc, StringVar, Tk, W, ttk
+from tkinter import E, Misc, StringVar, Tk, W, ttk
 from tkinter.messagebox import showinfo
+from typing import Optional
 
 from tklife.constants import COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE
 from tklife.controller import ControllerABC
@@ -45,9 +46,9 @@ class ExampleController(ControllerABC):
 
 
 class ExampleView(SkeletonMixin, Tk):
-    def __init__(self, master: 'Misc', controller: ExampleController, **kwargs) -> None:
+    def __init__(self, master: 'Optional[Misc]'=None, example_controller: Optional[ExampleController]=None, **kwargs) -> None:
         self.controller: ExampleController
-        super().__init__(master, controller,
+        super().__init__(master, example_controller,
                          global_grid_args={PADX: 3, PADY: 3}, **kwargs)
         self.title("TkLife Example")
         self.created['entry_b']['textvariable'].set("Default value")

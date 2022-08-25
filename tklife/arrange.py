@@ -25,7 +25,7 @@ class Autogrid(object):
                  grid_kwargs: Optional[Sequence[Mapping[str, Any]]] = None,
                  all_kwargs: Optional[Mapping[str, Any]] = None,
                  fill_kwargs: Optional[Mapping[str, Any]] = None,
-                 ) -> Generator['GridArgs', None, None]:
+                 ) -> Generator[tuple[Widget, Mapping[str, Any]], None, None]:
         if grid_kwargs is None:
             grid_kwargs = []
         if all_kwargs is None:

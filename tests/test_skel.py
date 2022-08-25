@@ -1,10 +1,10 @@
-from tkinter import Variable
-from unittest.mock import MagicMock, call
+from tkinter import Variable, Widget
+from unittest.mock import MagicMock, Mock, call
 
 import pytest
 from pytest_mock import MockerFixture
 from tklife.controller import ControllerABC
-from tklife.skel import SkeletonMixin, SkelWidget
+from tklife.skel import CreatedWidget, SkeletonMixin, SkelWidget
 
 
 class TestSkeletonMixin(object):
@@ -233,7 +233,64 @@ class TestSkeletonMixin(object):
             skeleton, arg1=mock_tk_var.return_value)
 
         mock_widget.return_value.grid.assert_called_once_with(row=0, column=0)
-        assert skeleton.created["test_label"] == {
+
+        assert skeleton.created["test_label"].as_dict() == {
             "widget": mock_widget.return_value,
             "arg1": mock_tk_var.return_value
         }
+
+class TestCreatedWidget:
+    @pytest.fixture
+    def mock_widget(self, mocker: MockerFixture):
+        return mocker.Mock(Widget)
+
+    @pytest.fixture
+    def created_widget(self, mock_widget):
+        return CreatedWidget(
+            mock_widget
+        )
+
+    @pytest.fixture
+    def mock_var(self, mocker: MockerFixture):
+        return mocker.Mock(Variable)
+
+    @pytest.mark.parametrize("attr,", [
+        "custom_attr",
+        "textvariable",
+        "listvariable",
+        "variable",
+    ])
+    def test_readonly_attribute(self, attr: str, created_widget: 'CreatedWidget'):
+        with pytest.raises(AttributeError, match=r"Cannot set '" + attr + r"'; <class 'tklife.skel.CreatedWidget'> is read-only"):
+            setattr(created_widget, attr, True)
+
+    @pytest.mark.parametrize("attr,", [
+        "custom_attr",
+        "textvariable",
+        "listvariable",
+        "variable",
+    ])
+    def test_raises_exception_when_setting_item(self, attr: str, created_widget: 'CreatedWidget'):
+        with pytest.raises(AttributeError, match=r"Cannot set '" + attr + r"'; <class 'tklife.skel.CreatedWidget'> is read-only"):
+            created_widget[attr] = True
+
+    @pytest.mark.parametrize("attr", [
+        "custom_attr",
+        "textvariable",
+        "listvariable",
+        "variable",
+    ])
+    def test_dunder_getattr_for_all_values(self, attr, mock_widget, mock_var):
+        created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
+        assert getattr(created_widget, attr) == mock_var
+
+    @pytest.mark.parametrize("attr", [
+        "custom_attr",
+        "textvariable",
+        "listvariable",
+        "variable",
+    ])
+    def test_dunder_getitem_for_all_values(self, attr, mock_widget, mock_var):
+        created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
+        assert created_widget[attr] == mock_var
+
