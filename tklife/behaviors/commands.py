@@ -1,9 +1,9 @@
 """Contains behaviors for ui functionality"""
 
-__all__ = ['CommandHistory', 'Command']
-
-
 import abc
+from typing import Union
+
+__all__ = ['CommandHistory', 'Command']
 
 
 class CommandHistory(object):
@@ -13,19 +13,19 @@ class CommandHistory(object):
         """
         Initializes the tracking dict
         """
-        self.history = []
+        self.history: list[Command] = []
         # The cursor will be on the command to be undone or None if
         # all history is undone or history is empty
         self.cursor = None
 
-    def add_history(self, command):
+    def add_history(self, command) -> None:
         """Adds a command to the command chain and calls it's execute method"""
-        self._clear()
+        self._clear_after_cursor()
         self.history.append(command)
         self.cursor = self.history.index(command)
         command.execute()
 
-    def undo(self):
+    def undo(self) -> Union[int, None]:
         """Calls reverse on the previous command"""
         if self.cursor is None:
             return None
@@ -35,7 +35,7 @@ class CommandHistory(object):
         if new_cursor < 0:
             new_cursor = None
         self.cursor = new_cursor
-        return command
+        return self.cursor
 
     def redo(self):
         """Calls execute on the next command"""
@@ -52,7 +52,7 @@ class CommandHistory(object):
 
     def undo_all(self, until=None):
         """Calls undo on all of the history"""
-        while self.cursor != until:
+        for __ in self.history[until: self.cursor + 1]:
             self.undo()
 
     def reset(self):
@@ -60,7 +60,7 @@ class CommandHistory(object):
         self.history.clear()
         self.cursor = None
 
-    def _clear(self):
+    def _clear_after_cursor(self):
         """
         Clears the history after the cursor
         """
@@ -71,7 +71,7 @@ class CommandHistory(object):
 
     def __len__(self):
         """
-        Returns the commands that can be reversed (undo)
+        Returns the number commands that can be reversed (undo)
         Useful for unsaved indicators and warnings
         """
         return len(tuple(self.iter_history()))
