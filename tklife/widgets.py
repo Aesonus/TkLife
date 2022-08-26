@@ -29,7 +29,7 @@ class ModalDialog(SkeletonMixin, Toplevel):
 
     @classmethod
     def show(cls, master: Widget, **kwargs):
-        dialog = cls(master=master, **kwargs)
+        dialog = cls(master, **kwargs)
         dialog.deiconify()
         dialog.grab_set()
         dialog.focus_set()
