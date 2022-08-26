@@ -91,7 +91,7 @@ class SkeletonMixin(abc.ABC):
     def __init__(self,
                  master: typing.Optional[tkinter.Misc] = None,
                  controller: 'typing.Optional[ControllerABC]' = None,
-                 global_grid_args=None,
+                 global_grid_args: 'typing.Optional[dict[str, typing.Any]]' = None,
                  **kwargs) -> None:
         # Set the controller first
 
@@ -100,11 +100,14 @@ class SkeletonMixin(abc.ABC):
             self.__proxy_factory = CallProxyFactory(self)
 
         # Init the frame or whatever
-
         super().__init__(master, **kwargs)  # type: ignore
 
         self.created: CreatedWidgetDict = {}
-        self._create_all(global_grid_args if global_grid_args else {})
+        self.__cache: dict[str, list[list]] = {
+            'widgets': [[]]
+        }
+        self.__global_gridargs = global_grid_args if global_grid_args else {}
+        self.create_all()
         self._create_menu()
         self.create_events()
 
@@ -117,29 +120,62 @@ class SkeletonMixin(abc.ABC):
     def menu_template(self):
         return {}
 
-    def _create_all(self, global_grid_args: dict):
+    def __get_cache_widget(self, row, col) -> typing.Union[tuple[SkelWidget, tkinter.Widget], None]:
+        wdg_cache = self.__cache['widgets']
+        return wdg_cache[row][col]
+
+    def __set_cache_widget(self, skel_widget, widget, row, col):
+        if row == len(self.__cache['widgets']):
+            self.__cache['widgets'].append([])
+        if col == len(self.__cache['widgets'][row]):
+            self.__cache['widgets'][row].append((skel_widget, widget))
+        self.__cache['widgets'][row][col] = (skel_widget, widget)
+
+
+    def create_all(self):
+        """
+        Creates all the widgets in template. Calling subsequently will regrid all existing widgets.
+        """
+        index_error = False
+        global_grid_args = self.__global_gridargs
+        new_cache = []
         for row_index, row in enumerate(self.template):
+            new_cache.append(list())
             for col_index, skel_widget in enumerate(row):
                 if skel_widget is None:
+                    print(row_index, *new_cache[row_index],sep="\n")
+                    new_cache[row_index].append(None)
                     continue
-                for arg, val in skel_widget.init_args.items():
-                    if isinstance(val, type(tkinter.Variable)):
-                        skel_widget.init_args[arg] = val()
+                try:
+                    cached_w = self.__get_cache_widget(row_index, col_index)
+                    if cached_w is None and skel_widget is None:
+                        new_cache[row_index].append(None)
+                        continue
+                except IndexError:
+                    index_error = True
+                if index_error: # Or the cache is different
+                    for arg, val in skel_widget.init_args.items():
+                        if isinstance(val, type(tkinter.Variable)):
+                            skel_widget.init_args[arg] = val()
 
-                w = skel_widget.widget(self, **skel_widget.init_args)
+                    w = skel_widget.widget(self, **skel_widget.init_args)
+                    if skel_widget.label is not None:
+                        # And what is the vardict?
+                        vardict = {
+                            arg: val for arg, val in skel_widget.init_args.items() if isinstance(val, tkinter.Variable)
+                        }
+
+                        # Widgets!
+                        self.created[skel_widget.label] = CreatedWidget(
+                            widget=w, **vardict
+                        )
+                else:
+                    w = cached_w
+                new_cache[row_index].append((skel_widget, w))
                 w.grid(row=row_index, column=col_index,
                        **global_grid_args,
                        **skel_widget.grid_args)
-                if skel_widget.label is not None:
-                    # And what is the vardict?
-                    vardict = {
-                        arg: val for arg, val in skel_widget.init_args.items() if isinstance(val, tkinter.Variable)
-                    }
-
-                    # Widgets!
-                    self.created[skel_widget.label] = CreatedWidget(
-                        widget=w, **vardict
-                    )
+        self.__cache['widgets'] = new_cache
 
     def _create_menu(self):
         def submenu(template: dict):
