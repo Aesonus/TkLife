@@ -1,6 +1,7 @@
 """Shows an example of a skeleton window"""
 
 from functools import cached_property, partial
+from random import random
 from tkinter import E, NSEW, Misc, StringVar, Tk, W, ttk
 import tkinter
 from tkinter.messagebox import showinfo
@@ -36,6 +37,12 @@ class ExampleModal(ModalDialog):
         self.return_value = self.created['entry'][TEXTVARIABLE].get()
 
 
+class AppendExampleScrolledFrame(SkeletonMixin, ScrolledFrame):
+    @property
+    def template(self):
+        return [[]]
+
+
 class ExampleController(ControllerABC):
     def button_a_command(self, *__):
         showinfo(title="Information",
@@ -49,6 +56,32 @@ class ExampleController(ControllerABC):
         d = ExampleModal.show(self.view)
         showinfo(title="Information", message=f"{d}", parent=self.view)
 
+    def add_row_command(self, *__):
+        add_to = self.view.created['appendable_frame'].widget
+        id = f"{random():.8f}"
+        new_row = [
+            SkelWidget(ttk.Label, {TEXT: f"Appended Row {id}"}, {STICKY: NSEW}),
+            SkelWidget(ttk.Entry, {}, {STICKY: NSEW}),
+            SkelWidget(ttk.Button, {TEXT: 'x', COMMAND: self.get_delete_this_row_command(id)}, {}, id),
+        ]
+        add_to.append_row(new_row)
+
+    def get_delete_this_row_command(self, last_label):
+        def delete_this_row():
+            delete_from = self.view.created['appendable_frame'].widget
+            last_w_in_row = delete_from.created[last_label].widget
+            index = 0
+            for (row, col), (cmp_w, __) in delete_from.widget_cache.items():
+                if cmp_w == last_w_in_row:
+                    index = row
+                    break
+            delete_from.destroy_row(index)
+
+        return delete_this_row
+
+    def delete_last_row_command(self, *__):
+        delete_from = self.view.created['appendable_frame'].widget
+        delete_from.destroy_row(int(len(delete_from.widget_cache) / 3) - 1)
 
 class ExampleView(SkeletonMixin, Tk):
     def __init__(self, master: 'Optional[Misc]' = None, example_controller: Optional[ExampleController] = None, **kwargs) -> None:
@@ -84,7 +117,8 @@ class ExampleView(SkeletonMixin, Tk):
             ],
             [None, SkelWidget(ttk.Button, {
                               TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None],
-            [SkelWidget(ScrolledFrame, {}, {COLUMNSPAN: 3, STICKY: NSEW})]
+            [SkelWidget(AppendExampleScrolledFrame, {}, {COLUMNSPAN: 3, STICKY: NSEW}, 'appendable_frame')],
+            [SkelWidget(ttk.Button, {TEXT: "Add Row", COMMAND: self.controller.add_row_command}, {}), None, SkelWidget(ttk.Button, {TEXT: "Delete Row", COMMAND: self.controller.delete_last_row_command}, {})]
         )
 
 
