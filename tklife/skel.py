@@ -2,9 +2,9 @@ import abc
 from collections import UserDict
 import dataclasses
 from functools import partial
+from re import L
 import tkinter
 import typing
-from collections.abc import Iterable
 
 from .controller import ControllerABC
 from .proxy import CallProxyFactory
@@ -86,10 +86,13 @@ class CreatedWidget(object):
 
 CreatedWidgetDict = dict[str, CreatedWidget]
 
+class CachedWidget(typing.NamedTuple):
+    widget: typing.Union[tkinter.Widget, None]
+    grid_args: typing.Union[dict[str, typing.Any], None]
 
 class SkeletonMixin(abc.ABC):
     def __init__(self,
-                 master: typing.Optional[tkinter.Misc] = None,
+                 master: 'typing.Optional[tkinter.Misc]' = None,
                  controller: 'typing.Optional[ControllerABC]' = None,
                  global_grid_args: 'typing.Optional[dict[str, typing.Any]]' = None,
                  **kwargs) -> None:
@@ -103,79 +106,70 @@ class SkeletonMixin(abc.ABC):
         super().__init__(master, **kwargs)  # type: ignore
 
         self.created: CreatedWidgetDict = {}
-        self.__cache: dict[str, list[list]] = {
-            'widgets': [[]]
-        }
         self.__global_gridargs = global_grid_args if global_grid_args else {}
-        self.create_all()
+        self.__w_cache: dict[tuple[int, int], CachedWidget] = {}
+        self._create_all()
         self._create_menu()
         self.create_events()
 
     @property
     @abc.abstractmethod
-    def template(self) -> Iterable[Iterable[SkelWidget]]:
+    def template(self) -> 'Iterable[Iterable[SkelWidget]]':
+        """
+        - Must be implemented in child class
+        - Must be declared as @property
+        - Only used for inititalization
+
+        Returns:
+            An iterable yielding rows that yield columns of SkelWidgets
+        """
         pass
 
     @property
     def menu_template(self):
         return {}
 
-    def __get_cache_widget(self, row, col) -> typing.Union[tuple[SkelWidget, tkinter.Widget], None]:
-        wdg_cache = self.__cache['widgets']
-        return wdg_cache[row][col]
-
-    def __set_cache_widget(self, skel_widget, widget, row, col):
-        if row == len(self.__cache['widgets']):
-            self.__cache['widgets'].append([])
-        if col == len(self.__cache['widgets'][row]):
-            self.__cache['widgets'][row].append((skel_widget, widget))
-        self.__cache['widgets'][row][col] = (skel_widget, widget)
+    @property
+    def widget_cache(self):
+        return self.__w_cache
 
 
-    def create_all(self):
+    def __widget_create(self, skel_widget, row_index, col_index):
+        if skel_widget is None:
+            self.__w_cache[(row_index, col_index)] = CachedWidget(None, None)
+            return None
+        for arg, val in skel_widget.init_args.items():
+            if isinstance(val, type(tkinter.Variable)):
+                skel_widget.init_args[arg] = val()
+
+        w = skel_widget.widget(self, **skel_widget.init_args)
+        if skel_widget.label is not None:
+            # And what is the vardict?
+            vardict = {
+                arg: val for arg, val in skel_widget.init_args.items() if isinstance(val, tkinter.Variable)
+            }
+
+            # Widgets!
+            self.created[skel_widget.label] = CreatedWidget(
+                widget=w, **vardict
+            )
+        return w
+
+    def _create_all(self):
         """
-        Creates all the widgets in template. Calling subsequently will regrid all existing widgets.
+        Creates all the widgets in template.
         """
-        index_error = False
         global_grid_args = self.__global_gridargs
-        new_cache = []
         for row_index, row in enumerate(self.template):
-            new_cache.append(list())
             for col_index, skel_widget in enumerate(row):
-                if skel_widget is None:
-                    print(row_index, *new_cache[row_index],sep="\n")
-                    new_cache[row_index].append(None)
+                w = self.__widget_create(skel_widget, row_index, col_index)
+                if w is None:
                     continue
-                try:
-                    cached_w = self.__get_cache_widget(row_index, col_index)
-                    if cached_w is None and skel_widget is None:
-                        new_cache[row_index].append(None)
-                        continue
-                except IndexError:
-                    index_error = True
-                if index_error: # Or the cache is different
-                    for arg, val in skel_widget.init_args.items():
-                        if isinstance(val, type(tkinter.Variable)):
-                            skel_widget.init_args[arg] = val()
+                self._grid_widget(row_index, col_index, w, **global_grid_args, **skel_widget.grid_args)
 
-                    w = skel_widget.widget(self, **skel_widget.init_args)
-                    if skel_widget.label is not None:
-                        # And what is the vardict?
-                        vardict = {
-                            arg: val for arg, val in skel_widget.init_args.items() if isinstance(val, tkinter.Variable)
-                        }
-
-                        # Widgets!
-                        self.created[skel_widget.label] = CreatedWidget(
-                            widget=w, **vardict
-                        )
-                else:
-                    w = cached_w
-                new_cache[row_index].append((skel_widget, w))
-                w.grid(row=row_index, column=col_index,
-                       **global_grid_args,
-                       **skel_widget.grid_args)
-        self.__cache['widgets'] = new_cache
+    def _grid_widget(self, row, column, widget, **grid_args):
+        widget.grid(row=row, column=column, **grid_args)
+        self.__w_cache[row, column] = CachedWidget(widget, grid_args)
 
     def _create_menu(self):
         def submenu(template: dict):
@@ -201,6 +195,48 @@ class SkeletonMixin(abc.ABC):
     def create_events(self):
         pass
 
+    def append_row(self, widget_row: 'Iterable[SkelWidget]') -> int:
+        """
+        Appends a row
+
+        Arguments:
+            row -- A row of SkelWidgets
+
+        Raises:
+            TypeError: Raised when row is not iterable
+
+        Returns:
+            The new row index
+        """
+        # Find last row in cache and add 1 for new row
+        max_row = -1
+        for (row, col) in self.__w_cache.keys():
+            if row > max_row:
+                max_row = row
+        new_row = max_row + 1
+
+        # Create the widgets in the row
+        for col_index, skel_widget in enumerate(widget_row):
+            w = self.__widget_create(skel_widget, new_row, col_index)
+            if w is not None:
+                self._grid_widget(new_row, col_index, w, **self.__global_gridargs, **skel_widget.grid_args)
+
+        return new_row
+
+    def destroy_row(self, row_index: int):
+        for (row, col), (widget, grid_args) in tuple(self.__w_cache.items()):
+            if row == row_index:
+                if widget is not None:
+                    widget.destroy()
+                del self.__w_cache[row, col]
+            elif row > row_index:
+                w = self.__w_cache[row, col]
+                del self.__w_cache[row, col]
+                self.__w_cache[row - 1, col] = w
+        for (row, col), (widget, grid_args) in self.__w_cache.items():
+            if widget is not None and grid_args is not None:
+                widget.grid(row=row, column=col, **grid_args)
+
     @property
     def controller(self):
         if not self.__controller:
@@ -209,7 +245,7 @@ class SkeletonMixin(abc.ABC):
             return self.__controller
 
     @controller.setter
-    def controller(self, controller: ControllerABC):
+    def controller(self, controller: 'ControllerABC'):
         if not isinstance(controller, ControllerABC) and controller is not None:
             raise TypeError(
                 f"Controller must be of type {ControllerABC.__name__}")

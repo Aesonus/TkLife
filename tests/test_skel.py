@@ -190,26 +190,49 @@ class TestSkeletonMixin(object):
             call(skeleton,), call().grid(row=1, column=1),
         ]
 
+    def test_create_all_updates_cache(
+            self,
+            mock_master,
+            mock_controller,
+            mock_mixin_class,
+            mocked_widget):
+
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [SkelWidget(mocked_widget, {}, {}),
+                     SkelWidget(mocked_widget, {}, {})],
+                    [None, SkelWidget(mocked_widget, {}, {})],
+                )
+        skeleton = Tested(mock_master, mock_controller)
+        assert skeleton.widget_cache == {
+            (0, 0): (mocked_widget.return_value, {}),
+            (0, 1): (mocked_widget.return_value, {}),
+            (1, 0): (None, None),
+            (1, 1): (mocked_widget.return_value, {}),
+        }
+
     def test_create_all_creates_and_grids_widgets_from_template_with_var_in_init_args(
             self,
             mock_master,
             mock_controller,
             mock_mixin_class,
             mock_tk_var,
-            mocker: MockerFixture):
-        mock_widget = mocker.Mock()
+            mocked_widget):
 
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mock_widget, {'arg1': mock_tk_var}, {})],
+                    [SkelWidget(mocked_widget, {'arg1': mock_tk_var}, {})],
                 )
         skeleton = Tested(mock_master, mock_controller)
-        mock_widget.assert_called_once_with(
+        mocked_widget.assert_called_once_with(
             skeleton, arg1=mock_tk_var.return_value)
 
-        mock_widget.return_value.grid.assert_called_once_with(row=0, column=0)
+        mocked_widget.return_value.grid.assert_called_once_with(
+            row=0, column=0)
 
     def test_create_all_creates_and_grids_widgets_from_template_with_var_in_init_args_and_creates_label(
             self,
@@ -217,8 +240,8 @@ class TestSkeletonMixin(object):
             mock_controller,
             mock_mixin_class,
             mock_tk_var,
-            mocker: MockerFixture):
-        mock_widget = mocker.Mock()
+            mocked_widget,
+            mocker):
         mock_tk_var.return_value = mocker.Mock(Variable)
 
         class Tested(SkeletonMixin, mock_mixin_class):
@@ -226,17 +249,107 @@ class TestSkeletonMixin(object):
             def template(self):
                 return (
                     [SkelWidget(
-                        mock_widget, {'arg1': mock_tk_var}, {}, 'test_label')],
+                        mocked_widget, {'arg1': mock_tk_var}, {}, 'test_label')],
                 )
         skeleton = Tested(mock_master, mock_controller)
-        mock_widget.assert_called_once_with(
+        mocked_widget.assert_called_once_with(
             skeleton, arg1=mock_tk_var.return_value)
 
-        mock_widget.return_value.grid.assert_called_once_with(row=0, column=0)
+        mocked_widget.return_value.grid.assert_called_once_with(
+            row=0, column=0)
 
         assert skeleton.created["test_label"].as_dict() == {
-            "widget": mock_widget.return_value,
+            "widget": mocked_widget.return_value,
             "arg1": mock_tk_var.return_value
+        }
+
+    def test_append_row_appends_a_row_of_widgets(
+        self,
+        mock_master,
+        mock_controller,
+        mock_mixin_class,
+        mocked_widget,
+        mocker: MockerFixture
+    ):
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [SkelWidget(mocked_widget, {}, {}),
+                     SkelWidget(mocked_widget, {}, {})],
+                    [None, SkelWidget(mocked_widget, {}, {})],
+                )
+        skeleton = Tested(mock_master, mock_controller)
+        new_row = [SkelWidget(mocked_widget, {'iarg1': True}, {}),
+                   SkelWidget(mocked_widget, {}, {'garg1': True})]
+        skeleton.append_row(new_row)
+        actual = mocked_widget.mock_calls
+        assert actual == [
+            call(skeleton,), call().grid(row=0, column=0),
+            call(skeleton,), call().grid(row=0, column=1),
+            call(skeleton,), call().grid(row=1, column=1),
+            call(skeleton, iarg1=True), call().grid(row=2, column=0),
+            call(skeleton,), call().grid(row=2, column=1, garg1=True),
+        ]
+        assert skeleton.widget_cache == {
+            (0, 0): (mocked_widget.return_value, {}),
+            (0, 1): (mocked_widget.return_value, {}),
+            (1, 0): (None, None),
+            (1, 1): (mocked_widget.return_value, {}),
+            (2, 0): (mocked_widget.return_value, {}),
+            (2, 1): (mocked_widget.return_value, {'garg1': True}),
+        }
+
+    @pytest.mark.parametrize("destroy_row, destroy_calls, grid_calls, expect_cache_gargs", [
+        (0, [
+            call().destroy(), call().destroy()
+        ], [
+            call().grid(row=0, column=1, garg2=True)
+        ], {
+            (0, 0): None,
+            (0, 1): {'garg2': True}
+        }),
+        (1, [
+            call().destroy()
+        ], [
+            call().grid(row=0, column=0, garg1=True), call().grid(row=0, column=1)
+        ], {
+            (0, 0): {'garg1': True},
+            (0, 1): {}
+        }),
+    ])
+    def test_destroy_row_destroys_a_row_of_widgets_and_regrids_remaining(
+        self,
+        destroy_row,
+        destroy_calls,
+        grid_calls,
+        expect_cache_gargs,
+        mock_master,
+        mock_controller,
+        mock_mixin_class,
+        mocked_widget,
+        mocker: MockerFixture
+    ):
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [SkelWidget(mocked_widget, {}, {'garg1': True}),
+                     SkelWidget(mocked_widget, {}, {})],
+                    [None, SkelWidget(mocked_widget, {}, {'garg2': True})],
+                )
+        skeleton = Tested(mock_master, mock_controller)
+        skeleton.destroy_row(destroy_row)
+        actual = mocked_widget.mock_calls
+        assert actual == [
+            call(skeleton,), call().grid(row=0, column=0, garg1=True),
+            call(skeleton,), call().grid(row=0, column=1),
+            call(skeleton,), call().grid(row=1, column=1, garg2=True),
+            *destroy_calls,
+            *grid_calls
+        ]
+        assert skeleton.widget_cache == {
+            k: (mocked_widget.return_value if value is not None else None, value) for k, value in expect_cache_gargs.items()
         }
 
 
