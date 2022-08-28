@@ -5,7 +5,6 @@ from functools import partial
 from re import L
 import tkinter
 import typing
-from typing_extensions import Self
 
 from .controller import ControllerABC
 from .proxy import CallProxyFactory
