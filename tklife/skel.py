@@ -5,6 +5,7 @@ from functools import partial
 from re import L
 import tkinter
 import typing
+from typing_extensions import Self
 
 from .controller import ControllerABC
 from .proxy import CallProxyFactory
@@ -12,6 +13,13 @@ from .proxy import CallProxyFactory
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
+__all__ = (
+    'SkelWidget',
+    'CreatedWidget',
+    'CachedWidget',
+    'SkeletonMixin',
+    'MenuMixin',
+)
 
 class SkelWidget(typing.NamedTuple):
     widget: typing.Type[tkinter.Widget]
@@ -59,7 +67,7 @@ class CreatedWidget(object):
     def __getattr__(self, attr: str) -> tkinter.Variable:
         returned = self.__values.get(attr)
         if returned is None:
-            raise AttributeError
+            raise AttributeError(f"'{attr}' not found")
         else:
             return returned
 
@@ -84,32 +92,33 @@ class CreatedWidget(object):
         return dict(**self.__values, widget=self.widget)
 
 
-CreatedWidgetDict = dict[str, CreatedWidget]
+T_CreatedWidgetDict = dict[str, CreatedWidget]
 
 class CachedWidget(typing.NamedTuple):
     widget: typing.Union[tkinter.Widget, None]
     grid_args: typing.Union[dict[str, typing.Any], None]
 
 class SkeletonMixin(abc.ABC):
+    """Must use this mixin first. Optionally can add a MenuMixin. Then you put the Widget class to use."""
     def __init__(self,
                  master: 'typing.Optional[tkinter.Misc]' = None,
                  controller: 'typing.Optional[ControllerABC]' = None,
                  global_grid_args: 'typing.Optional[dict[str, typing.Any]]' = None,
+                 proxy_factory: 'typing.Optional[CallProxyFactory]' = None,
                  **kwargs) -> None:
         # Set the controller first
 
         self.controller = controller
         if controller is None:
-            self.__proxy_factory = CallProxyFactory(self)
+            self.__proxy_factory = CallProxyFactory(self) if proxy_factory is None else proxy_factory
 
-        # Init the frame or whatever
+        # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
 
-        self.created: CreatedWidgetDict = {}
+        self.created: T_CreatedWidgetDict = {}
         self.__global_gridargs = global_grid_args if global_grid_args else {}
         self.__w_cache: dict[tuple[int, int], CachedWidget] = {}
         self._create_all()
-        self._create_menu()
         self.create_events()
 
     @property
@@ -123,11 +132,7 @@ class SkeletonMixin(abc.ABC):
         Returns:
             An iterable yielding rows that yield columns of SkelWidgets
         """
-        pass
 
-    @property
-    def menu_template(self):
-        return {}
 
     @property
     def widget_cache(self):
@@ -171,26 +176,6 @@ class SkeletonMixin(abc.ABC):
         widget.grid(row=row, column=column, **grid_args)
         self.__w_cache[row, column] = CachedWidget(widget, grid_args)
 
-    def _create_menu(self):
-        def submenu(template: dict):
-            menu = tkinter.Menu(self.winfo_toplevel())  # type: ignore
-            for menu_partial, data in template.items():
-                if menu_partial.func == tkinter.Menu.add_command:
-                    menu_partial(menu, command=data)
-                elif menu_partial.func == tkinter.Menu.add_cascade:
-                    if not isinstance(data, dict):
-                        raise ValueError(
-                            f"{menu_partial.func.__name__} must have dict for value")
-                    menu_partial(menu, menu=submenu(data))
-                elif menu_partial.func == tkinter.Menu.add:
-                    menu_partial(menu, data)
-            return menu
-
-        template = self.menu_template
-        if template:
-            self.option_add("*tearOff", 0)
-            main_menu = submenu(template)
-            self['menu'] = main_menu
 
     def create_events(self):
         pass
@@ -274,19 +259,53 @@ class SkeletonMixin(abc.ABC):
         if controller is not None:
             controller.set_view(self)
 
+T_MenuCommand = typing.Callable[[tkinter.Menu], None]
+
+class MenuMixin(abc.ABC):
+
+    def __init__(self, master: 'typing.Optional[tkinter.Misc]' = None, **kwargs: 'typing.Any') -> None:
+        # Init the frame or the menu mixin... or not
+        super().__init__(master, **kwargs)  # type: ignore
+        self._create_menu()
+
+    @property
+    @abc.abstractmethod
+    def menu_template(self):
+        return {}
+
+    def _create_menu(self):
+        def submenu(template: dict):
+            menu = tkinter.Menu(self.winfo_toplevel())  # type: ignore
+            for menu_partial, data in template.items():
+                if menu_partial.func == tkinter.Menu.add_command:
+                    menu_partial(menu, command=data)
+                elif menu_partial.func == tkinter.Menu.add_cascade:
+                    if not isinstance(data, dict):
+                        raise ValueError(
+                            f"{menu_partial.func.__name__} must have dict for value")
+                    menu_partial(menu, menu=submenu(data))
+                elif menu_partial.func == tkinter.Menu.add:
+                    menu_partial(menu, data)
+            return menu
+        self.option_add("*tearOff", 0)
+        main_menu = submenu(self.menu_template)
+        self['menu'] = main_menu
 
 class Menu(object):
 
+    def __new__(cls):
+        raise ValueError("Cannot instantiate instance, use class methods instead")
+
     @classmethod
-    def add(cls, **opts: typing.Any):
+    def add(cls, **opts: typing.Any) -> partial:
         return partial(tkinter.Menu.add, **opts)
 
     @classmethod
-    def command(cls, **opts: typing.Any) -> typing.Callable[[tkinter.Menu], None]:
+    def command(cls, **opts: typing.Any) -> 'T_MenuCommand':
         nf = partial(tkinter.Menu.add_command, **opts)
         return nf
 
     @classmethod
-    def cascade(cls, **opts: typing.Any) -> typing.Callable[[tkinter.Menu], None]:
+    def cascade(cls, **opts: typing.Any) -> 'T_MenuCommand':
         nf = partial(tkinter.Menu.add_cascade, **opts)
         return nf

@@ -10,7 +10,7 @@ from typing import Optional
 from tklife.constants import COLUMNSPAN, COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE, VALUES
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
-from tklife.skel import Menu, SkeletonMixin, SkelWidget
+from tklife.skel import Menu, MenuMixin, SkeletonMixin, SkelWidget
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 
@@ -77,7 +77,7 @@ class ExampleController(ControllerABC):
         delete_from = self.view.created['appendable_frame'].widget
         delete_from.destroy_row(int(len(delete_from.widget_cache) / 3) - 1)
 
-class ExampleView(SkeletonMixin, Tk):
+class ExampleView(SkeletonMixin, MenuMixin, Tk):
     def __init__(self, master: 'Optional[Misc]' = None, example_controller: Optional[ExampleController] = None, **kwargs) -> None:
         self.controller: ExampleController
         super().__init__(master, example_controller,
@@ -128,6 +128,6 @@ class ExampleView(SkeletonMixin, Tk):
 
 
 if __name__ == "__main__":
-    example_view = ExampleView(None, None)
+    example_view = ExampleView(None, None)  # None arguments are added for illustration
     example_view.controller = ExampleController()
     example_view.mainloop()
