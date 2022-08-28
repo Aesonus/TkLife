@@ -1,5 +1,5 @@
 from tkinter import Variable, Widget
-from unittest.mock import MagicMock, Mock, call
+from unittest.mock import MagicMock, call
 
 import pytest
 from pytest_mock import MockerFixture
@@ -351,6 +351,37 @@ class TestSkeletonMixin(object):
         assert skeleton.widget_cache == {
             k: (mocked_widget.return_value if value is not None else None, value) for k, value in expect_cache_gargs.items()
         }
+
+    @pytest.mark.parametrize("widget_label, expected", [
+        ('0', 0),
+        ('1', 0),
+        ('2', 1),
+        ('3', None)
+    ])
+    def test_find_row_of_returns_row_index(
+        self,
+        widget_label,
+        expected,
+        mock_master,
+        mock_controller,
+        mock_mixin_class,
+        mocker: MockerFixture,
+    ):
+        mocked_widgets = [mocker.Mock() for __ in range(3)]
+
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [
+                        SkelWidget(mocked_widgets[0], {}, {}, '0'),
+                        SkelWidget(mocked_widgets[1], {}, {}, '1'),
+                    ],
+                    [None, SkelWidget(mocked_widgets[2], {}, {}, '2')],
+                )
+        skeleton = Tested(mock_master, mock_controller)
+        actual = skeleton.find_row_of(widget_label)
+        assert actual == expected
 
 
 class TestCreatedWidget:

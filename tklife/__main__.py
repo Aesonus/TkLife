@@ -69,13 +69,7 @@ class ExampleController(ControllerABC):
     def get_delete_this_row_command(self, last_label):
         def delete_this_row():
             delete_from = self.view.created['appendable_frame'].widget
-            last_w_in_row = delete_from.created[last_label].widget
-            index = 0
-            for (row, col), (cmp_w, __) in delete_from.widget_cache.items():
-                if cmp_w == last_w_in_row:
-                    index = row
-                    break
-            delete_from.destroy_row(index)
+            delete_from.destroy_row(delete_from.find_row_of(last_label))
 
         return delete_this_row
 

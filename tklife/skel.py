@@ -237,6 +237,27 @@ class SkeletonMixin(abc.ABC):
             if widget is not None and grid_args is not None:
                 widget.grid(row=row, column=col, **grid_args)
 
+    def find_row_of(self, label: str) -> 'typing.Union[int, None]':
+        """
+        Finds a row of a widget having label as defined in SkelWidget
+
+        Arguments:
+            label -- Widget label
+
+        Returns:
+            The row index containing the given widget or None if not found
+        """
+        try:
+            widget = self.created[label].widget
+        except KeyError:
+            return None
+        else:
+            for (row, __), cached in self.widget_cache.items():
+                if widget == cached.widget:
+                    return row
+        return None
+
+
     @property
     def controller(self):
         if not self.__controller:
