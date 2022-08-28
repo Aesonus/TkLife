@@ -271,7 +271,7 @@ class MenuMixin(abc.ABC):
     @property
     @abc.abstractmethod
     def menu_template(self):
-        return {}
+        """Must override. Return a dict."""
 
     def _create_menu(self):
         def submenu(template: dict):

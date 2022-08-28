@@ -1,10 +1,11 @@
 from tkinter import Variable, Widget
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock, Mock, call
 
 import pytest
 from pytest_mock import MockerFixture
 from tklife.controller import ControllerABC
-from tklife.skel import CreatedWidget, SkeletonMixin, SkelWidget
+from tklife.proxy import CallProxyFactory
+from tklife.skel import CreatedWidget, Menu, MenuMixin, SkeletonMixin, SkelWidget
 
 
 class TestSkeletonMixin(object):
@@ -46,7 +47,7 @@ class TestSkeletonMixin(object):
     def mocked_widget(self, mocker):
         return mocker.Mock()
 
-    def test_init(self, no_template_skeleton, mock_master, mock_controller: MagicMock):
+    def test_init(self, no_template_skeleton: SkeletonMixin, mock_master, mock_controller):
         """
         Test that the sibling __init__ is called with correct arguments,
         and the controller is updated with the view
@@ -57,9 +58,15 @@ class TestSkeletonMixin(object):
         assert skeleton.controller == mock_controller
         mock_controller.set_view.assert_called_once_with(skeleton)
 
-    def test_init_calls_create_events(self, no_template_skeleton, mock_master, mock_controller: MagicMock):
+    def test_init_calls_create_events(self, no_template_skeleton, mock_master, mock_controller):
         skeleton = no_template_skeleton(mock_master, mock_controller)
         assert skeleton.created_events == True
+
+    def test_controller_attrgetter_returns_proxy_factory_if_controller_not_set(self,
+                                                                               no_template_skeleton, mock_master
+                                                                               ):
+        skeleton = no_template_skeleton(mock_master, controller=None)
+        assert isinstance(skeleton.controller, CallProxyFactory)
 
     def test_controller_setter_raises_exception_if_invalid_controller(
             self,
@@ -419,6 +426,14 @@ class TestCreatedWidget:
         with pytest.raises(AttributeError, match=r"Cannot set '" + attr + r"'; <class 'tklife.skel.CreatedWidget'> is read-only"):
             created_widget[attr] = True
 
+    def test_raises_exception_when_attribute_not_found(self, created_widget: 'CreatedWidget'):
+        with pytest.raises(AttributeError, match=r"'attr' not found"):
+            print(created_widget.attr)
+
+    def test_raises_exception_when_item_not_found(self, created_widget: 'CreatedWidget'):
+        with pytest.raises(AttributeError, match=r"'attr' not found"):
+            print(created_widget['attr'])
+
     @pytest.mark.parametrize("attr", [
         "custom_attr",
         "textvariable",
@@ -440,5 +455,57 @@ class TestCreatedWidget:
         assert created_widget[attr] == mock_var
 
 
-class TestMenu:
-    pass
+class TestMenuMixin(object):
+    @pytest.fixture
+    def mock_widget_class(self, mocker: MockerFixture):
+        class Misc(object):
+            def __init__(self, *args, **kwargs) -> None:
+                self._init_args = args
+                self._init_kwargs = kwargs
+                self.calls = [
+                    call(*args, **kwargs)
+                ]
+            def option_add(self, *args, **kwargs):
+                self.calls.append(
+                    call().option_add(*args, **kwargs)
+                )
+            def winfo_toplevel(self, *args, **kwargs):
+                self.calls.append(
+                    call().winfo_toplevel(*args, **kwargs)
+                )
+            def __setitem__(self, key, value):
+                self.calls.append(
+                    call().__setitem__(key, value)
+                )
+        return Misc
+
+    @pytest.fixture
+    def mock_master(self, mocker: MockerFixture):
+        return mocker.MagicMock()
+
+    @pytest.fixture
+    def tk_menu_patch(self, mocker: MockerFixture):
+        return mocker.patch("tklife.skel.tkinter")
+
+    def test_create_menu_calls_methods(self, mock_widget_class,
+                                       mock_master,
+                                       tk_menu_patch):
+        class TestMenu(MenuMixin, mock_widget_class):
+            @property
+            def menu_template(self):
+                return {
+                    Menu.cascade(label="File", underline=0): {
+                        Menu.add(): 'separator',
+                    },
+                    Menu.command(label="Test Command"): None
+                }
+        m = TestMenu(mock_master)
+        tk_menu_patch.Menu.add_command.assert_called_once_with(
+            tk_menu_patch.Menu.return_value, label="Test Command", command=None
+        )
+        tk_menu_patch.Menu.add.assert_called_once_with(
+            tk_menu_patch.Menu.return_value, 'separator'
+        )
+        tk_menu_patch.Menu.add_cascade.assert_called_once_with(
+            tk_menu_patch.Menu.return_value, label="File", underline=0, menu=tk_menu_patch.Menu.return_value
+        )
