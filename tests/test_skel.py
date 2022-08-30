@@ -10,7 +10,6 @@ from tklife.skel import CreatedWidget, Menu, MenuMixin, SkeletonMixin, SkelWidge
 
 
 class TestSkelWidget(object):
-
     @pytest.fixture
     def mocked_widget(self, mocker):
         return mocker.Mock()
@@ -35,7 +34,7 @@ class TestSkelWidget(object):
         merged_init_args, expected_init_args,
         mocked_widget, skel_widget: SkelWidget
     ):
-        actual = skel_widget.init(merged_init_args)
+        actual = skel_widget.init(**merged_init_args)
         assert actual.widget == mocked_widget
         assert actual.init_args == expected_init_args
         assert actual.grid_args == {'grid': 'args'}
@@ -51,7 +50,7 @@ class TestSkelWidget(object):
         merged_grid_args, expected_grid_args,
         mocked_widget, skel_widget: SkelWidget
     ):
-        actual = skel_widget.grid(merged_grid_args)
+        actual = skel_widget.grid(**merged_grid_args)
         assert actual.widget == mocked_widget
         assert actual.init_args == {'init': 'args'}
         assert actual.grid_args == expected_grid_args

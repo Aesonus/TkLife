@@ -31,12 +31,12 @@ class SkelWidget(object):
     def __iter__(self):
         return iter((self.widget, self.init_args, self.grid_args, self.label))
 
-    def init(self, merge_init_args: 'dict[str, typing.Any]') -> 'SkelWidget':
+    def init(self, **merge_init_args: 'typing.Any') -> 'SkelWidget':
         return SkelWidget(self.widget, {
             **self.init_args, **merge_init_args
         }, self.grid_args, self.label)
 
-    def grid(self, merge_grid_args: 'dict[str, typing.Any]') -> 'SkelWidget':
+    def grid(self, **merge_grid_args: 'typing.Any') -> 'SkelWidget':
         return SkelWidget(self.widget, self.init_args, {
             **self.grid_args, **merge_grid_args
         }, self.label)
