@@ -20,11 +20,29 @@ __all__ = (
     'MenuMixin',
 )
 
-class SkelWidget(typing.NamedTuple):
+
+@dataclasses.dataclass(frozen=True)
+class SkelWidget(object):
     widget: typing.Type[tkinter.Widget]
-    init_args: dict[str, typing.Any]
-    grid_args: dict[str, typing.Any]
+    init_args: dict[str, typing.Any] = dataclasses.field(default_factory=dict)
+    grid_args: dict[str, typing.Any] = dataclasses.field(default_factory=dict)
     label: typing.Optional[str] = None
+
+    def __iter__(self):
+        return iter((self.widget, self.init_args, self.grid_args, self.label))
+
+    def init(self, merge_init_args: 'dict[str, typing.Any]') -> 'SkelWidget':
+        return SkelWidget(self.widget, {
+            **self.init_args, **merge_init_args
+        }, self.grid_args, self.label)
+
+    def grid(self, merge_grid_args: 'dict[str, typing.Any]') -> 'SkelWidget':
+        return SkelWidget(self.widget, self.init_args, {
+            **self.grid_args, **merge_grid_args
+        }, self.label)
+
+    def set_label(self, new_label: str) -> 'SkelWidget':
+        return SkelWidget(self.widget, self.init_args, self.grid_args, new_label)
 
 
 class CreatedWidget(object):
@@ -93,12 +111,15 @@ class CreatedWidget(object):
 
 T_CreatedWidgetDict = dict[str, CreatedWidget]
 
+
 class CachedWidget(typing.NamedTuple):
     widget: typing.Union[tkinter.Widget, None]
     grid_args: typing.Union[dict[str, typing.Any], None]
 
+
 class SkeletonMixin(abc.ABC):
     """Must use this mixin first. Optionally can add a MenuMixin. Then you put the Widget class to use."""
+
     def __init__(self,
                  master: 'typing.Optional[tkinter.Misc]' = None,
                  controller: 'typing.Optional[ControllerABC]' = None,
@@ -109,7 +130,8 @@ class SkeletonMixin(abc.ABC):
 
         self.controller = controller
         if controller is None:
-            self.__proxy_factory = CallProxyFactory(self) if proxy_factory is None else proxy_factory
+            self.__proxy_factory = CallProxyFactory(
+                self) if proxy_factory is None else proxy_factory
 
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
@@ -132,11 +154,9 @@ class SkeletonMixin(abc.ABC):
             An iterable yielding rows that yield columns of SkelWidgets
         """
 
-
     @property
     def widget_cache(self):
         return self.__w_cache
-
 
     def __widget_create(self, skel_widget, row_index, col_index):
         if skel_widget is None:
@@ -169,12 +189,12 @@ class SkeletonMixin(abc.ABC):
                 w = self.__widget_create(skel_widget, row_index, col_index)
                 if w is None:
                     continue
-                self._grid_widget(row_index, col_index, w, **global_grid_args, **skel_widget.grid_args)
+                self._grid_widget(row_index, col_index, w, **
+                                  global_grid_args, **skel_widget.grid_args)
 
     def _grid_widget(self, row, column, widget, **grid_args):
         widget.grid(row=row, column=column, **grid_args)
         self.__w_cache[row, column] = CachedWidget(widget, grid_args)
-
 
     def create_events(self):
         pass
@@ -203,7 +223,8 @@ class SkeletonMixin(abc.ABC):
         for col_index, skel_widget in enumerate(widget_row):
             w = self.__widget_create(skel_widget, new_row, col_index)
             if w is not None:
-                self._grid_widget(new_row, col_index, w, **self.__global_gridargs, **skel_widget.grid_args)
+                self._grid_widget(new_row, col_index, w, **
+                                  self.__global_gridargs, **skel_widget.grid_args)
 
         return new_row
 
@@ -241,7 +262,6 @@ class SkeletonMixin(abc.ABC):
                     return row
         return None
 
-
     @property
     def controller(self):
         if not self.__controller:
@@ -258,7 +278,9 @@ class SkeletonMixin(abc.ABC):
         if controller is not None:
             controller.set_view(self)
 
+
 T_MenuCommand = typing.Callable[[tkinter.Menu], None]
+
 
 class MenuMixin(abc.ABC):
 
@@ -290,10 +312,12 @@ class MenuMixin(abc.ABC):
         main_menu = submenu(self.menu_template)
         self['menu'] = main_menu
 
+
 class Menu(object):
 
     def __new__(cls):
-        raise ValueError("Cannot instantiate instance, use class methods instead")
+        raise ValueError(
+            "Cannot instantiate instance, use class methods instead")
 
     @classmethod
     def add(cls, **opts: typing.Any) -> partial:

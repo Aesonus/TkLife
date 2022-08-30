@@ -1,4 +1,5 @@
 from tkinter import Variable, Widget
+from typing import Iterable
 from unittest.mock import MagicMock, Mock, call
 
 import pytest
@@ -6,6 +7,66 @@ from pytest_mock import MockerFixture
 from tklife.controller import ControllerABC
 from tklife.proxy import CallProxyFactory
 from tklife.skel import CreatedWidget, Menu, MenuMixin, SkeletonMixin, SkelWidget
+
+
+class TestSkelWidget(object):
+
+    @pytest.fixture
+    def mocked_widget(self, mocker):
+        return mocker.Mock()
+
+    @pytest.fixture
+    def skel_widget(self, mocked_widget):
+        return SkelWidget(mocked_widget, {'init': 'args'}, {'grid': 'args'}, 'label')
+
+    def test_skel_widget_iterable(self, skel_widget: SkelWidget, mocked_widget):
+        widget, init_args, grid_args, label = skel_widget
+        assert widget == mocked_widget
+        assert init_args == {'init': 'args'}
+        assert grid_args == {'grid': 'args'}
+        assert label == 'label'
+
+    @pytest.mark.parametrize("merged_init_args, expected_init_args", [
+        ({'new': 'initarg'}, {'init': 'args', 'new': 'initarg'}),
+        ({'init': 'initarg'}, {'init': 'initarg'}),
+    ])
+    def test_skel_widget_init_method_returns_new_skel_widget_with_appended_args(
+        self,
+        merged_init_args, expected_init_args,
+        mocked_widget, skel_widget: SkelWidget
+    ):
+        actual = skel_widget.init(merged_init_args)
+        assert actual.widget == mocked_widget
+        assert actual.init_args == expected_init_args
+        assert actual.grid_args == {'grid': 'args'}
+        assert actual.label == 'label'
+        assert actual != skel_widget
+
+    @pytest.mark.parametrize("merged_grid_args, expected_grid_args", [
+        ({'new': 'gridarg'}, {'grid': 'args', 'new': 'gridarg'}),
+        ({'grid': 'gridarg'}, {'grid': 'gridarg'}),
+    ])
+    def test_skel_widget_grid_method_returns_new_skel_widget_with_appended_args(
+        self,
+        merged_grid_args, expected_grid_args,
+        mocked_widget, skel_widget: SkelWidget
+    ):
+        actual = skel_widget.grid(merged_grid_args)
+        assert actual.widget == mocked_widget
+        assert actual.init_args == {'init': 'args'}
+        assert actual.grid_args == expected_grid_args
+        assert actual.label == 'label'
+        assert actual != skel_widget
+
+    def test_skel_widget_set_label_method_returns_new_skel_widget_with_new_label(
+        self,
+        mocked_widget, skel_widget: SkelWidget
+    ):
+        actual = skel_widget.set_label('newlabel')
+        assert actual.widget == mocked_widget
+        assert actual.init_args == {'init': 'args'}
+        assert actual.grid_args == {'grid': 'args'}
+        assert actual.label == 'newlabel'
 
 
 class TestSkeletonMixin(object):
@@ -465,14 +526,17 @@ class TestMenuMixin(object):
                 self.calls = [
                     call(*args, **kwargs)
                 ]
+
             def option_add(self, *args, **kwargs):
                 self.calls.append(
                     call().option_add(*args, **kwargs)
                 )
+
             def winfo_toplevel(self, *args, **kwargs):
                 self.calls.append(
                     call().winfo_toplevel(*args, **kwargs)
                 )
+
             def __setitem__(self, key, value):
                 self.calls.append(
                     call().__setitem__(key, value)
