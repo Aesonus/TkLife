@@ -23,11 +23,11 @@ class ExampleModal(ModalDialog):
     def template(self):
         return (
             [
-                SkelWidget(ttk.Label, {TEXT: "Enter data:"}, {}),
+                SkelWidget(ttk.Label).init(text="Enter Data:"),
                 SkelWidget(AutoSearchCombobox, {TEXTVARIABLE: StringVar, VALUES: ['test', 'value']}, {}, 'entry')],
             [
                 SkelWidget(ttk.Button, {TEXT: "Okay",
-                           COMMAND: self.destroy}, {STICKY: W}),
+                           COMMAND: self.destroy}).grid(sticky=W),
                 SkelWidget(ttk.Button, {TEXT: "Cancel",
                            COMMAND: self.cancel}, {STICKY: E})
             ],
@@ -46,18 +46,18 @@ class AppendExampleScrolledFrame(SkeletonMixin, ScrolledFrame):
 class ExampleController(ControllerABC):
     def button_a_command(self, *__):
         showinfo(title="Information",
-                 message=self.view.created['entry_a']['textvariable'].get(), parent=self.view)
+                 message=self.entry_a['textvariable'].get(), parent=self.view)
 
     def button_b_command(self, *__):
         showinfo(title="Information",
-                 message=self.view.created['entry_b']['textvariable'].get(), parent=self.view)
+                 message=self.entry_b['textvariable'].get(), parent=self.view)
 
     def button_c_command(self, *__):
         d = ExampleModal.show(self.view)
         showinfo(title="Information", message=f"{d}", parent=self.view)
 
     def add_row_command(self, *__):
-        add_to = self.view.created['appendable_frame'].widget
+        add_to = self.appendable_frame.widget
         id = f"{random():.8f}"
         new_row = [
             SkelWidget(ttk.Label, {TEXT: f"Appended Row {id}"}, {STICKY: NSEW}),
@@ -68,13 +68,13 @@ class ExampleController(ControllerABC):
 
     def get_delete_this_row_command(self, last_label):
         def delete_this_row():
-            delete_from = self.view.created['appendable_frame'].widget
+            delete_from = self.appendable_frame.widget
             delete_from.destroy_row(delete_from.find_row_of(last_label))
 
         return delete_this_row
 
     def delete_last_row_command(self, *__):
-        delete_from = self.view.created['appendable_frame'].widget
+        delete_from = self.appendable_frame.widget
         delete_from.destroy_row(int(len(delete_from.widget_cache) / 3) - 1)
 
 class ExampleView(SkeletonMixin, MenuMixin, Tk):
