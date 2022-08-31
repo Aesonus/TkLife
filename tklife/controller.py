@@ -1,15 +1,17 @@
-from typing import TYPE_CHECKING
+from tkinter import BaseWidget, Misc
+from typing import TYPE_CHECKING, Protocol
 
 
 if TYPE_CHECKING:
     import tkinter
-    from .skel import SkeletonMixin
-    from typing import Union
+    from .skel import T_SkeletonProtocol
+    from typing import Union, Any
+
 
 
 class ControllerABC(object):
-    def set_view(self, view: 'Union[SkeletonMixin, tkinter.Widget]'):
-        self.view: 'Union[SkeletonMixin, tkinter.Misc]' = view
+    def set_view(self, view: 'T_SkeletonProtocol'):
+        self.view: 'T_SkeletonProtocol' = view
 
     def __getattr__(self, attr: 'str'):
         return self.view.created[attr]

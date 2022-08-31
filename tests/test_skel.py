@@ -122,6 +122,14 @@ class TestSkeletonMixin(object):
         skeleton = no_template_skeleton(mock_master, mock_controller)
         assert skeleton.created_events == True
 
+    def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class):
+        with pytest.raises(TypeError, match=r"\<class 'tklife\.skel\.SkeletonMixin'\> should be first base class"):
+            class TestedSkeleton(mock_mixin_class, SkeletonMixin):
+                @property
+                def template(self):
+                    return [[]]
+
+
     def test_controller_attrgetter_returns_proxy_factory_if_controller_not_set(self,
                                                                                no_template_skeleton, mock_master
                                                                                ):

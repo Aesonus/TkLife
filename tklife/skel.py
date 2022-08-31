@@ -117,7 +117,25 @@ class CachedWidget(typing.NamedTuple):
     grid_args: typing.Union[dict[str, typing.Any], None]
 
 
-class SkeletonMixin(abc.ABC):
+class T_SkeletonProtocol(typing.Protocol):
+    @property
+    def controller(self) -> typing.Union[ControllerABC, CallProxyFactory]:
+        pass
+    created: T_CreatedWidgetDict
+
+
+class SkeletonMeta(abc.ABCMeta):
+    def __new__(cls, name, bases: tuple[type, ...], namespace):
+        if len(bases) > 1 and bases[0] != SkeletonMixin:
+            raise TypeError(f"{SkeletonMixin} should be first base class")
+        return super().__new__(cls, name, bases, namespace)
+
+
+class _Skel(metaclass=SkeletonMeta):
+    """"""
+
+
+class SkeletonMixin(_Skel):
     """Must use this mixin first. Optionally can add a MenuMixin. Then you put the Widget class to use."""
 
     def __init__(self,
@@ -127,11 +145,12 @@ class SkeletonMixin(abc.ABC):
                  proxy_factory: 'typing.Optional[CallProxyFactory]' = None,
                  **kwargs) -> None:
         # Set the controller first
-
-        self.controller = controller
+        self.__controller = None
         if controller is None:
             self.__proxy_factory = CallProxyFactory(
                 self) if proxy_factory is None else proxy_factory
+        else:
+            self.controller = controller
 
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
