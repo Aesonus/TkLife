@@ -12,13 +12,13 @@ from .proxy import CallProxyFactory
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
-__all__ = (
+__all__ = [
     'SkelWidget',
     'CreatedWidget',
     'CachedWidget',
     'SkeletonMixin',
     'MenuMixin',
-)
+]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -335,6 +335,7 @@ class MenuMixin(abc.ABC):
     Must appear after SkeletonMixin, but before the tkinter Widget.
     Must impliment the menu_template() property method.
     """
+
     def __init__(self, master: 'typing.Optional[tkinter.Misc]' = None, **kwargs: 'typing.Any') -> None:
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
