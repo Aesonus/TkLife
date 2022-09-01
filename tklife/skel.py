@@ -170,11 +170,17 @@ class SkeletonMixin(_Skel):
         - Only used for inititalization
 
         Returns:
-            An iterable yielding rows that yield columns of SkelWidgets
+            An iterable yielding iterables that yield a SkelWidget
         """
 
     @property
-    def widget_cache(self):
+    def widget_cache(self) -> 'dict[tuple[int, int], CachedWidget]':
+        """
+        Stores the widgets created as well as grid cooridates and arguments
+
+        Returns:
+            dict[tuple[int, int], CachedWidget] -- Widget cache
+        """
         return self.__w_cache
 
     def __widget_create(self, skel_widget, row_index, col_index):
@@ -216,7 +222,7 @@ class SkeletonMixin(_Skel):
         self.__w_cache[row, column] = CachedWidget(widget, grid_args)
 
     def create_events(self):
-        pass
+        """Override to bind events. This is called after widget creation"""
 
     def append_row(self, widget_row: 'Iterable[SkelWidget]') -> int:
         """
@@ -229,7 +235,7 @@ class SkeletonMixin(_Skel):
             TypeError: Raised when row is not iterable
 
         Returns:
-            The new row index
+            int -- The new row index
         """
         # Find last row in cache and add 1 for new row
         max_row = -1
@@ -247,7 +253,13 @@ class SkeletonMixin(_Skel):
 
         return new_row
 
-    def destroy_row(self, row_index: int):
+    def destroy_row(self, row_index: int) -> None:
+        """
+        Destroys the row at given index
+
+        Arguments:
+            row_index {int} -- Index of the row to delete
+        """
         for (row, col), (widget, grid_args) in tuple(self.__w_cache.items()):
             if row == row_index:
                 if widget is not None:
@@ -282,7 +294,14 @@ class SkeletonMixin(_Skel):
         return None
 
     @property
-    def controller(self):
+    def controller(self) -> 'typing.Union[CallProxyFactory, ControllerABC]':
+        """
+        Returns the controller or a call proxy factory that will call controller
+        methods if the controller is not set yet.
+
+        Returns:
+            typing.Union[CallProxyFactory, ControllerABC] -- Call proxy or Controller instance
+        """
         if not self.__controller:
             return self.__proxy_factory
         else:
@@ -290,6 +309,15 @@ class SkeletonMixin(_Skel):
 
     @controller.setter
     def controller(self, controller: 'ControllerABC'):
+        """
+        Sets the controller
+
+        Arguments:
+            controller {ControllerABC} -- An instance of a controller
+
+        Raises:
+            TypeError: Raised when the controller type is not valid
+        """
         if not isinstance(controller, ControllerABC) and controller is not None:
             raise TypeError(
                 f"Controller must be of type {ControllerABC.__name__}")
@@ -302,7 +330,11 @@ T_MenuCommand = typing.Callable[[tkinter.Menu], None]
 
 
 class MenuMixin(abc.ABC):
-
+    """
+    Mixin to allow for a menu to be configured.
+    Must appear after SkeletonMixin, but before the tkinter Widget.
+    Must impliment the menu_template() property method.
+    """
     def __init__(self, master: 'typing.Optional[tkinter.Misc]' = None, **kwargs: 'typing.Any') -> None:
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
@@ -310,8 +342,8 @@ class MenuMixin(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def menu_template(self):
-        """Must override. Return a dict."""
+    def menu_template(self) -> dict:
+        """Must override. Returns a dict that is used to create the menu"""
 
     def _create_menu(self):
         def submenu(template: dict):
@@ -333,21 +365,49 @@ class MenuMixin(abc.ABC):
 
 
 class Menu(object):
-
+    """
+    Class methods are used to define a menu template
+    """
     def __new__(cls):
         raise ValueError(
             "Cannot instantiate instance, use class methods instead")
 
     @classmethod
-    def add(cls, **opts: typing.Any) -> partial:
+    def add(cls, **opts: 'typing.Any') -> 'partial':
+        """
+        Use to add a separator, radiobutton, or checkbutton menu item
+
+        >>> {Menu.add(**opts): 'separator'|'radiobutton'|'checkbutton'}
+
+        Returns:
+            partial -- Partial function that will be called to create item
+        """
         return partial(tkinter.Menu.add, **opts)
 
     @classmethod
-    def command(cls, **opts: typing.Any) -> 'T_MenuCommand':
+    def command(cls, **opts: 'typing.Any') -> 'T_MenuCommand':
+        """
+        Use to add a command menu item
+
+        >>> {Menu.command(label='labeltext', **opts): command_function}
+
+        Returns:
+            T_MenuCommand -- Partial function that will be called to create item
+        """
         nf = partial(tkinter.Menu.add_command, **opts)
         return nf
 
     @classmethod
-    def cascade(cls, **opts: typing.Any) -> 'T_MenuCommand':
+    def cascade(cls, **opts: 'typing.Any') -> 'T_MenuCommand':
+        """
+        Use to add a submenu to a menu
+
+        >>> {Menu.cascade(label='labeltext', **opts): {
+        >>>     # submenu def
+        >>> }}
+
+        Returns:
+            T_MenuCommand -- Partial function that will be called to create submenu
+        """
         nf = partial(tkinter.Menu.add_cascade, **opts)
         return nf
