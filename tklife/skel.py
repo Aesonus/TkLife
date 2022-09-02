@@ -266,17 +266,17 @@ class SkeletonMixin(_Skel):
                     skel_widget = next(i_row)
                     new_widget = self.__widget_create(skel_widget, row, col)
                     if new_widget is not None:
-                        self._grid_widget(row, col, new_widget, **self.__global_gridargs, **skel_widget.grid_args)
+                        self._grid_widget(row, col, new_widget, **skel_widget.grid_args)
                     else:
                         self.__w_cache[row, col] = CachedWidget(None, None)
                     if widget is not None:
-                        self._grid_widget(row + 1, col, widget, **self.__global_gridargs, **grid_args if grid_args else {})
+                        self._grid_widget(row + 1, col, widget, **grid_args if grid_args else {})
                     else:
                         self.__w_cache[row + 1, col] = CachedWidget(None, None)
                 elif row > index:
                     # Shift row
                     if (widget, grid_args) != (None, None):
-                        self._grid_widget(row + 1, col, widget, **self.__global_gridargs, **grid_args)  # type: ignore
+                        self._grid_widget(row + 1, col, widget, **grid_args)  # type: ignore
                     else:
                         self.__w_cache[row + 1, col] = CachedWidget(None, None)
         return index
