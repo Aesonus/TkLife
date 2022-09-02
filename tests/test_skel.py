@@ -129,7 +129,6 @@ class TestSkeletonMixin(object):
                 def template(self):
                     return [[]]
 
-
     def test_controller_attrgetter_returns_proxy_factory_if_controller_not_set(self,
                                                                                no_template_skeleton, mock_master
                                                                                ):
@@ -459,22 +458,116 @@ class TestSkeletonMixin(object):
         assert actual == expected
 
 
+    def test_insert_row_at_inserts_row_at_last_plus_1_index(
+        self,
+        mock_mixin_class, mocked_widget, mock_master, mock_controller
+    ):
+        index = 2
+        expected_w_args = [
+            ({'iarg1': True}, {}),
+            ({'iarg2': True}, {"garg1": True}),
+        ]
+        expected_cache = {
+            (0, 0): (mocked_widget.return_value, {}),
+            (0, 1): (mocked_widget.return_value, {}),
+            (1, 0): (None, None),
+            (1, 1): (mocked_widget.return_value, {}),
+            (2, 0): (mocked_widget.return_value, {}),
+            (2, 1): (mocked_widget.return_value, {'garg1': True}),
+        }
+        new_row = [
+            SkelWidget(mocked_widget, iarg, garg) for iarg, garg in expected_w_args
+        ]
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [SkelWidget(mocked_widget, {}, {}),
+                     SkelWidget(mocked_widget, {}, {})],
+                    [None, SkelWidget(mocked_widget, {}, {})],
+                )
+        skeleton = Tested(mock_master, mock_controller)
+        expected_calls = [
+            call(skeleton,), call().grid(row=0, column=0),
+            call(skeleton,), call().grid(row=0, column=1),
+            call(skeleton,), call().grid(row=1, column=1),
+
+            call(skeleton, iarg1=True), call().grid(row=2, column=0),
+            call(skeleton, iarg2=True), call().grid(row=2, column=1, garg1=True),
+        ]
+
+        skeleton.insert_row_at(index, new_row)
+
+        assert mocked_widget.mock_calls == expected_calls
+        assert skeleton.widget_cache == expected_cache
+
+    def test_insert_row_at_inserts_row_before_given_index(
+        self,
+        mock_mixin_class, mocked_widget, mock_master, mock_controller
+    ):
+        index = 0
+        expected_w_args = [
+            ({'iarg1': True}, {}),
+            ({'iarg2': True}, {"garg1": True}),
+        ]
+        expected_cache = {
+            # Inserted
+            (0, 0): (mocked_widget.return_value, {}),
+            (0, 1): (mocked_widget.return_value, {'garg1': True}),
+            ##
+            (1, 0): (mocked_widget.return_value, {}),
+            (1, 1): (mocked_widget.return_value, {}),
+            (2, 0): (None, None),
+            (2, 1): (mocked_widget.return_value, {}),
+        }
+        new_row = [
+            SkelWidget(mocked_widget, iarg, garg) for iarg, garg in expected_w_args
+        ]
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [SkelWidget(mocked_widget, {}, {}),
+                     SkelWidget(mocked_widget, {}, {})],
+                    [None, SkelWidget(mocked_widget, {}, {})],
+                )
+        skeleton = Tested(mock_master, mock_controller)
+        expected_calls = [
+            # Inserted
+            call(skeleton, iarg1=True), call().grid(row=0, column=0),
+            ##
+            call().grid(row=1, column=0),
+
+            # Inserted
+            call(skeleton, iarg2=True), call().grid(row=0, column=1, garg1=True),
+            ##
+            call().grid(row=1, column=1),
+            call().grid(row=2, column=1),
+        ]
+
+        skeleton.insert_row_at(index, new_row)
+
+        assert skeleton.widget_cache == expected_cache
+        # Lop off the first 6 calls as those are setup calls
+        assert mocked_widget.mock_calls[6:] == expected_calls
+
+
 class TestCreatedWidget:
-    @pytest.fixture
+    @ pytest.fixture
     def mock_widget(self, mocker: MockerFixture):
         return mocker.Mock(Widget)
 
-    @pytest.fixture
+    @ pytest.fixture
     def created_widget(self, mock_widget):
         return CreatedWidget(
             mock_widget
         )
 
-    @pytest.fixture
+    @ pytest.fixture
     def mock_var(self, mocker: MockerFixture):
         return mocker.Mock(Variable)
 
-    @pytest.mark.parametrize("attr,", [
+    @ pytest.mark.parametrize("attr,", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -484,7 +577,7 @@ class TestCreatedWidget:
         with pytest.raises(AttributeError, match=r"Cannot set '" + attr + r"'; <class 'tklife.skel.CreatedWidget'> is read-only"):
             setattr(created_widget, attr, True)
 
-    @pytest.mark.parametrize("attr,", [
+    @ pytest.mark.parametrize("attr,", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -502,7 +595,7 @@ class TestCreatedWidget:
         with pytest.raises(AttributeError, match=r"'attr' not found"):
             print(created_widget['attr'])
 
-    @pytest.mark.parametrize("attr", [
+    @ pytest.mark.parametrize("attr", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -512,7 +605,7 @@ class TestCreatedWidget:
         created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
         assert getattr(created_widget, attr) == mock_var
 
-    @pytest.mark.parametrize("attr", [
+    @ pytest.mark.parametrize("attr", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -524,7 +617,7 @@ class TestCreatedWidget:
 
 
 class TestMenuMixin(object):
-    @pytest.fixture
+    @ pytest.fixture
     def mock_widget_class(self, mocker: MockerFixture):
         class Misc(object):
             def __init__(self, *args, **kwargs) -> None:
@@ -550,11 +643,11 @@ class TestMenuMixin(object):
                 )
         return Misc
 
-    @pytest.fixture
+    @ pytest.fixture
     def mock_master(self, mocker: MockerFixture):
         return mocker.MagicMock()
 
-    @pytest.fixture
+    @ pytest.fixture
     def tk_menu_patch(self, mocker: MockerFixture):
         return mocker.patch("tklife.skel.tkinter")
 
@@ -562,7 +655,7 @@ class TestMenuMixin(object):
                                        mock_master,
                                        tk_menu_patch):
         class TestMenu(MenuMixin, mock_widget_class):
-            @property
+            @ property
             def menu_template(self):
                 return {
                     Menu.cascade(label="File", underline=0): {

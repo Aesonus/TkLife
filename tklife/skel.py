@@ -1,7 +1,7 @@
 import abc
 from collections import UserDict
 import dataclasses
-from functools import partial
+from functools import partial, reduce
 from re import L
 import tkinter
 import typing
@@ -252,6 +252,34 @@ class SkeletonMixin(_Skel):
                                   self.__global_gridargs, **skel_widget.grid_args)
 
         return new_row
+
+    def insert_row_at(self, index: int, widget_row: 'Iterable[SkelWidget]'):
+        if index == 1 + reduce(lambda carry, value: max(carry, value[0]), self.widget_cache.keys(), 0):
+            self.append_row(widget_row)
+        else:
+            i_row = iter(widget_row)
+            for (row, col), (widget, grid_args) in tuple(self.__w_cache.items()):
+                if row < index:
+                    continue
+                elif row == index:
+                    # Make the insert
+                    skel_widget = next(i_row)
+                    new_widget = self.__widget_create(skel_widget, row, col)
+                    if new_widget is not None:
+                        self._grid_widget(row, col, new_widget, **self.__global_gridargs, **skel_widget.grid_args)
+                    else:
+                        self.__w_cache[row, col] = CachedWidget(None, None)
+                    if widget is not None:
+                        self._grid_widget(row + 1, col, widget, **self.__global_gridargs, **grid_args if grid_args else {})
+                    else:
+                        self.__w_cache[row + 1, col] = CachedWidget(None, None)
+                elif row > index:
+                    # Shift row
+                    if (widget, grid_args) != (None, None):
+                        self._grid_widget(row + 1, col, widget, **self.__global_gridargs, **grid_args)  # type: ignore
+                    else:
+                        self.__w_cache[row + 1, col] = CachedWidget(None, None)
+        return index
 
     def destroy_row(self, row_index: int) -> None:
         """
