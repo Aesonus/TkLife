@@ -266,7 +266,7 @@ class SkeletonMixin(_Skel):
                     skel_widget = next(i_row)
                     new_widget = self.__widget_create(skel_widget, row, col)
                     if new_widget is not None:
-                        self._grid_widget(row, col, new_widget, **skel_widget.grid_args)
+                        self._grid_widget(row, col, new_widget, **self.__global_gridargs, **skel_widget.grid_args)
                     else:
                         self.__w_cache[row, col] = CachedWidget(None, None)
                     if widget is not None:
