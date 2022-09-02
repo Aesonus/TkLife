@@ -1,7 +1,14 @@
 
 from enum import Enum
-from tkinter import BaseWidget, Event, Tk, Toplevel, Widget
+from tkinter import BaseWidget, Event, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
+
+__all__ = [
+    "EventsEnum",
+    "CompositeEvent",
+    "TkEventMod",
+    "TkEvent",
+]
 
 T_ActionCallable = Callable[[Event], Any]
 T_Widget = Union[BaseWidget, Tk, Toplevel]
@@ -11,26 +18,76 @@ class _EventMixin(object):
     value: str
 
     def generate(self, widget: T_Widget) -> T_ActionCallable:
+        """
+        Returns a callable that will generate this event on a widget
+
+        Arguments:
+            widget {T_Widget} -- The widget to generate the event on
+
+        Returns:
+            T_ActionCallable -- The callable that actually generates the event
+        """
         def generator(*__, widget=widget):
             widget.event_generate(self.value)
         return generator
 
-    def bind(self, widget: T_Widget, action: T_ActionCallable, **kwargs):
+    def bind(self, widget: T_Widget, action: T_ActionCallable, **kwargs) -> str:
+        """
+        Binds a callback to an event on given widget. Kwargs are passed to the bind method.
+
+        Arguments:
+            widget {T_Widget} -- The widget the bind is on
+            action {T_ActionCallable} -- The callable called when the event is triggered
+
+        Returns:
+            str -- The event callback id, used to unbind events
+        """
         return widget.bind(self.value, action, **kwargs)
 
     def bind_all(self, widget: T_Widget, action: T_ActionCallable, **kwargs):
+        """
+        Binds a callback to an event on all widgets. Kwargs are passed to the bind method.
+
+        Arguments:
+            widget {T_Widget} -- The widget that will call bind_all
+            action {T_ActionCallable} -- The callable called when the event is triggered
+
+        Returns:
+            str -- The event callback id, used to unbind
+        """
         return widget.bind_all(self.value, action, **kwargs)
 
-    def bind_class(self, widget: T_Widget, classname: str, action: T_ActionCallable, **kwargs):
+    def bind_class(self, widget: T_Widget, classname: str, action: T_ActionCallable, **kwargs) -> str:
+        """
+        Binds a callback to this event on all widgets in the given class.
+        Kwargs are passed to the bind method.
+
+        Arguments:
+            widget {T_Widget} -- The widget that will call bind_class
+            classname {str} -- The widget class to bind on. See: https://tkdocs.com/shipman/binding-levels.html
+            action {T_ActionCallable} -- The callable called when the event is triggered
+
+        Returns:
+            str -- The event callback id, used to unbind
+        """
         return widget.bind_class(classname, self.value, action, **kwargs)
 
-    def unbind(self, widget: T_Widget, funcid: Optional[str] = None):
-        '''
+    def unbind(self, widget: T_Widget, funcid: Optional[str] = None) -> None:
+        """
+        Unbinds callback(s) on the event for the given widget
+
+        Based on code found on Stack Overflow
+
         See:
-            http://stackoverflow.com/questions/6433369/
-            deleting-and-changing-a-tkinter-event-binding-in-python
+            http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding-in-python
             Modified
-        '''
+
+        Arguments:
+            widget {T_Widget} -- The widget that will call unbind
+
+        Keyword Arguments:
+            funcid {Optional[str]} -- The callback id to remove, or None for all (default: {None})
+        """
         if not funcid:
             widget.tk.call('bind', widget._w, self.value, '')  # type: ignore
             return
@@ -47,15 +104,33 @@ class _EventMixin(object):
 
 
 class EventsEnum(_EventMixin, Enum):
-    pass
+    """Use to define custom tkinter events"""
 
 
 class CompositeEvent(_EventMixin):
+    """An event composed of other events/event mods"""
+
     def __init__(self, value: str) -> None:
+        """
+        Create a new CompositeEvent instance
+
+        Arguments:
+            value {str} -- The event. Should be formatted like: <event>
+        """
         self.value = value
 
     @classmethod
-    def factory(cls, modifier, event) -> 'CompositeEvent':
+    def factory(cls, modifier: 'Union[_EventMixin, str]', event: 'Union[_EventMixin, str]') -> 'CompositeEvent':
+        """
+        Creates a composite event from two events
+
+        Arguments:
+            modifier {Union[_EventMixin, str]} -- Prepends to the new event. Either should be an event type, or string like: "<Event>"
+            event {Union[_EventMixin, str]} -- Appends to the new event. Either should be an event type, or string like: "<Event>"
+
+        Returns:
+            CompositeEvent -- The new event, having value like <modifier-event>
+        """
         mod_value = modifier.value if not isinstance(
             modifier, str) else modifier
         event_value = event.value if not isinstance(event, str) else event
@@ -66,6 +141,7 @@ class CompositeEvent(_EventMixin):
 
 
 class TkEventMod(EventsEnum):
+    """Standard tkinter event modifiers"""
     ALT = "<Alt>"
     ANY = "<Any>"
     CONTROL = "<Control>"
@@ -76,7 +152,7 @@ class TkEventMod(EventsEnum):
 
 
 class TkEvent(EventsEnum):
-
+    """Standard tkinter events"""
     ACTIVATE = "<Activate>"
     BUTTON = "<Button>"
     BUTTONRELEASE = "<ButtonRelease>"

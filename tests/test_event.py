@@ -2,7 +2,7 @@ from tkinter import Misc
 from types import SimpleNamespace
 import pytest
 
-from tklife.event import CompositeEvent, EventsEnum
+from tklife.event import CompositeEvent, EventsEnum, TkEvent, TkEventMod
 
 
 class TestEventEnum(object):
@@ -73,6 +73,11 @@ class TestCompositeEvent(object):
             value="<Mod>"), SimpleNamespace(value="<Event>"))
         assert actual.value == expected
 
+    def test_composite_event_factory_with_str(self):
+        expected = "<Mod-A>"
+        actual = CompositeEvent.factory(SimpleNamespace(value="<Mod>"), "<A>")
+        assert actual.value == expected
+
     @pytest.mark.parametrize("kwargs", [
         {}, {"test": True}
     ], ids=["no kwargs", "with kwargs"])
@@ -107,5 +112,10 @@ class TestCompositeEvent(object):
             composite_event.value)
 
 
-def test_event_addition():
-    pass
+@pytest.mark.parametrize("term1, term2, expected", [
+    (TkEventMod.ALT, "<A>", "<Alt-A>"),
+    (TkEventMod.DOUBLE, TkEvent.BUTTON, "<Double-Button>")
+])
+def test_event_addition(term1, term2, expected):
+    actual = term1 + term2
+    assert actual.value == expected
