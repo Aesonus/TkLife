@@ -44,14 +44,15 @@ class SkelWidget(object):
     def set_label(self, new_label: str) -> 'SkelWidget':
         return SkelWidget(self.widget, self.init_args, self.grid_args, new_label)
 
+T_Widget = typing.TypeVar("T_Widget", tkinter.Widget, tkinter.Misc)
 
-class CreatedWidget(object):
-    def __init__(self, widget: tkinter.Widget,
+class CreatedWidget(typing.Generic[T_Widget]):
+    def __init__(self, widget: 'T_Widget',
                  textvariable: typing.Optional[tkinter.Variable] = None,
                  variable: typing.Optional[tkinter.Variable] = None,
                  listvariable: typing.Optional[tkinter.Variable] = None,
                  **custom_vars: tkinter.Variable) -> None:
-        self.__widget = widget
+        self.__widget: 'T_Widget' = widget
         self.__values: dict[str, tkinter.Variable] = {
             **{
                 k: v for k, v in zip(("textvariable",
@@ -66,7 +67,7 @@ class CreatedWidget(object):
         }
 
     @property
-    def widget(self) -> tkinter.Widget:
+    def widget(self) -> T_Widget:
         return self.__widget
 
     @property
