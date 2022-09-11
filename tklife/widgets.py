@@ -94,6 +94,8 @@ class ScrolledFrame(Frame):
         TkEvent.CONFIGURE.bind(
             self.container, self._container_configure_handler)
         TkEvent.CONFIGURE.bind(self, self._self_configure_handler)
+        TkEvent.ENTER.bind(self.canvas, self._enter_canvas_handler)
+        TkEvent.LEAVE.bind(self.canvas, self._leave_canvas_handler)
 
     def _container_configure_handler(self, event: Event):
         self.canvas.configure(
@@ -103,6 +105,21 @@ class ScrolledFrame(Frame):
 
     def _self_configure_handler(self, *__):
         self.canvas.configure(scrollregion=self.canvas.bbox(ALL))
+
+    def _enter_canvas_handler(self, event: Event):
+        (TkEvent.BUTTON + "<4>").bind_all(self.winfo_toplevel(), self._mouse_scroll_handler)
+        (TkEvent.BUTTON + "<5>").bind_all(self.winfo_toplevel(), self._mouse_scroll_handler)
+        (TkEvent.MOUSEWHEEL).bind_all(self.winfo_toplevel(), self._mouse_scroll_handler)
+
+    def _leave_canvas_handler(self, __):
+        self.unbind_all((TkEvent.BUTTON + "<4>").value)
+        self.unbind_all((TkEvent.BUTTON + "<5>").value)
+
+    def _mouse_scroll_handler(self, event: Event):
+        if event.num == 4 or event.delta < 0:
+            self.canvas.yview_scroll(-1, "units")
+        if event.num == 5 or event.delta > 0:
+            self.canvas.yview_scroll(1, "units")
 
 
 class ScrolledListbox(Listbox):

@@ -2,7 +2,7 @@
 
 from functools import cached_property, partial
 from random import random
-from tkinter import E, NSEW, Misc, StringVar, Tk, W, ttk
+from tkinter import E, EW, NSEW, Misc, StringVar, Tk, W, ttk
 import tkinter
 from tkinter.messagebox import showinfo
 from typing import Optional
@@ -60,9 +60,9 @@ class ExampleController(ControllerABC):
         add_to = self.appendable_frame.widget
         id = f"{random():.8f}"
         new_row = [
-            SkelWidget(ttk.Label, {TEXT: f"Appended Row {id}"}, {STICKY: NSEW}),
-            SkelWidget(ttk.Entry, {}, {STICKY: NSEW}),
-            SkelWidget(ttk.Button, {TEXT: 'x', COMMAND: self.get_delete_this_row_command(id)}, {}, id),
+            SkelWidget(ttk.Label, {TEXT: f"Appended Row {id}"}, {STICKY: EW}),
+            SkelWidget(ttk.Entry, {}, {STICKY: EW}),
+            SkelWidget(ttk.Button, {TEXT: 'x', COMMAND: self.get_delete_this_row_command(id)}, {STICKY: EW}, id),
         ]
         add_to.append_row(new_row)
 
@@ -93,6 +93,14 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
 
     @property
     def template(self):
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(3, weight=1)
+        self.grid_rowconfigure(4, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
         return (
             [
                 SkelWidget(ttk.Label, {TEXT: "Label A:"}, {}),
