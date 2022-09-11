@@ -10,7 +10,7 @@ from typing import Optional
 from tklife.constants import COLUMNSPAN, COMMAND, PADX, PADY, STICKY, TEXT, TEXTVARIABLE, VALUES
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
-from tklife.skel import Menu, MenuMixin, SkeletonMixin, SkelWidget
+from tklife.skel import Menu, MenuMixin, SkeletonMixin, SkelWidget, cls_as_skel
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 
@@ -83,7 +83,6 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
         super().__init__(master, example_controller,
                          global_grid_args={PADX: 3, PADY: 3}, **kwargs)
         self.title("TkLife Example")
-        self.created['entry_b']['textvariable'].set("Default value")
 
     def create_events(self):
         # Standard event
@@ -104,14 +103,14 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
             ],
             [
                 SkelWidget(ttk.Label, {TEXT: "Label B:"}, {}),
-                SkelWidget(ttk.Entry, {TEXTVARIABLE: StringVar}, {
+                SkelWidget(AutoSearchCombobox, {TEXTVARIABLE: StringVar(value="Default value"), "values": ["Default value", "other", "a thing to test"]}, {
                            STICKY: E + W}, 'entry_b'),
                 SkelWidget(ttk.Button, {
                            TEXT: "Print contents", COMMAND: self.controller.button_b_command}, {})
             ],
             [None, SkelWidget(ttk.Button, {
                               TEXT: "Dialog", COMMAND: self.controller.button_c_command}, {}), None],
-            [SkelWidget(AppendExampleScrolledFrame, {}, {COLUMNSPAN: 3, STICKY: NSEW}, 'appendable_frame')],
+            [SkelWidget(cls_as_skel(ScrolledFrame), {}, {COLUMNSPAN: 3, STICKY: NSEW}, 'appendable_frame')],
             [SkelWidget(ttk.Button, {TEXT: "Add Row", COMMAND: self.controller.add_row_command}, {}), None, SkelWidget(ttk.Button, {TEXT: "Delete Row", COMMAND: self.controller.delete_last_row_command}, {})]
         )
 

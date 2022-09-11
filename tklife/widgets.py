@@ -137,10 +137,10 @@ class ScrolledListbox(Listbox):
 class AutoSearchCombobox(Entry):
     def __init__(self, master: Widget, values: Optional[Iterable[str]] = None, height: Optional[int] = None, **kwargs):
         super().__init__(master, **kwargs)
-        self._tl = Toplevel(self, takefocus=False,
+        self._ddtl = Toplevel(self, takefocus=False,
                             relief=GROOVE, borderwidth=1)
-        self._tl.wm_overrideredirect(True)
-        self._lb = ScrolledListbox(self._tl, width=kwargs.pop(
+        self._ddtl.wm_overrideredirect(True)
+        self._lb = ScrolledListbox(self._ddtl, width=kwargs.pop(
             'width', None), height=height, selectmode=SINGLE)
         self.values = values
         self._lb.pack(expand=True, fill=BOTH)
@@ -154,6 +154,7 @@ class AutoSearchCombobox(Entry):
             self.winfo_toplevel(), self._handle_configure, add='+')
         TkEvent.DESTROY.bind(self, lambda __: TkEvent.CONFIGURE.unbind(
             self.winfo_toplevel(), cfg_handler))
+        (TkEvent.BUTTONRELEASE + "<1>").bind(self._lb, self._handle_lb_click)
 
     @property
     def values(self):
@@ -205,7 +206,12 @@ class AutoSearchCombobox(Entry):
 
     @property
     def dropdown_is_visible(self):
-        return self._tl.winfo_ismapped()
+        return self._ddtl.winfo_ismapped()
+
+    def _handle_lb_click(self, event: Event):
+        self.delete(0, END)
+        self.insert(0, self._lb_current_selection)
+        self._hide_tl()
 
     def _handle_keypress(self, event: Event):
         if 'Left' in event.keysym:
@@ -254,25 +260,28 @@ class AutoSearchCombobox(Entry):
 
     def _handle_focusout(self, event: Event):
         def cf():
-            if self.focus_get() != self._tl and self.focus_get() != self._lb:
+            try:
+                if self.focus_get() != self._ddtl and self.focus_get() != self._lb:
+                    self._hide_tl()
+                else:
+                    self.focus_set()
+            except KeyError:
                 self._hide_tl()
-            else:
-                self.focus_set()
         self.after(1, cf)
 
     def _handle_configure(self, event: Event):
-        if self._tl.winfo_ismapped():
+        if self._ddtl.winfo_ismapped():
             self._update_tl_pos()
 
     def _show_tl(self) -> None:
-        if self._tl.winfo_ismapped() == False:
+        if self._ddtl.winfo_ismapped() == False:
             self._update_tl_pos()
-            self._tl.deiconify()
-            self._tl.attributes("-topmost", True)
+            self._ddtl.deiconify()
+            self._ddtl.attributes("-topmost", True)
 
     def _update_tl_pos(self) -> None:
-        self._tl.geometry('+{}+{}'.format(self.winfo_rootx(),
+        self._ddtl.geometry('+{}+{}'.format(self.winfo_rootx(),
                           self.winfo_rooty() + self.winfo_height() - 1))
 
     def _hide_tl(self) -> None:
-        self._tl.withdraw()
+        self._ddtl.withdraw()

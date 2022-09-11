@@ -393,6 +393,12 @@ class MenuMixin(abc.ABC):
         main_menu = submenu(self.menu_template)
         self['menu'] = main_menu
 
+def cls_as_skel(cls):
+    class SkeletonContainer(SkeletonMixin, cls):
+        @property
+        def template(self):
+            return [[]]
+    return SkeletonContainer
 
 class Menu(object):
     """
