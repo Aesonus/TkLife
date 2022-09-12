@@ -191,6 +191,7 @@ class AutoSearchCombobox(Entry):
         """
         self.__values = tuple(
             sorted(values)) if values is not None else tuple()
+        self._lb.delete(0, END)
         self._lb.insert(END, *self.values)
         self._lb.selection_clear(0, END)
         self._lb.selection_set(0)
