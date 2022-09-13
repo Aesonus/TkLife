@@ -604,7 +604,7 @@ class TestCreatedWidget:
         "listvariable",
         "variable",
     ])
-    def test_dunder_getattr_for_all_values(self, attr, mock_widget, mock_var):
+    def test_dunder_getattr_for_all_created_widget_values(self, attr, mock_widget, mock_var):
         created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
         assert getattr(created_widget, attr) == mock_var
 
@@ -614,7 +614,7 @@ class TestCreatedWidget:
         "listvariable",
         "variable",
     ])
-    def test_dunder_getitem_for_all_values(self, attr, mock_widget, mock_var):
+    def test_dunder_getitem_for_all_created_widget_values(self, attr, mock_widget, mock_var):
         created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
         assert created_widget[attr] == mock_var
 
