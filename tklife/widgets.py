@@ -47,11 +47,13 @@ class ModalDialog(SkeletonMixin, Toplevel):
         """
         Sets the return value if dialog not cancelled.
         Called in the <Destroy> event if cancelled = True.
-        You must override this method for return value to work
+        You must override this method and, set self.return_value
+        to your return value
         """
         pass
 
     def cancel(self, *__):
+        """Call to cancel the dialog"""
         self.cancelled = True
         self.destroy()
 

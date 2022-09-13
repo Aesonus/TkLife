@@ -44,7 +44,9 @@ class SkelWidget(object):
     def set_label(self, new_label: str) -> 'SkelWidget':
         return SkelWidget(self.widget, self.init_args, self.grid_args, new_label)
 
+
 T_Widget = typing.TypeVar("T_Widget", tkinter.Widget, tkinter.Misc)
+
 
 class CreatedWidget(typing.Generic[T_Widget]):
     def __init__(self, widget: 'T_Widget',
@@ -154,13 +156,24 @@ class SkeletonMixin(_Skel):
             self.controller = controller
 
         # Init the frame or the menu mixin... or not
+        self.__before_init__()
         super().__init__(master, **kwargs)  # type: ignore
+        self.__after_init__()
 
         self.created: T_CreatedWidgetDict = {}
         self.__global_gridargs = global_grid_args if global_grid_args else {}
         self.__w_cache: dict[tuple[int, int], CachedWidget] = {}
         self._create_all()
         self.create_events()
+
+    def __before_init__(self):
+        """Hook that is called immediately before super().__init__ is called"""
+
+    def __after_init__(self):
+        """
+        Hook that is called immediately after super().__init__ is called, 
+        but before creating child widgets and events
+        """
 
     @property
     @abc.abstractmethod
@@ -267,17 +280,20 @@ class SkeletonMixin(_Skel):
                     skel_widget = next(i_row)
                     new_widget = self.__widget_create(skel_widget, row, col)
                     if new_widget is not None:
-                        self._grid_widget(row, col, new_widget, **self.__global_gridargs, **skel_widget.grid_args)
+                        self._grid_widget(
+                            row, col, new_widget, **self.__global_gridargs, **skel_widget.grid_args)
                     else:
                         self.__w_cache[row, col] = CachedWidget(None, None)
                     if widget is not None:
-                        self._grid_widget(row + 1, col, widget, **grid_args if grid_args else {})
+                        self._grid_widget(row + 1, col, widget,
+                                          **grid_args if grid_args else {})
                     else:
                         self.__w_cache[row + 1, col] = CachedWidget(None, None)
                 elif row > index:
                     # Shift row
                     if (widget, grid_args) != (None, None):
-                        self._grid_widget(row + 1, col, widget, **grid_args)  # type: ignore
+                        self._grid_widget(row + 1, col, widget,
+                                          **grid_args)  # type: ignore
                     else:
                         self.__w_cache[row + 1, col] = CachedWidget(None, None)
         return index
@@ -393,12 +409,14 @@ class MenuMixin(abc.ABC):
         main_menu = submenu(self.menu_template)
         self['menu'] = main_menu
 
+
 def cls_as_skel(cls):
     class SkeletonContainer(SkeletonMixin, cls):
         @property
         def template(self):
             return [[]]
     return SkeletonContainer
+
 
 class Menu(object):
     """
