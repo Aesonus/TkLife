@@ -89,6 +89,9 @@ class TestSkeletonMixin(object):
     @pytest.fixture
     def no_template_skeleton(self, mock_mixin_class):
         class TestedSkeleton(SkeletonMixin, mock_mixin_class):
+            def __init__(self, master = None, controller = None, global_grid_args = None, proxy_factory = None, **kwargs) -> None:
+                self._calls = []  # For tests
+                super().__init__(master, controller, global_grid_args, proxy_factory, **kwargs)
             @property
             def template(self):
                 return (
@@ -96,7 +99,19 @@ class TestSkeletonMixin(object):
                 )
 
             def create_events(self):
-                self.created_events = True
+                self._calls.append(
+                    call().create_events()
+                )
+            
+            def __before_init__(self):
+                self._calls.append(
+                    call().__before_init__()
+                )
+
+            def __after_init__(self):
+                self._calls.append(
+                    call().__after_init__()
+                )
         return TestedSkeleton
 
     @pytest.fixture
@@ -120,7 +135,15 @@ class TestSkeletonMixin(object):
 
     def test_init_calls_create_events(self, no_template_skeleton, mock_master, mock_controller):
         skeleton = no_template_skeleton(mock_master, mock_controller)
-        assert skeleton.created_events == True
+        assert call().create_events() in skeleton._calls
+
+    def test_init_calls_hooks(self, no_template_skeleton, mock_master, mock_controller):
+        skeleton = no_template_skeleton(mock_master, mock_controller)
+        assert skeleton._calls == [
+            call().__before_init__(),
+            call().__after_init__(),
+            call().create_events()
+        ]
 
     def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class):
         with pytest.raises(TypeError, match=r"\<class 'tklife\.skel\.SkeletonMixin'\> should be first base class"):
