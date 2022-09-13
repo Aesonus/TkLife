@@ -17,6 +17,8 @@ from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 class ExampleModal(ModalDialog):
     def __init__(self, master, **kwargs):
         super().__init__(master, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
+        
+    def __after_init__(self):
         self.title("Example Modal")
 
     @property
@@ -82,6 +84,8 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
         self.controller: ExampleController
         super().__init__(master, example_controller,
                          global_grid_args={PADX: 3, PADY: 3}, **kwargs)
+        
+    def __after_init__(self):
         self.title("TkLife Example")
 
     def create_events(self):
