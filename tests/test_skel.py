@@ -457,7 +457,6 @@ class TestSkeletonMixin(object):
         actual = skeleton.find_row_of(widget_label)
         assert actual == expected
 
-
     def test_insert_row_at_inserts_row_at_last_plus_1_index(
         self,
         mock_mixin_class, mocked_widget, mock_master, mock_controller
@@ -478,6 +477,7 @@ class TestSkeletonMixin(object):
         new_row = [
             SkelWidget(mocked_widget, iarg, garg) for iarg, garg in expected_w_args
         ]
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
@@ -493,7 +493,8 @@ class TestSkeletonMixin(object):
             call(skeleton,), call().grid(row=1, column=1),
 
             call(skeleton, iarg1=True), call().grid(row=2, column=0),
-            call(skeleton, iarg2=True), call().grid(row=2, column=1, garg1=True),
+            call(skeleton, iarg2=True), call().grid(
+                row=2, column=1, garg1=True),
         ]
 
         skeleton.insert_row_at(index, new_row)
@@ -523,6 +524,7 @@ class TestSkeletonMixin(object):
         new_row = [
             SkelWidget(mocked_widget, iarg, garg) for iarg, garg in expected_w_args
         ]
+
         class Tested(SkeletonMixin, mock_mixin_class):
             @property
             def template(self):
@@ -539,7 +541,8 @@ class TestSkeletonMixin(object):
             call().grid(row=1, column=0),
 
             # Inserted
-            call(skeleton, iarg2=True), call().grid(row=0, column=1, garg1=True),
+            call(skeleton, iarg2=True), call().grid(
+                row=0, column=1, garg1=True),
             ##
             call().grid(row=1, column=1),
             call().grid(row=2, column=1),
@@ -553,21 +556,21 @@ class TestSkeletonMixin(object):
 
 
 class TestCreatedWidget:
-    @ pytest.fixture
+    @pytest.fixture
     def mock_widget(self, mocker: MockerFixture):
         return mocker.Mock(Widget)
 
-    @ pytest.fixture
+    @pytest.fixture
     def created_widget(self, mock_widget):
         return CreatedWidget(
             mock_widget
         )
 
-    @ pytest.fixture
+    @pytest.fixture
     def mock_var(self, mocker: MockerFixture):
         return mocker.Mock(Variable)
 
-    @ pytest.mark.parametrize("attr,", [
+    @pytest.mark.parametrize("attr,", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -577,7 +580,7 @@ class TestCreatedWidget:
         with pytest.raises(AttributeError, match=r"Cannot set '" + attr + r"'; <class 'tklife.skel.CreatedWidget'> is read-only"):
             setattr(created_widget, attr, True)
 
-    @ pytest.mark.parametrize("attr,", [
+    @pytest.mark.parametrize("attr,", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -595,7 +598,7 @@ class TestCreatedWidget:
         with pytest.raises(AttributeError, match=r"'attr' not found"):
             print(created_widget['attr'])
 
-    @ pytest.mark.parametrize("attr", [
+    @pytest.mark.parametrize("attr", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -605,7 +608,7 @@ class TestCreatedWidget:
         created_widget = CreatedWidget(mock_widget, **{attr: mock_var})
         assert getattr(created_widget, attr) == mock_var
 
-    @ pytest.mark.parametrize("attr", [
+    @pytest.mark.parametrize("attr", [
         "custom_attr",
         "textvariable",
         "listvariable",
@@ -617,7 +620,7 @@ class TestCreatedWidget:
 
 
 class TestMenuMixin(object):
-    @ pytest.fixture
+    @pytest.fixture
     def mock_widget_class(self, mocker: MockerFixture):
         class Misc(object):
             def __init__(self, *args, **kwargs) -> None:
@@ -643,11 +646,11 @@ class TestMenuMixin(object):
                 )
         return Misc
 
-    @ pytest.fixture
+    @pytest.fixture
     def mock_master(self, mocker: MockerFixture):
         return mocker.MagicMock()
 
-    @ pytest.fixture
+    @pytest.fixture
     def tk_menu_patch(self, mocker: MockerFixture):
         return mocker.patch("tklife.skel.tkinter")
 
@@ -655,7 +658,7 @@ class TestMenuMixin(object):
                                        mock_master,
                                        tk_menu_patch):
         class TestMenu(MenuMixin, mock_widget_class):
-            @ property
+            @property
             def menu_template(self):
                 return {
                     Menu.cascade(label="File", underline=0): {
