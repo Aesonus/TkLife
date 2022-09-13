@@ -23,6 +23,8 @@ class ModalDialog(SkeletonMixin, Toplevel):
         self.return_value = None
         self.cancelled = False
         self.protocol("WM_DELETE_WINDOW", self.cancel)
+
+    def create_events(self):
         TkEvent.ESCAPE.bind(self, self.cancel)
         TkEvent.RETURN.bind(self, lambda __: self.destroy())
         TkEvent.DESTROY.bind(self, self.__destoy_event_handler)
