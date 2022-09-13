@@ -1,5 +1,8 @@
 import enum
 
+__all__ = [
+    'StyleEnum'
+]
 
 class StyleEnum(enum.Enum):
     """Holds the definition of styles"""
