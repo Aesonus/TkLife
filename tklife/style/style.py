@@ -1,23 +1,16 @@
-import enum
 
-__all__ = [
-    'StyleEnum'
-]
 
-class StyleEnum(enum.Enum):
-    """Holds the definition of styles"""
+class _StyleMeta(type):
 
-    def __init__(self) -> None:
-        pass
+    def __new__(cls, name, bases, namespace):
+        return super().__new__(cls, name, bases, namespace)
 
     @property
-    def tkstyle_name(self):
-        pass
+    def ttk_style(cls):
+        return ".".join((cls.__name__, *(b.__name__ for b in cls.__bases__)))
 
-    @property
-    def normal_styles(self):
-        pass
+class BaseStyle(metaclass=_StyleMeta):
+    """All the base styles inherit from this class"""
 
-    @property
-    def dynamic_styles(self):
-        pass
+class TEntry(BaseStyle):
+    """This would be the base style. Extending this would add a new style type"""
