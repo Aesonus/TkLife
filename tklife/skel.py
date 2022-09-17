@@ -155,8 +155,8 @@ class SkeletonMixin(_Skel):
         else:
             self.controller = controller
 
-        # Init the frame or the menu mixin... or not
         self.__before_init__()
+        # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
         self.__after_init__()
 
@@ -164,6 +164,7 @@ class SkeletonMixin(_Skel):
         self.__global_gridargs = global_grid_args if global_grid_args else {}
         self.__w_cache: dict[tuple[int, int], CachedWidget] = {}
         self._create_all()
+        self.__after_widgets__()
         self.create_events()
 
     def __before_init__(self):
@@ -173,6 +174,12 @@ class SkeletonMixin(_Skel):
         """
         Hook that is called immediately after super().__init__ is called, 
         but before creating child widgets and events
+        """
+
+    def __after_widgets__(self):
+        """
+        Hook that is called immediately after creating child widgets,
+        but before creating events
         """
 
     @property
@@ -236,7 +243,10 @@ class SkeletonMixin(_Skel):
         self.__w_cache[row, column] = CachedWidget(widget, grid_args)
 
     def create_events(self):
-        """Override to bind events. This is called after widget creation"""
+        """
+        Override to bind events. This is called after the __after_widgets__()
+        method.
+        """
 
     def append_row(self, widget_row: 'Iterable[SkelWidget]') -> int:
         """

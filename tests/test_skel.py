@@ -102,7 +102,7 @@ class TestSkeletonMixin(object):
                 self._calls.append(
                     call().create_events()
                 )
-            
+
             def __before_init__(self):
                 self._calls.append(
                     call().__before_init__()
@@ -111,6 +111,11 @@ class TestSkeletonMixin(object):
             def __after_init__(self):
                 self._calls.append(
                     call().__after_init__()
+                )
+
+            def __after_widgets__(self):
+                self._calls.append(
+                    call().__after_widgets__()
                 )
         return TestedSkeleton
 
@@ -133,15 +138,12 @@ class TestSkeletonMixin(object):
         assert skeleton.controller == mock_controller
         mock_controller.set_view.assert_called_once_with(skeleton)
 
-    def test_init_calls_create_events(self, no_template_skeleton, mock_master, mock_controller):
-        skeleton = no_template_skeleton(mock_master, mock_controller)
-        assert call().create_events() in skeleton._calls
-
     def test_init_calls_hooks(self, no_template_skeleton, mock_master, mock_controller):
         skeleton = no_template_skeleton(mock_master, mock_controller)
         assert skeleton._calls == [
             call().__before_init__(),
             call().__after_init__(),
+            call().__after_widgets__(),
             call().create_events()
         ]
 
