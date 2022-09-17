@@ -29,7 +29,7 @@ class _EventMixin(object):
         Returns:
             T_ActionCallable -- The callable that actually generates the event
         """
-        def generator(*__, widget=widget):
+        def generator(*__, widget=widget, kwargs=kwargs):
             widget.event_generate(self.value, **kwargs)
         return generator
 
