@@ -21,29 +21,29 @@ class TestEventEnum(object):
         return mocker.Mock(Misc)
 
     @pytest.mark.parametrize("kwargs", [
-        {}, {"test": True}
+        {}, {"add": "+"}
     ], ids=["no kwargs", "with kwargs"])
     def test_bind_calls(self, custom_event, action_callable, mock_widget, kwargs):
         custom_event.TEST.bind(mock_widget, action_callable, **kwargs)
         mock_widget.bind.assert_called_once_with(
-            custom_event.TEST.value, action_callable, **kwargs)
+            custom_event.TEST.value, action_callable, add=kwargs.get("add", ""))
 
     @pytest.mark.parametrize("kwargs", [
-        {}, {"test": True}
+        {}, {"add": "+"}
     ], ids=["no kwargs", "with kwargs"])
     def test_bind_all_calls(self, custom_event, action_callable, mock_widget, kwargs):
         custom_event.TEST.bind_all(mock_widget, action_callable, **kwargs)
         mock_widget.bind_all.assert_called_once_with(
-            custom_event.TEST.value, action_callable, **kwargs)
+            custom_event.TEST.value, action_callable, add=kwargs.get("add", ""))
 
     @pytest.mark.parametrize("kwargs", [
-        {}, {"test": True}
+        {}, {"add": "+"}
     ], ids=["no kwargs", "with kwargs"])
     def test_bind_class_calls(self, custom_event, action_callable, mock_widget, kwargs):
         custom_event.TEST.bind_class(
             mock_widget, "classname", action_callable, **kwargs)
         mock_widget.bind_class.assert_called_once_with(
-            "classname", custom_event.TEST.value, action_callable, **kwargs)
+            "classname", custom_event.TEST.value, action_callable, add=kwargs.get("add", ""))
 
     def test_generate_returns_callable_that_calls_event_generate(
         self, custom_event, mock_widget
@@ -79,29 +79,29 @@ class TestCompositeEvent(object):
         assert actual.value == expected
 
     @pytest.mark.parametrize("kwargs", [
-        {}, {"test": True}
+        {}, {"add": "+"}
     ], ids=["no kwargs", "with kwargs"])
     def test_bind_calls(self, composite_event, action_callable, mock_widget, kwargs):
         composite_event.bind(mock_widget, action_callable, **kwargs)
         mock_widget.bind.assert_called_once_with(
-            composite_event.value, action_callable, **kwargs)
+            composite_event.value, action_callable, add=kwargs.get("add", ""))
 
     @pytest.mark.parametrize("kwargs", [
-        {}, {"test": True}
+        {}, {"add": "+"}
     ], ids=["no kwargs", "with kwargs"])
     def test_bind_all_calls(self, composite_event, action_callable, mock_widget, kwargs):
         composite_event.bind_all(mock_widget, action_callable, **kwargs)
         mock_widget.bind_all.assert_called_once_with(
-            composite_event.value, action_callable, **kwargs)
+            composite_event.value, action_callable, add=kwargs.get("add", ""))
 
     @pytest.mark.parametrize("kwargs", [
-        {}, {"test": True}
+        {}, {"add": "+"}
     ], ids=["no kwargs", "with kwargs"])
     def test_bind_class_calls(self, composite_event, action_callable, mock_widget, kwargs):
         composite_event.bind_class(
             mock_widget, "classname", action_callable, **kwargs)
         mock_widget.bind_class.assert_called_once_with(
-            "classname", composite_event.value, action_callable, **kwargs)
+            "classname", composite_event.value, action_callable, add=kwargs.get("add", ""))
 
     def test_generate_returns_callable_that_calls_event_generate(
         self, composite_event, mock_widget

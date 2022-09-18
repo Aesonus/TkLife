@@ -17,7 +17,7 @@ T_Widget = Union[BaseWidget, Tk, Toplevel]
 class _EventMixin(object):
     value: str
 
-    def generate(self, widget: T_Widget) -> T_ActionCallable:
+    def generate(self, widget: T_Widget, **kwargs) -> T_ActionCallable:
         """
         Returns a callable that will generate this event on a widget
 
@@ -28,10 +28,10 @@ class _EventMixin(object):
             T_ActionCallable -- The callable that actually generates the event
         """
         def generator(*__, widget=widget):
-            widget.event_generate(self.value)
+            widget.event_generate(self.value, **kwargs)
         return generator
 
-    def bind(self, widget: T_Widget, action: T_ActionCallable, **kwargs) -> str:
+    def bind(self, widget: T_Widget, action: T_ActionCallable, add="") -> str:
         """
         Binds a callback to an event on given widget. Kwargs are passed to the bind method.
 
@@ -42,9 +42,12 @@ class _EventMixin(object):
         Returns:
             str -- The event callback id, used to unbind events
         """
-        return widget.bind(self.value, action, **kwargs)
+        return widget.bind(self.value, action, add=add)
 
-    def bind_all(self, widget: T_Widget, action: T_ActionCallable, **kwargs):
+    def bind_tag(self, widget: T_Widget, tag: str, action: T_ActionCallable, add="") -> str:
+        return widget._bind(("bind", tag), self.value, action, add=add)
+
+    def bind_all(self, widget: T_Widget, action: T_ActionCallable, add=""):
         """
         Binds a callback to an event on all widgets. Kwargs are passed to the bind method.
 
@@ -55,9 +58,9 @@ class _EventMixin(object):
         Returns:
             str -- The event callback id, used to unbind
         """
-        return widget.bind_all(self.value, action, **kwargs)
+        return widget.bind_all(self.value, action, add=add)
 
-    def bind_class(self, widget: T_Widget, classname: str, action: T_ActionCallable, **kwargs) -> str:
+    def bind_class(self, widget: T_Widget, classname: str, action: T_ActionCallable, add="") -> str:
         """
         Binds a callback to this event on all widgets in the given class.
         Kwargs are passed to the bind method.
@@ -70,7 +73,7 @@ class _EventMixin(object):
         Returns:
             str -- The event callback id, used to unbind
         """
-        return widget.bind_class(classname, self.value, action, **kwargs)
+        return widget.bind_class(classname, self.value, action, add=add)
 
     def unbind(self, widget: T_Widget, funcid: Optional[str] = None) -> None:
         """
