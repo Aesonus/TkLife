@@ -8,6 +8,8 @@ __all__ = [
     "CompositeEvent",
     "TkEventMod",
     "TkEvent",
+    "TkVirtualEvents",
+    "TtkNotebookEvents"
 ]
 
 T_ActionCallable = Callable[[Event], Any]
@@ -236,46 +238,59 @@ class TkEvent(EventsEnum):
 
 
 class TkVirtualEvents(EventsEnum):
-    ALTUNDERLINED = "<<AltUnderlined>>"
+    ALT_UNDERLINED = "<<AltUnderlined>>"
     INVOKE = "<<Invoke>>"
-    LISTBOXSELECT = "<<ListboxSelect>>"
-    MENUSELECT = "<<MenuSelect>>"
+    LISTBOX_SELECT = "<<ListboxSelect>>"
+    MENU_SELECT = "<<MenuSelect>>"
     MODIFIED = "<<Modified>>"
     SELECTION = "<<Selection>>"
-    THEMECHANGED = "<<ThemeChanged>>"
-    TKWORLDCHANGED = "<<TkWorldChanged>>"
-    TRAVERSEIN = "<<TraverseIn>>"
-    TRAVERSEOUT = "<<TraverseOut>>"
-    UNDOSTACK = "<<UndoStack>>"
-    WIDGETVIEWSYNC = "<<WidgetViewSync>>"
+    THEME_CHANGED = "<<ThemeChanged>>"
+    TK_WORLD_CHANGED = "<<TkWorldChanged>>"
+    TRAVERSE_IN = "<<TraverseIn>>"
+    TRAVERSE_OUT = "<<TraverseOut>>"
+    UNDO_STACK = "<<UndoStack>>"
+    WIDGET_VIEW_SYNC = "<<WidgetViewSync>>"
     CLEAR = "<<Clear>>"
     COPY = "<<Copy>>"
     CUT = "<<Cut>>"
-    LINEEND = "<<LineEnd>>"
-    LINESTART = "<<LineStart>>"
-    NEXTCHAR = "<<NextChar>>"
-    NEXTLINE = "<<NextLine>>"
-    NEXTPARA = "<<NextPara>>"
-    NEXTWORD = "<<NextWord>>"
+    LINE_END = "<<LineEnd>>"
+    LINE_START = "<<LineStart>>"
+    NEXT_CHAR = "<<NextChar>>"
+    NEXT_LINE = "<<NextLine>>"
+    NEXT_PARA = "<<NextPara>>"
+    NEXT_WORD = "<<NextWord>>"
     PASTE = "<<Paste>>"
-    PASTESELECTION = "<<PasteSelection>>"
-    PREVCHAR = "<<PrevChar>>"
-    PREVLINE = "<<PrevLine>>"
-    PREVPARA = "<<PrevPara>>"
-    PREVWINDOW = "<<PrevWindow>>"
-    PREVWORD = "<<PrevWord>>"
+    PASTE_SELECTION = "<<PasteSelection>>"
+    PREV_CHAR = "<<PrevChar>>"
+    PREV_LINE = "<<PrevLine>>"
+    PREV_PARA = "<<PrevPara>>"
+    PREV_WINDOW = "<<PrevWindow>>"
+    PREV_WORD = "<<PrevWord>>"
     REDO = "<<Redo>>"
-    SELECTALL = "<<SelectAll>>"
-    SELECTLINEEND = "<<SelectLineEnd>>"
-    SELECTLINESTART = "<<SelectLineStart>>"
-    SELECTNEXTCHAR = "<<SelectNextChar>>"
-    SELECTNEXTLINE = "<<SelectNextLine>>"
-    SELECTNEXTPARA = "<<SelectNextPara>>"
-    SELECTNEXTWORD = "<<SelectNextWord>>"
-    SELECTNONE = "<<SelectNone>>"
-    SELECTPREVCHAR = "<<SelectPrevChar>>"
-    SELECTPREVLINE = "<<SelectPrevLine>>"
-    SELECTPREVPARA = "<<SelectPrevPara>>"
-    SELECTPREVWORD = "<<SelectPrevWord>>"
-    TOGGLESELECTION = "<<ToggleSelection>>"
+    SELECT_ALL = "<<SelectAll>>"
+    SELECT_LINE_END = "<<SelectLineEnd>>"
+    SELECT_LINE_START = "<<SelectLineStart>>"
+    SELECT_NEXT_CHAR = "<<SelectNextChar>>"
+    SELECT_NEXT_LINE = "<<SelectNextLine>>"
+    SELECT_NEXT_PARA = "<<SelectNextPara>>"
+    SELECT_NEXT_WORD = "<<SelectNextWord>>"
+    SELECT_NONE = "<<SelectNone>>"
+    SELECT_PREV_CHAR = "<<SelectPrevChar>>"
+    SELECT_PREV_LINE = "<<SelectPrevLine>>"
+    SELECT_PREV_PARA = "<<SelectPrevPara>>"
+    SELECT_PREV_WORD = "<<SelectPrevWord>>"
+    TOGGLE_SELECTION = "<<ToggleSelection>>"
     UNDO = "<<Undo>>"
+
+
+class TtkNotebookEvents(EventsEnum):
+    NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
+
+
+class TtkPanedWindow(EventsEnum):
+    ENTERED_CHILD = "<<EnteredChild>>"
+
+
+class TtkSpinboxEvents(EventsEnum):
+    INCREMENT = "<<Increment>>"
+    DECREMENT = "<<Decrement>>"
