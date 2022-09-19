@@ -9,7 +9,11 @@ __all__ = [
     "TkEventMod",
     "TkEvent",
     "TkVirtualEvents",
-    "TtkNotebookEvents"
+    "TtkNotebookEvents",
+    "TtkPanedWindowEvents",
+    "TtkSpinboxEvents",
+    "TtkComboboxEvents",
+    "TtkTreeviewEvents",
 ]
 
 T_ActionCallable = Callable[[Event], Any]
