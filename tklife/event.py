@@ -287,7 +287,7 @@ class TtkNotebookEvents(EventsEnum):
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
 
 
-class TtkPanedWindow(EventsEnum):
+class TtkPanedWindowEvents(EventsEnum):
     ENTERED_CHILD = "<<EnteredChild>>"
 
 
