@@ -294,3 +294,13 @@ class TtkPanedWindowEvents(EventsEnum):
 class TtkSpinboxEvents(EventsEnum):
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
+
+
+class TtkComboboxEvents(EventsEnum):
+    COMBOBOX_SELECTED = "<<ComboboxSelected>>"
+
+
+class TtkTreeviewEvents(EventsEnum):
+    TREEVIEW_SELECT = "<<TreeviewSelect>>"
+    TREEVIEW_OPEN = "<<TreeviewOpen>>"
+    TREEVIEW_CLOSE = "<<TreeviewClose>>"
