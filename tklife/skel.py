@@ -1,10 +1,8 @@
 import abc
-from collections import UserDict
 import dataclasses
-from functools import partial, reduce
-from re import L
 import tkinter
 import typing
+from functools import partial, reduce
 
 from .controller import ControllerABC
 from .proxy import CallProxyFactory
@@ -129,7 +127,8 @@ class T_SkeletonProtocol(typing.Protocol):
 
 class SkeletonMeta(abc.ABCMeta):
     def __new__(cls, name, bases: tuple[type, ...], namespace):
-        if len(bases) > 1 and bases[0] != SkeletonMixin:
+
+        if typing.Generic not in bases and len(bases) > 1 and bases[0] != SkeletonMixin:
             raise TypeError(f"{SkeletonMixin} should be first base class")
         return super().__new__(cls, name, bases, namespace)
 
