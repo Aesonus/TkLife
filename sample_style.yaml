@@ -1,13 +1,11 @@
-TEntry:
-  Example:
-    configure:
-      - bordercolor: red
-        map:
-          - [focus, blue]
-          - [readonly, purple]
-      - fieldbackground:
-        map:
-          - [readonly, orange]
-    Extended:
-      configure:
-        - bordercolor: yellow
+TEntry.Example:
+  - bordercolor: red
+    map:
+      - [focus, blue]
+      - [readonly, purple]
+  - fieldbackground:
+    map:
+      - [readonly, orange]
+
+TEntry.Example.Extended:
+  - bordercolor: green
