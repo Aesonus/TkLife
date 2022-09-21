@@ -171,7 +171,7 @@ class SkeletonMixin(_Skel):
 
     def __after_init__(self):
         """
-        Hook that is called immediately after super().__init__ is called, 
+        Hook that is called immediately after super().__init__ is called,
         but before creating child widgets and events
         """
 
@@ -316,6 +316,9 @@ class SkeletonMixin(_Skel):
         """
         for (row, col), (widget, grid_args) in tuple(self.__w_cache.items()):
             if row == row_index:
+                if widget in (c.widget for c in self.created.values()):
+                    ind = [k for k, v in self.created.items() if v.widget == widget][0]
+                    del self.created[ind]
                 if widget is not None:
                     widget.destroy()
                 del self.__w_cache[row, col]

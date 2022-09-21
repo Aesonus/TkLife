@@ -433,9 +433,9 @@ class TestSkeletonMixin(object):
             @property
             def template(self):
                 return (
-                    [SkelWidget(mocked_widget, {}, {'garg1': True}),
-                     SkelWidget(mocked_widget, {}, {})],
-                    [None, SkelWidget(mocked_widget, {}, {'garg2': True})],
+                    [SkelWidget(mocked_widget, {}, {'garg1': True}, label="label"),
+                     SkelWidget(mocked_widget, {}, {}, label="label2")],
+                    [None, SkelWidget(mocked_widget, {}, {'garg2': True}, label="label3")],
                 )
         skeleton = Tested(mock_master, mock_controller)
         skeleton.destroy_row(destroy_row)
