@@ -1,0 +1,11 @@
+TEntry.Example:
+  - bordercolor: red
+    map:
+      - [focus, blue]
+      - [readonly, purple]
+  - fieldbackground:
+    map:
+      - [readonly, orange]
+
+TEntry.Example.Extended:
+  - bordercolor: green

@@ -9,7 +9,11 @@ __all__ = [
     "TkEventMod",
     "TkEvent",
     "TkVirtualEvents",
-    "TtkNotebookEvents"
+    "TtkNotebookEvents",
+    "TtkPanedWindowEvents",
+    "TtkSpinboxEvents",
+    "TtkComboboxEvents",
+    "TtkTreeviewEvents",
 ]
 
 T_ActionCallable = Callable[[Event], Any]
@@ -287,10 +291,20 @@ class TtkNotebookEvents(EventsEnum):
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
 
 
-class TtkPanedWindow(EventsEnum):
+class TtkPanedWindowEvents(EventsEnum):
     ENTERED_CHILD = "<<EnteredChild>>"
 
 
 class TtkSpinboxEvents(EventsEnum):
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
+
+
+class TtkComboboxEvents(EventsEnum):
+    COMBOBOX_SELECTED = "<<ComboboxSelected>>"
+
+
+class TtkTreeviewEvents(EventsEnum):
+    TREEVIEW_SELECT = "<<TreeviewSelect>>"
+    TREEVIEW_OPEN = "<<TreeviewOpen>>"
+    TREEVIEW_CLOSE = "<<TreeviewClose>>"
