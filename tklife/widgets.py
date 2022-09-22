@@ -157,7 +157,7 @@ class ScrolledListbox(Listbox):
 
 class AutoSearchCombobox(Entry):
     def __init__(self, master: Widget, values: Optional[Iterable[str]] = None, height: Optional[int] = None, **kwargs):
-        super().__init__(master, **kwargs)
+        Entry.__init__(self, master, **kwargs)
         self._ddtl = Toplevel(self, takefocus=False,
                             relief=GROOVE, borderwidth=1)
         self._ddtl.wm_overrideredirect(True)

@@ -51,7 +51,7 @@ class _EventMixin(object):
         return widget.bind(self.value, action, add=add)
 
     def bind_tag(self, widget: T_Widget, tag: str, action: T_ActionCallable, add="") -> str:
-        return widget._bind(("bind", tag), self.value, action, add=add)
+        return widget._bind(("bind", tag), self.value, action, add=add)  # type: ignore
 
     def bind_all(self, widget: T_Widget, action: T_ActionCallable, add=""):
         """
