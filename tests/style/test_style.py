@@ -4,6 +4,8 @@ import pytest
 from tklife.style.style import TEntry, BaseStyle
 from pytest_mock import MockerFixture
 
+parametrize = pytest.mark.parametrize
+
 class TestBaseStyle:
     @pytest.mark.parametrize("subclass, expected", [
         (type("TestEntry", (TEntry,), {}), "TestEntry.TEntry"),
@@ -38,8 +40,29 @@ class TestBaseStyle:
     def test_dunder_get_item_on_base_style_returns_style_class(self, defined_styles):
         Table, Green = defined_styles
         assert BaseStyle["Green.Table.TEntry"] == Green
-        assert Table["Green.Table.TEntry"] == Green
-        assert Green["Green.Table.TEntry"] == Green
+
+    def test_dunder_get_item_on_base_style_raises_key_error_when_not_found(self, defined_styles):
+        Table, Green = defined_styles
+        with pytest.raises(KeyError):
+            assert BaseStyle["Bad.Table.TEntry"] == Green
+
+    def test_dunder_get_item_on_tentry_style_returns_style_class(self, defined_styles):
+        Table, Green = defined_styles
+        assert TEntry["Green.Table"] == Green
+
+    def test_dunder_get_item_on_tentry_style_raises_key_error_when_not_found(self, defined_styles):
+        Table, Green = defined_styles
+        with pytest.raises(KeyError):
+            assert TEntry["Green.Table.TEntry"] == Green
+
+    def test_dunder_get_item_on_table_style_returns_style_class(self, defined_styles):
+        Table, Green = defined_styles
+        assert Table["Green"] == Green
+
+    def test_dunder_get_item_on_table_style_raises_key_error_when_not_found(self, defined_styles):
+        Table, Green = defined_styles
+        with pytest.raises(KeyError):
+            assert Table["Green.Table"] == Green
 
     def test_define_all_calls_all_definitions(self, mocker: MockerFixture, defined_styles):
         Table, Green = defined_styles

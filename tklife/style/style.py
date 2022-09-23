@@ -27,7 +27,10 @@ class _StyleMeta(type):
         return ".".join(b.__name__ for b in cls._yield_bases_in(cls))
 
     def __getitem__(cls, stylename):
-        return cls.defined_styles[stylename]
+        filtered_styles = {
+            k[0:-len(cls.ttk_style)-1]: v for k, v in cls.defined_styles.items() if k.endswith(f".{cls.ttk_style}")
+        } if cls != BaseStyle else cls.defined_styles
+        return filtered_styles[stylename]
 
     def define_all(cls, style: 'Optional[Style]'=None):
         """Defines all the styles that have been defined"""
