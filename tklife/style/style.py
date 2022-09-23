@@ -1,4 +1,4 @@
-from tkinter.ttk import Style
+from tkinter.ttk import Style, Widget
 from typing import Any, Optional
 
 
@@ -8,6 +8,7 @@ class _StyleMeta(type):
     defined_styles: dict[str, 'BaseStyle'] = {
 
     }
+
     def __new__(cls, name, bases, namespace):
         newcls = super().__new__(cls, name, bases, namespace)
         if newcls.__name__ != "BaseStyle":
@@ -19,9 +20,11 @@ class _StyleMeta(type):
     def _yield_bases_in(cls, base_cls):
         yield base_cls
         for b in base_cls.__bases__:
-            if b is object or b is BaseStyle: continue
+            if b is object or b is BaseStyle:
+                continue
             for ba in cls._yield_bases_in(b):
                 yield ba
+
     @property
     def ttk_style(cls):
         return ".".join(b.__name__ for b in cls._yield_bases_in(cls))
@@ -32,18 +35,82 @@ class _StyleMeta(type):
         } if cls != BaseStyle else cls.defined_styles
         return filtered_styles[stylename]
 
-    def define_all(cls, style: 'Optional[Style]'=None):
+    def define_all(cls, style: 'Optional[Style]' = None):
         """Defines all the styles that have been defined"""
         style = Style() if style is None else style
         for stylename, stylecls in cls.defined_styles.items():
             style.configure(stylename, **stylecls.configure)
             style.map(stylename, **stylecls.map)
 
+    def set_style(cls, widget: Widget):
+        widget["style"] = cls.ttk_style
+
 
 class BaseStyle(metaclass=_StyleMeta):
     """All the base styles inherit from this class"""
-    configure: dict[str, Any]= {}
-    map: dict[str, list[tuple[Any, ...]]]={}
+    configure: dict[str, Any] = {}
+    map: dict[str, list[tuple[Any, ...]]] = {}
+
+
+class TProgressbar(BaseStyle):
+    """Must define class Vertical(TProgressbar) or Horizontal(TScrollbar) to set config"""
+
+
+class TScrollbar(BaseStyle):
+    """Must define class Vertical(TProgressbar) or Horizontal(TScrollbar) to set config"""
+
+
+class TButton(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TCheckbutton(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TCombobox(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
 
 class TEntry(BaseStyle):
-    """This would be the base style. Extending this would add a new style type"""
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TFrame(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TLabel(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TLabelFrame(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TMenubutton(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TNotebook(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TPanedwindow(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TRadiobutton(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TSeparator(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class TSizegrip(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
+
+
+class Treeview(BaseStyle):
+    "Ttk Style name, override using same class name to set configuration"
