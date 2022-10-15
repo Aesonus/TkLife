@@ -75,3 +75,21 @@ class TestBaseStyle:
         assert call("Green.Table.TEntry", **Green.configure) in mock_style.configure.mock_calls
         assert call("Table.TEntry", **Table.map) in mock_style.map.mock_calls
         assert call("Green.Table.TEntry", **Green.map) in mock_style.map.mock_calls
+
+    @parametrize("clsname,expected", [
+        ("Table", "Table.TEntry"),
+        ("Green", "Green.Table.TEntry"),
+    ])
+    def test_set_style_sets_style_coption(self, mocker: MockerFixture, defined_styles, clsname, expected):
+        style_classes = dict(zip(("Table", "Green"), defined_styles))
+        mock_widget = mocker.MagicMock()
+        style_classes[clsname].set_style(mock_widget)
+        mock_widget.__setitem__.assert_called_once_with("style", expected)
+
+    @parametrize("clsname,expected", [
+        ("Table", {"style": "Table.TEntry"}),
+        ("Green", {"style": "Green.Table.TEntry"}),
+    ])
+    def test_as_dict_returns_style_as_dict_for_widget_config(self, mocker: MockerFixture, defined_styles, clsname, expected):
+        style_classes = dict(zip(("Table", "Green"), defined_styles))
+        assert style_classes[clsname].as_dict() == expected

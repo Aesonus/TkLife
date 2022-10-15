@@ -1,5 +1,5 @@
 from tkinter.ttk import Style, Widget
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 
 class _StyleMeta(type):
@@ -36,7 +36,12 @@ class _StyleMeta(type):
         return filtered_styles[stylename]
 
     def define_all(cls, style: 'Optional[Style]' = None):
-        """Defines all the styles that have been defined"""
+        """
+        Defines all styles configured by classes that extend the BaseStyle class
+
+        Keyword Arguments:
+            style -- A Ttk Style object (default: {Style})
+        """
         style = Style() if style is None else style
         for stylename, stylecls in cls.defined_styles.items():
             style.configure(stylename, **stylecls.configure)
@@ -44,6 +49,11 @@ class _StyleMeta(type):
 
     def set_style(cls, widget: Widget):
         widget["style"] = cls.ttk_style
+
+    def as_dict(cls) -> dict[Literal["style"], str]:
+        return {
+            "style": cls.ttk_style
+        }
 
 
 class BaseStyle(metaclass=_StyleMeta):
