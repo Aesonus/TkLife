@@ -23,11 +23,9 @@ class ModalDialog(SkeletonMixin, Toplevel):
         self.return_value = None
         self.cancelled = False
         self.protocol("WM_DELETE_WINDOW", self.cancel)
-
-    def create_events(self):
         TkEvent.ESCAPE.bind(self, self.cancel)
         TkEvent.RETURN.bind(self, lambda __: self.destroy())
-        TkEvent.DESTROY.bind(self, self.__destoy_event_handler)
+        TkEvent.DESTROY.bind(self, self.__destroy_event_handler)
 
     @classmethod
     def show(cls, master: Widget, **kwargs):
@@ -38,7 +36,7 @@ class ModalDialog(SkeletonMixin, Toplevel):
         dialog.wait_window()
         return dialog.return_value
 
-    def __destoy_event_handler(self, event):
+    def __destroy_event_handler(self, event):
         if not self.cancelled:
             self.set_return_values()
 

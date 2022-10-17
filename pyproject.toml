@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tklife"
-version = "2.1.0-dev28"
+version = "2.1.0-dev29"
 description = "Make Tk life easier"
 authors = ["Cory Laughlin <corylcomposinger@gmail.com>"]
 license = "MIT"
