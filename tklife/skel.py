@@ -277,7 +277,7 @@ class SkeletonMixin(_Skel):
 
         return new_row
 
-    def insert_row_at(self, index: int, widget_row: 'Iterable[SkelWidget]'):
+    def insert_row_at(self, index: int, widget_row: 'Iterable[typing.Union[SkelWidget, None]]'):
         if index == 1 + reduce(lambda carry, value: max(carry, value[0]), self.widget_cache.keys(), 0):
             self.append_row(widget_row)
         else:
