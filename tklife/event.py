@@ -118,6 +118,7 @@ class EventsEnum(_EventMixin, Enum):
 
 class CompositeEvent(_EventMixin):
     """An event composed of other events/event mods"""
+    value: str
 
     def __init__(self, value: str) -> None:
         """
