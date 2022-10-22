@@ -1,14 +1,15 @@
 """Contains behaviors for ui functionality"""
 
 import abc
-from typing import Generator, Optional, Union
+from typing import Any, Generator, Optional, Union
 
 __all__ = ['CommandHistory', 'Command']
 
 
 class CommandHistory(object):
     """Saves command history for undo and redo"""
-
+    history: list['Command']
+    cursor: Union[int, None]
     def __init__(self):
         """
         Initializes the tracking dict
@@ -31,7 +32,7 @@ class CommandHistory(object):
             return None
         command = self.history[self.cursor]
         command.reverse()
-        new_cursor = self.cursor - 1
+        new_cursor: Any = self.cursor - 1
         if new_cursor < 0:
             new_cursor = None
         self.cursor = new_cursor
@@ -39,20 +40,19 @@ class CommandHistory(object):
 
     def redo(self) -> Union[int, None]:
         """Calls execute on the next command"""
-        if self.cursor is None and len(self.history) == 0:
+        if (self.cursor is None and len(self.history) == 0) or self.cursor == self.history.index(self.history[-1]):
             return None
         if self.cursor is None and len(self.history) > 0:
             self.cursor = -1
-        if self.cursor == self.history.index(self.history[-1]):
-            return None
-        self.cursor += 1
-        command = self.history[self.cursor]
-        command.execute()
+        if self.cursor is not None:
+            self.cursor += 1
+            command = self.history[self.cursor]
+            command.execute()
         return self.cursor
 
     def undo_all(self, until: Optional[int]=None) -> None:
         """Calls undo on all of the history"""
-        for __ in self.history[until: self.cursor + 1]:
+        for __ in self.history[until: ]:
             self.undo()
 
     def reset(self) -> None:
