@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 
 class ControllerABC(object):
+    view: 'T_SkeletonProtocol'
     def set_view(self, view: 'T_SkeletonProtocol') -> None:
         """
         Sets the view associated with this controller
