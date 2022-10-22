@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from collections.abc import Sequence, Mapping
 from typing import TYPE_CHECKING, Any
 
+from .skel import T_SkeletonProtocol
+
 from .controller import ControllerABC
 
 if TYPE_CHECKING:
@@ -14,6 +16,7 @@ class TklProxyError(RuntimeError):
 
 
 class CallProxyFactory(object):
+    skel: Any
     def __init__(self, skel: 'SkeletonMixin') -> None:
         self.skel = skel
 
