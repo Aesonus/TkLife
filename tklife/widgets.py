@@ -1,11 +1,11 @@
 """Creates some common widgets"""
 from abc import abstractmethod
 from tkinter import (BOTH, END, HORIZONTAL, LEFT, RIGHT, VERTICAL, Canvas,
-                     Event, Grid, Listbox, Pack, Place, Toplevel, Widget, Y)
+                     Event, Grid, Listbox, Misc, Pack, Place, Toplevel, Widget, Y)
 from tkinter.constants import (ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E,
                                N, S, W)
 from tkinter.ttk import Entry, Frame, Scrollbar
-from typing import Iterable, Optional
+from typing import Any, Iterable, Optional
 from tklife.event import TkEvent
 from tklife.skel import SkeletonMixin
 
@@ -15,6 +15,7 @@ __all__ = ['ScrolledListbox', 'AutoSearchCombobox',
 
 class ModalDialog(SkeletonMixin, Toplevel):
     """A dialog that demands focus"""
+    return_value: Any
 
     def __init__(self, master, **kwargs):
         super().__init__(None, **kwargs)
@@ -28,7 +29,7 @@ class ModalDialog(SkeletonMixin, Toplevel):
         TkEvent.DESTROY.bind(self, self.__destroy_event_handler)
 
     @classmethod
-    def show(cls, master: Widget, **kwargs):
+    def show(cls, master: Misc, **kwargs):
         dialog = cls(master, **kwargs)
         dialog.deiconify()
         dialog.grab_set()
@@ -60,8 +61,12 @@ class ScrolledFrame(Frame):
     """
     A scrolling frame inside a canvas. Based on tkinter.scrolledtext.ScrolledText
     """
+    container: Frame
+    canvas: Canvas
+    v_scroll: Scrollbar
+    h_scroll: Scrollbar
 
-    def __init__(self, master: Widget, **kwargs):
+    def __init__(self, master: Misc, **kwargs):
         self.container = Frame(master)
         self.canvas = Canvas(self.container, relief='flat',
                              highlightthickness=0)
@@ -109,9 +114,12 @@ class ScrolledFrame(Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox(ALL))
 
     def _enter_canvas_handler(self, event: Event):
-        (TkEvent.BUTTON + "<4>").bind_all(self.winfo_toplevel(), self._mouse_scroll_handler)
-        (TkEvent.BUTTON + "<5>").bind_all(self.winfo_toplevel(), self._mouse_scroll_handler)
-        (TkEvent.MOUSEWHEEL).bind_all(self.winfo_toplevel(), self._mouse_scroll_handler)
+        (TkEvent.BUTTON + "<4>").bind_all(self.winfo_toplevel(),
+                                          self._mouse_scroll_handler)
+        (TkEvent.BUTTON + "<5>").bind_all(self.winfo_toplevel(),
+                                          self._mouse_scroll_handler)
+        (TkEvent.MOUSEWHEEL).bind_all(
+            self.winfo_toplevel(), self._mouse_scroll_handler)
 
     def _leave_canvas_handler(self, __):
         self.unbind_all((TkEvent.BUTTON + "<4>").value)
@@ -128,8 +136,10 @@ class ScrolledListbox(Listbox):
     """
     A scrolled listbox, based on tkinter.scrolledtext.ScrolledText
     """
+    frame: Frame
+    vbar: Scrollbar
 
-    def __init__(self, master=None, **kw):
+    def __init__(self, master: Misc, **kw):
         self.frame = Frame(master)
         self.vbar = Scrollbar(self.frame)
         self.vbar.pack(side=RIGHT, fill=Y)
@@ -154,14 +164,14 @@ class ScrolledListbox(Listbox):
 
 
 class AutoSearchCombobox(Entry):
-    def __init__(self, master: Widget, values: Optional[Iterable[str]] = None, height: Optional[int] = None, **kwargs):
+    def __init__(self, master: Misc, values: Optional[Iterable[str]] = None, height: Optional[int] = None, **kwargs):
         Entry.__init__(self, master, **kwargs)
         self._ddtl = Toplevel(self, takefocus=False,
-                            relief=GROOVE, borderwidth=1)
+                              relief=GROOVE, borderwidth=1)
         self._ddtl.wm_overrideredirect(True)
         self._lb = ScrolledListbox(self._ddtl, width=kwargs.pop(
             'width', None), height=height, selectmode=SINGLE)
-        self.values = values
+        self.values = tuple(values) if values else ()
         self._lb.pack(expand=True, fill=BOTH)
         self._hide_tl()
         self.winfo_toplevel().focus_set()
@@ -176,7 +186,7 @@ class AutoSearchCombobox(Entry):
         (TkEvent.BUTTONRELEASE + "<1>").bind(self._lb, self._handle_lb_click)
 
     @property
-    def values(self):
+    def values(self) -> tuple[str, ...]:
         """
         Gets the values
         """
@@ -187,7 +197,7 @@ class AutoSearchCombobox(Entry):
             return self.values
 
     @values.setter
-    def values(self, values: Optional[Iterable]):
+    def values(self, values: Optional[Iterable[str]]) -> None:
         """
         Sorts and sets the values
         """
@@ -225,7 +235,7 @@ class AutoSearchCombobox(Entry):
         return contents[self.index(INSERT):]
 
     @property
-    def dropdown_is_visible(self):
+    def dropdown_is_visible(self) -> bool:
         return self._ddtl.winfo_ismapped()
 
     def _handle_lb_click(self, event: Event):
@@ -266,8 +276,8 @@ class AutoSearchCombobox(Entry):
 
         if len(event.keysym) == 1 or ('Right' in event.keysym and self.text_after_cursor == '') or event.keysym in ['BackSpace']:
             if self.get() != '':
-                new_values = [value for value in self.values if value.lower(
-                ).startswith(self.get().lower())]
+                new_values = tuple(value for value in self.values if value.lower(
+                ).startswith(self.get().lower()))
             else:
                 new_values = self.values
             self._lb.delete(0, END)
@@ -301,7 +311,7 @@ class AutoSearchCombobox(Entry):
 
     def _update_tl_pos(self) -> None:
         self._ddtl.geometry('+{}+{}'.format(self.winfo_rootx(),
-                          self.winfo_rooty() + self.winfo_height() - 1))
+                                            self.winfo_rooty() + self.winfo_height() - 1))
 
     def _hide_tl(self) -> None:
         self._ddtl.withdraw()
