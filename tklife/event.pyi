@@ -2,7 +2,7 @@ from enum import Enum
 from tkinter import BaseWidget, Event, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
 
-T_ActionCallable = Callable[[Event], Any]
+T_ActionCallable = Callable[..., Any]
 T_Widget = Union[BaseWidget, Tk, Toplevel]
 
 class _EventMixin:

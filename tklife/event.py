@@ -16,7 +16,7 @@ __all__ = [
     "TtkTreeviewEvents",
 ]
 
-T_ActionCallable = Callable[[Event], Any]
+T_ActionCallable = Callable[..., Any]
 T_Widget = Union[BaseWidget, Tk, Toplevel]
 
 
