@@ -47,7 +47,7 @@ T_Widget = typing.TypeVar("T_Widget", tkinter.Widget, tkinter.Misc)
 
 
 class CreatedWidget(typing.Generic[T_Widget]):
-    def __init__(self, widget: 'T_Widget',
+    def __init__(self, widget: T_Widget,
                  textvariable: typing.Optional[tkinter.Variable] = None,
                  variable: typing.Optional[tkinter.Variable] = None,
                  listvariable: typing.Optional[tkinter.Variable] = None,
@@ -140,6 +140,7 @@ class _Skel(metaclass=SkeletonMeta):
 class SkeletonMixin(_Skel):
     """Must use this mixin first. Optionally can add a MenuMixin. Then you put the Widget class to use."""
 
+    created: T_CreatedWidgetDict
     def __init__(self,
                  master: 'typing.Optional[tkinter.Misc]' = None,
                  controller: 'typing.Optional[ControllerABC]' = None,
