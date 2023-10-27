@@ -1,6 +1,5 @@
-
 from enum import Enum
-from tkinter import BaseWidget, Event, Tk, Toplevel
+from tkinter import BaseWidget, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
 
 __all__ = [
@@ -24,22 +23,24 @@ class _EventMixin(object):
     value: str
 
     def generate(self, widget: T_Widget, **kwargs) -> T_ActionCallable:
-        """
-        Returns a callable that will generate this event on a widget
+        """Returns a callable that will generate this event on a widget.
 
         Arguments:
             widget {T_Widget} -- The widget to generate the event on
 
         Returns:
             T_ActionCallable -- The callable that actually generates the event
+
         """
+
         def generator(*__, widget=widget, kwargs=kwargs):
             widget.event_generate(self.value, **kwargs)
+
         return generator
 
     def bind(self, widget: T_Widget, action: T_ActionCallable, add="") -> str:
-        """
-        Binds a callback to an event on given widget. Kwargs are passed to the bind method.
+        """Binds a callback to an event on given widget. Kwargs are passed to the bind
+        method.
 
         Arguments:
             widget {T_Widget} -- The widget the bind is on
@@ -47,15 +48,18 @@ class _EventMixin(object):
 
         Returns:
             str -- The event callback id, used to unbind events
+
         """
         return widget.bind(self.value, action, add=add)
 
-    def bind_tag(self, widget: T_Widget, tag: str, action: T_ActionCallable, add="") -> str:
+    def bind_tag(
+        self, widget: T_Widget, tag: str, action: T_ActionCallable, add=""
+    ) -> str:
         return widget._bind(("bind", tag), self.value, action, add=add)  # type: ignore
 
     def bind_all(self, widget: T_Widget, action: T_ActionCallable, add=""):
-        """
-        Binds a callback to an event on all widgets. Kwargs are passed to the bind method.
+        """Binds a callback to an event on all widgets. Kwargs are passed to the bind
+        method.
 
         Arguments:
             widget {T_Widget} -- The widget that will call bind_all
@@ -63,13 +67,15 @@ class _EventMixin(object):
 
         Returns:
             str -- The event callback id, used to unbind
+
         """
         return widget.bind_all(self.value, action, add=add)
 
-    def bind_class(self, widget: T_Widget, classname: str, action: T_ActionCallable, add="") -> str:
-        """
-        Binds a callback to this event on all widgets in the given class.
-        Kwargs are passed to the bind method.
+    def bind_class(
+        self, widget: T_Widget, classname: str, action: T_ActionCallable, add=""
+    ) -> str:
+        """Binds a callback to this event on all widgets in the given class. Kwargs are
+        passed to the bind method.
 
         Arguments:
             widget {T_Widget} -- The widget that will call bind_class
@@ -78,12 +84,12 @@ class _EventMixin(object):
 
         Returns:
             str -- The event callback id, used to unbind
+
         """
         return widget.bind_class(classname, self.value, action, add=add)
 
     def unbind(self, widget: T_Widget, funcid: Optional[str] = None) -> None:
-        """
-        Unbinds callback(s) on the event for the given widget
+        """Unbinds callback(s) on the event for the given widget.
 
         Based on code found on Stack Overflow
 
@@ -96,16 +102,18 @@ class _EventMixin(object):
 
         Keyword Arguments:
             funcid {Optional[str]} -- The callback id to remove, or None for all (default: {None})
+
         """
         if not funcid:
-            widget.tk.call('bind', widget._w, self.value, '')  # type: ignore
+            widget.tk.call("bind", widget._w, self.value, "")  # type: ignore
             return
-        func_callbacks = widget.tk.call(
-            'bind', widget._w, self.value, None).split('\n')  # type: ignore
-        new_callbacks = [
-            l for l in func_callbacks if l[6:6 + len(funcid)] != funcid]
-        widget.tk.call('bind', widget._w, self.value,  # type: ignore
-                       '\n'.join(new_callbacks))
+        func_callbacks = widget.tk.call("bind", widget._w, self.value, None).split(
+            "\n"
+        )  # type: ignore
+        new_callbacks = [l for l in func_callbacks if l[6 : 6 + len(funcid)] != funcid]
+        widget.tk.call(
+            "bind", widget._w, self.value, "\n".join(new_callbacks)  # type: ignore
+        )
         widget.deletecommand(funcid)
 
     def __add__(self, arg):
@@ -113,26 +121,28 @@ class _EventMixin(object):
 
 
 class EventsEnum(_EventMixin, Enum):
-    """Use to define custom tkinter events"""
+    """Use to define custom tkinter events."""
 
 
 class CompositeEvent(_EventMixin):
-    """An event composed of other events/event mods"""
+    """An event composed of other events/event mods."""
+
     value: str
 
     def __init__(self, value: str) -> None:
-        """
-        Create a new CompositeEvent instance
+        """Create a new CompositeEvent instance.
 
         Arguments:
             value {str} -- The event. Should be formatted like: <event>
+
         """
         self.value = value
 
     @classmethod
-    def factory(cls, modifier: 'Union[_EventMixin, str]', event: 'Union[_EventMixin, str]') -> 'CompositeEvent':
-        """
-        Creates a composite event from two events
+    def factory(
+        cls, modifier: "Union[_EventMixin, str]", event: "Union[_EventMixin, str]"
+    ) -> "CompositeEvent":
+        """Creates a composite event from two events.
 
         Arguments:
             modifier {Union[_EventMixin, str]} -- Prepends to the new event. Either should be an event type, or string like: "<Event>"
@@ -140,9 +150,9 @@ class CompositeEvent(_EventMixin):
 
         Returns:
             CompositeEvent -- The new event, having value like <modifier-event>
+
         """
-        mod_value = modifier.value if not isinstance(
-            modifier, str) else modifier
+        mod_value = modifier.value if not isinstance(modifier, str) else modifier
         event_value = event.value if not isinstance(event, str) else event
         return cls(f"{mod_value[0:-1]}-{event_value[1:]}")
 
@@ -151,7 +161,8 @@ class CompositeEvent(_EventMixin):
 
 
 class TkEventMod(EventsEnum):
-    """Standard tkinter event modifiers"""
+    """Standard tkinter event modifiers."""
+
     ALT = "<Alt>"
     ANY = "<Any>"
     CONTROL = "<Control>"
@@ -162,7 +173,8 @@ class TkEventMod(EventsEnum):
 
 
 class TkEvent(EventsEnum):
-    """Standard tkinter events"""
+    """Standard tkinter events."""
+
     ACTIVATE = "<Activate>"
     BUTTON = "<Button>"
     BUTTONRELEASE = "<ButtonRelease>"
