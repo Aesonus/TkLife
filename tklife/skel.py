@@ -216,6 +216,21 @@ class SkeletonMixin(_Skel):
         """
 
     @property
+    def grid_config(
+        self,
+    ) -> tuple[
+        typing.Iterable[dict[str, typing.Any]], typing.Iterable[dict[str, typing.Any]]
+    ]:
+        """Returns the grid configuration for the widget. This can be overridden to
+        provide a custom grid configuration.
+
+        Returns:
+            tuple[Iterable[dict[str, typing.Any]], Iterable[dict[str, typing.Any]]] -- Row and column config
+
+        """
+        return [], []
+
+    @property
     def widget_cache(self) -> "dict[tuple[int, int], CachedWidget]":
         """Stores the widgets created as well as grid cooridates and arguments.
 
@@ -257,6 +272,13 @@ class SkeletonMixin(_Skel):
                 self._grid_widget(
                     row_index, col_index, w, **global_grid_args, **skel_widget.grid_args
                 )
+        cols, rows = self.grid_config
+        for index, col in enumerate(cols):
+            if col:
+                self.columnconfigure(index, **col)
+        for index, row in enumerate(rows):
+            if row:
+                self.rowconfigure(index, **row)
 
     def _grid_widget(self, row, column, widget, **grid_args):
         widget.grid(row=row, column=column, **grid_args)

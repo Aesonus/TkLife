@@ -90,8 +90,14 @@ class TestSkeletonMixin(object):
     def mock_mixin_class(self, mocker: MockerFixture):
         class Misc(object):
             def __init__(self, *args, **kwargs) -> None:
+                self.mocks = {}
                 self._init_args = args
                 self._init_kwargs = kwargs
+
+            def __getattr__(self, attrname):
+                if attrname not in self.mocks:
+                    self.mocks[attrname] = mocker.MagicMock()
+                return self.mocks[attrname]
 
         return Misc
 
@@ -407,6 +413,49 @@ class TestSkeletonMixin(object):
             "widget": mocked_widget.return_value,
             "arg1": mock_tk_var.return_value,
         }
+
+    @pytest.mark.parametrize(
+        "grid_conf,expected_columnconfigure_calls,expected_rowconfigure_calls",
+        [
+            (([{"weight": 1}], [{}]), [call(0, weight=1)], []),
+            (([{}, {"weight": 1}], [{}]), [call(1, weight=1)], []),
+            (([{}, {}], [{"weight": 1}]), [], [call(0, weight=1)]),
+            (([{}, {}], [{}, {"weight": 1}]), [], [call(1, weight=1)]),
+            (
+                ([{"weight": 1}, {"weight": 2}], [{"weight": 3}, {"weight": 4}]),
+                [call(0, weight=1), call(1, weight=2)],
+                [call(0, weight=3), call(1, weight=4)],
+            ),
+            # Test that missing rows and columns are ignored
+            (
+                ([{}, {"weight": 2}], [{}, {"weight": 4}]),
+                [call(1, weight=2)],  # Missing column 0
+                [call(1, weight=4)],  # Missing row 0
+            ),
+        ],
+    )
+    def test_create_all_configures_grid_using_return_value_from_grid_config_property(
+        self,
+        mock_master,
+        mock_controller,
+        mock_mixin_class,
+        mocked_widget,
+        grid_conf,
+        expected_columnconfigure_calls,
+        expected_rowconfigure_calls,
+    ):
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def grid_config(self):
+                return grid_conf
+
+            @property
+            def template(self):
+                return ([SkelWidget(mocked_widget, {}, {})],)
+
+        created = Tested(mock_master, mock_controller)
+        assert created.columnconfigure.mock_calls == expected_columnconfigure_calls
+        assert created.rowconfigure.mock_calls == expected_rowconfigure_calls
 
     def test_append_row_appends_a_row_of_widgets(
         self,
