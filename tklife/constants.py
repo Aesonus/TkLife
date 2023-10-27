@@ -59,7 +59,7 @@ READONLY: Literal["readonly"] = "readonly"
 ORIENT: Literal["orient"] = "orient"
 MODE: Literal["mode"] = "mode"
 DETERMINATE: Literal["determinate"] = "determinate"
-INDETERMINATE: Literal["indeterminate"] = "in" + DETERMINATE
+INDETERMINATE: Literal["indeterminate"] = "indeterminate"
 TEXT: Literal["text"] = "text"
 JUSTIFY: Literal["justify"] = "justify"
 

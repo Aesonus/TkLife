@@ -12,7 +12,7 @@ class CommandHistory(object):
     history: list["Command"]
     cursor: Union[int, None]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initializes the tracking dict."""
         self.history: list[Command] = []
         # The cursor will be on the command to be undone or None if

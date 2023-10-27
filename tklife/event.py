@@ -107,9 +107,9 @@ class _EventMixin(object):
         if not funcid:
             widget.tk.call("bind", widget._w, self.value, "")  # type: ignore
             return
-        func_callbacks = widget.tk.call("bind", widget._w, self.value, None).split(
+        func_callbacks = widget.tk.call("bind", widget._w, self.value, None).split(  # type: ignore
             "\n"
-        )  # type: ignore
+        )
         new_callbacks = [l for l in func_callbacks if l[6 : 6 + len(funcid)] != funcid]
         widget.tk.call(
             "bind", widget._w, self.value, "\n".join(new_callbacks)  # type: ignore

@@ -269,11 +269,11 @@ class SkeletonMixin(_Skel):
 
         """
 
-    def append_row(self, widget_row: "Iterable[SkelWidget]") -> int:
+    def append_row(self, widget_row: "Iterable[typing.Union[SkelWidget,None]]") -> int:
         """Appends a row.
 
         Arguments:
-            row -- A row of SkelWidgets
+            row -- A row of SkelWidgets (use None for empty cells)
 
         Raises:
             TypeError: Raised when row is not iterable
@@ -298,7 +298,8 @@ class SkeletonMixin(_Skel):
                     col_index,
                     w,
                     **self.__global_gridargs,
-                    **skel_widget.grid_args,
+                    # Ignore the typing error because we have already checked for None
+                    **skel_widget.grid_args,  # type: ignore
                 )
 
         return new_row
@@ -325,7 +326,9 @@ class SkeletonMixin(_Skel):
                             col,
                             new_widget,
                             **self.__global_gridargs,
-                            **skel_widget.grid_args,
+                            # Ignore the typing error because we have already checked for None
+                            # (This check was done in __widget_create)
+                            **skel_widget.grid_args,  # type: ignore
                         )
                     else:
                         self.__w_cache[row, col] = CachedWidget(None, None)
