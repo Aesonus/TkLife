@@ -19,7 +19,14 @@ T_ActionCallable = Callable[..., Any]
 T_Widget = Union[BaseWidget, Tk, Toplevel]
 
 
-class _EventMixin(object):
+class BaseEvent:
+    """Class representing a tkinter event.
+
+    Can be used to generate events, bind events, and unbind events. This class should
+    not be instantiated directly, and should not be used as a base class.
+
+    """
+
     value: str
 
     def generate(self, widget: T_Widget, **kwargs) -> T_ActionCallable:
@@ -33,7 +40,7 @@ class _EventMixin(object):
 
         """
 
-        def generator(*__, widget=widget, kwargs=kwargs):
+        def generator(*__, widget=widget, kwargs={**kwargs}):
             widget.event_generate(self.value, **kwargs)
 
         return generator
@@ -120,11 +127,11 @@ class _EventMixin(object):
         return CompositeEvent.factory(self, arg)
 
 
-class EventsEnum(_EventMixin, Enum):
+class EventsEnum(BaseEvent, Enum):
     """Use to define custom tkinter events."""
 
 
-class CompositeEvent(_EventMixin):
+class CompositeEvent(BaseEvent):
     """An event composed of other events/event mods."""
 
     value: str
@@ -140,7 +147,7 @@ class CompositeEvent(_EventMixin):
 
     @classmethod
     def factory(
-        cls, modifier: "Union[_EventMixin, str]", event: "Union[_EventMixin, str]"
+        cls, modifier: "Union[BaseEvent, str]", event: "Union[BaseEvent, str]"
     ) -> "CompositeEvent":
         """Creates a composite event from two events.
 

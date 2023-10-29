@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from tkinter import Variable, Widget
 from unittest.mock import call
 
@@ -5,8 +6,16 @@ import pytest
 from pytest_mock import MockerFixture
 
 from tklife.controller import ControllerABC
+from tklife.event import BaseEvent
 from tklife.proxy import CallProxyFactory
-from tklife.skel import CreatedWidget, Menu, MenuMixin, SkeletonMixin, SkelWidget
+from tklife.skel import (
+    CreatedWidget,
+    Menu,
+    MenuMixin,
+    SkeletonMixin,
+    SkelEventDef,
+    SkelWidget,
+)
 
 
 class TestSkelWidget(object):
@@ -121,8 +130,8 @@ class TestSkeletonMixin(object):
             def template(self):
                 return ([],)
 
-            def create_events(self):
-                self._calls.append(call().create_events())
+            def _create_events(self):
+                self._calls.append(call()._create_events())
 
             def __before_init__(self):
                 self._calls.append(call().__before_init__())
@@ -160,7 +169,7 @@ class TestSkeletonMixin(object):
             call().__before_init__(),
             call().__after_init__(),
             call().__after_widgets__(),
-            call().create_events(),
+            call()._create_events(),
         ]
 
     def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class):
@@ -456,6 +465,31 @@ class TestSkeletonMixin(object):
         created = Tested(mock_master, mock_controller)
         assert created.columnconfigure.mock_calls == expected_columnconfigure_calls
         assert created.rowconfigure.mock_calls == expected_rowconfigure_calls
+
+    def test_create_all_configures_events_using_return_value_from_events_property(
+        self, mock_master, mock_mixin_class, mocker
+    ):
+        mock_event = mocker.Mock(spec=BaseEvent)
+        mock_action = mocker.MagicMock()
+        bind_method = "bind"
+
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def events(self) -> Iterable[SkelEventDef]:
+                return [
+                    {
+                        "event": mock_event,
+                        "action": mock_action,
+                        "bind_method": bind_method,
+                    },
+                ]
+
+            @property
+            def template(self):
+                return []
+
+        created = Tested(mock_master)
+        mock_event.bind.assert_called_once_with(created, mock_action, add="")
 
     def test_append_row_appends_a_row_of_widgets(
         self,

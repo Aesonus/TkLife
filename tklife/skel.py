@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import dataclasses
 import tkinter
@@ -10,6 +12,8 @@ from .proxy import CallProxyFactory
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
+    from .event import BaseEvent
+
 __all__ = [
     "SkelWidget",
     "CreatedWidget",
@@ -17,6 +21,29 @@ __all__ = [
     "SkeletonMixin",
     "MenuMixin",
 ]
+
+
+class SkelEventDef(typing.TypedDict):
+    """Used in conjunction with `SkeletonMixin.events` attribute to define events.
+
+    Attributes:
+
+        event {BaseEvent} -- The event to bind
+        action {Callable[[tkinter.Event], Literal['break'] | None]} -- The action to bind
+        bind_method {Literal['bind', 'bind_tag', 'bind_all']} -- The bind method to use
+        widget {tkinter.Misc} -- The widget to bind to. This may be
+            ommitted, and will default to self.
+        add {Literal['', '+']} -- The add argument to pass to the bind method. This may
+            be ommitted, and will default to ''. If you want to add to an existing bind,
+            use '+'. If you want to replace an existing bind, use ''.
+
+    """
+
+    event: BaseEvent
+    action: typing.Callable[[tkinter.Event], typing.Literal["break"] | None]
+    bind_method: typing.Literal["bind", "bind_tag", "bind_all", "bind_class"]
+    widget: typing.NotRequired[tkinter.Misc]
+    add: typing.NotRequired[typing.Literal["", "+"]]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -190,7 +217,7 @@ class SkeletonMixin(_Skel):
         self.__w_cache: dict[tuple[int, int], CachedWidget] = {}
         self._create_all()
         self.__after_widgets__()
-        self.create_events()
+        self._create_events()
 
     def __before_init__(self):
         """Hook that is called immediately before super().__init__ is called."""
@@ -284,12 +311,22 @@ class SkeletonMixin(_Skel):
         widget.grid(row=row, column=column, **grid_args)
         self.__w_cache[row, column] = CachedWidget(widget, grid_args)
 
-    def create_events(self):
-        """Override to bind events.
+    def _create_events(self):
+        for event_def in self.events:
+            bind_method = getattr(event_def["event"], event_def["bind_method"])
+            widget = event_def.get("widget", self)
+            add = event_def.get("add", "")
+            bind_method(widget, event_def["action"], add=add)
 
-        This is called after the __after_widgets__() method.
+    @property
+    def events(self) -> Iterable[SkelEventDef]:
+        """Override this property to define events.
+
+        Must return an iterable of SkelEventDef. The default implementation returns an
+        empty iterable.
 
         """
+        return ()
 
     def append_row(self, widget_row: "Iterable[typing.Union[SkelWidget,None]]") -> int:
         """Appends a row.

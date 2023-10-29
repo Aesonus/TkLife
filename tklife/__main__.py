@@ -3,7 +3,7 @@
 from random import random
 from tkinter import EW, NSEW, E, Misc, StringVar, Tk, W, ttk
 from tkinter.messagebox import showinfo
-from typing import Optional
+from typing import Any, Iterable, Optional
 
 from tklife.constants import (
     COLUMNSPAN,
@@ -14,10 +14,18 @@ from tklife.constants import (
     TEXT,
     TEXTVARIABLE,
     VALUES,
+    WEIGHT,
 )
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
-from tklife.skel import Menu, MenuMixin, SkeletonMixin, SkelWidget, cls_as_skel
+from tklife.skel import (
+    Menu,
+    MenuMixin,
+    SkeletonMixin,
+    SkelEventDef,
+    SkelWidget,
+    cls_as_skel,
+)
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 
@@ -121,23 +129,43 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
     def __after_init__(self):
         self.title("TkLife Example")
 
-    def create_events(self):
-        # Standard event
-        TkEvent.ESCAPE.bind(self, lambda __: self.destroy())
+    @property
+    def events(self) -> Iterable[SkelEventDef]:
+        return [
+            {
+                "event": TkEvent.ESCAPE,
+                "action": lambda __: self.destroy(),
+                "bind_method": "bind",
+            },
+            {
+                "event": TkEventMod.CONTROL + TkEvent.RETURN,
+                "action": lambda __: self.destroy(),
+                "bind_method": "bind",
+            },
+            {
+                "event": TkEvent.MAP,
+                "action": lambda event: print("Mapped", event.widget),
+                "bind_method": "bind",
+                "widget": self.created["entry_a"].widget,
+            },
+        ]
 
-        # Composite event
-        (TkEventMod.CONTROL + TkEvent.RETURN).bind(self, lambda __: self.destroy())
+    @property
+    def grid_config(self) -> tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
+        return [
+            {WEIGHT: 1},
+            {WEIGHT: 1},
+            {WEIGHT: 1},
+            {WEIGHT: 1},
+            {WEIGHT: 1},
+        ], [
+            {WEIGHT: 1},
+            {WEIGHT: 1},
+            {WEIGHT: 1},
+        ]
 
     @property
     def template(self):
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=1)
-        self.grid_rowconfigure(3, weight=1)
-        self.grid_rowconfigure(4, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=1)
         return (
             [
                 SkelWidget(ttk.Label, {TEXT: "Label A:"}, {}),
