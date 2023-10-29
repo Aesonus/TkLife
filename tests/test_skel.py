@@ -424,7 +424,7 @@ class TestSkeletonMixin(object):
         }
 
     @pytest.mark.parametrize(
-        "grid_conf,expected_columnconfigure_calls,expected_rowconfigure_calls",
+        "grid_conf,expected_rowconfigure_calls,expected_columnconfigure_calls",
         [
             (([{"weight": 1}], [{}]), [call(0, weight=1)], []),
             (([{}, {"weight": 1}], [{}]), [call(1, weight=1)], []),
@@ -450,8 +450,8 @@ class TestSkeletonMixin(object):
         mock_mixin_class,
         mocked_widget,
         grid_conf,
-        expected_columnconfigure_calls,
         expected_rowconfigure_calls,
+        expected_columnconfigure_calls,
     ):
         class Tested(SkeletonMixin, mock_mixin_class):
             @property

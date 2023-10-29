@@ -299,7 +299,7 @@ class SkeletonMixin(_Skel):
                 self._grid_widget(
                     row_index, col_index, w, **global_grid_args, **skel_widget.grid_args
                 )
-        cols, rows = self.grid_config
+        rows, cols = self.grid_config
         for index, col in enumerate(cols):
             if col:
                 self.columnconfigure(index, **col)
