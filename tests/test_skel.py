@@ -18,7 +18,7 @@ from tklife.skel import (
 )
 
 
-class TestSkelWidget(object):
+class TestSkelWidget:
     @pytest.fixture
     def mocked_widget(self, mocker):
         return mocker.Mock()
@@ -86,7 +86,7 @@ class TestSkelWidget(object):
         assert actual.label == "newlabel"
 
 
-class TestSkeletonMixin(object):
+class TestSkeletonMixin:
     @pytest.fixture
     def mock_master(self, mocker: MockerFixture):
         return mocker.Mock()
@@ -97,7 +97,7 @@ class TestSkeletonMixin(object):
 
     @pytest.fixture
     def mock_mixin_class(self, mocker: MockerFixture):
-        class Misc(object):
+        class Misc:
             def __init__(self, *args, **kwargs) -> None:
                 self.mocks = {}
                 self._init_args = args
@@ -850,10 +850,10 @@ class TestCreatedWidget:
         assert created_widget[attr] == mock_var
 
 
-class TestMenuMixin(object):
+class TestMenuMixin:
     @pytest.fixture
     def mock_widget_class(self, mocker: MockerFixture):
-        class Misc(object):
+        class Misc:
             def __init__(self, *args, **kwargs) -> None:
                 self._init_args = args
                 self._init_kwargs = kwargs

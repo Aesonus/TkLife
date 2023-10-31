@@ -6,7 +6,7 @@ import pytest
 from tklife.event import CompositeEvent, EventsEnum, TkEvent, TkEventMod
 
 
-class TestEventEnum(object):
+class TestEventEnum:
     @pytest.fixture
     def custom_event(self):
         class Custom(EventsEnum):
@@ -62,7 +62,7 @@ class TestEventEnum(object):
         mock_widget.event_generate.assert_called_once_with(custom_event.TEST.value)
 
 
-class TestCompositeEvent(object):
+class TestCompositeEvent:
     @pytest.fixture
     def composite_event(self):
         return CompositeEvent("<<Test>>")

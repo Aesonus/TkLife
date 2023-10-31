@@ -1,20 +1,20 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .skel import CreatedWidget, T_SkeletonProtocol
+    from .skel import CreatedWidget, SkeletonProtocol
 
 
-class ControllerABC(object):
-    view: "T_SkeletonProtocol"
+class ControllerABC:
+    view: "SkeletonProtocol"
 
-    def set_view(self, view: "T_SkeletonProtocol") -> None:
+    def set_view(self, view: "SkeletonProtocol") -> None:
         """Sets the view associated with this controller.
 
         Arguments:
             view {T_SkeletonProtocol} -- An instance that implements SkeletonMixin methods
 
         """
-        self.view: "T_SkeletonProtocol" = view
+        self.view: "SkeletonProtocol" = view
 
     def __getattr__(self, attr: "str") -> "CreatedWidget":
         """Gets a created widget in this controller's view's created dictionary.

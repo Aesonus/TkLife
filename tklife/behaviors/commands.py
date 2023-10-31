@@ -6,7 +6,7 @@ from typing import Any, Generator, Optional, Union
 __all__ = ["CommandHistory", "Command"]
 
 
-class CommandHistory(object):
+class CommandHistory:
     """Saves command history for undo and redo."""
 
     history: list["Command"]
