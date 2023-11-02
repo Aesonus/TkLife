@@ -12,6 +12,26 @@ from typing import Any, Literal, Optional
 
 # pylint: disable=too-few-public-methods
 
+__all__ = [
+    "BaseStyle",
+    "TProgressbar",
+    "TScrollbar",
+    "TButton",
+    "TCheckbutton",
+    "TCombobox",
+    "TEntry",
+    "TFrame",
+    "TLabel",
+    "TLabelFrame",
+    "TMenubutton",
+    "TNotebook",
+    "TPanedwindow",
+    "TRadiobutton",
+    "TSeparator",
+    "TSizegrip",
+    "Treeview",
+]
+
 
 class _StyleMeta(type):
     """Meta class for BaseStyle that automatically registers all classes that inherit

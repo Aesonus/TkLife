@@ -6,6 +6,4 @@ from it. This allows for easy access to the Ttk Style name, and configuration an
 options.
 
 """
-from . import style
-
-__all__ = ["style"]
+from .style import *  # noqa: F401
