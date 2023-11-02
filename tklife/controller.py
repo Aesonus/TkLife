@@ -1,3 +1,7 @@
+"""This module contains the ControllerABC class, which is an abstract base class for
+controllers."""
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -5,13 +9,16 @@ if TYPE_CHECKING:
 
 
 class ControllerABC:
+    """Abstract base class for controllers."""
+
     view: "SkeletonProtocol"
 
     def set_view(self, view: "SkeletonProtocol") -> None:
         """Sets the view associated with this controller.
 
         Arguments:
-            view {T_SkeletonProtocol} -- An instance that implements SkeletonMixin methods
+            view {T_SkeletonProtocol} -- An instance that implements SkeletonMixin
+                methods
 
         """
         self.view: "SkeletonProtocol" = view

@@ -159,7 +159,7 @@ class CreatedWidget(typing.Generic[T_Widget]):
         listvariable: typing.Optional[tkinter.Variable] = None,
         **custom_vars: tkinter.Variable,
     ) -> None:
-        self.__widget: "T_Widget" = widget
+        self.__widget: T_Widget = widget
         self.__values: dict[str, tkinter.Variable] = {
             **{
                 k: v
@@ -624,7 +624,7 @@ class MenuMixin(abc.ABC):
     """
 
     def __init__(
-        self, master: "typing.Optional[tkinter.Misc]" = None, **kwargs: "typing.Any"
+        self, master: "typing.Optional[tkinter.Misc]" = None, **kwargs: typing.Any
     ) -> None:
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
@@ -679,7 +679,7 @@ class Menu:
         raise ValueError("Cannot instantiate instance, use class methods instead")
 
     @classmethod
-    def add(cls, **opts: "typing.Any") -> "partial":
+    def add(cls, **opts: typing.Any) -> partial:
         """Use to add a separator, radiobutton, or checkbutton menu item.
 
         >>> {Menu.add(**opts): 'separator'|'radiobutton'|'checkbutton'}
@@ -691,7 +691,7 @@ class Menu:
         return partial(tkinter.Menu.add, **opts)
 
     @classmethod
-    def command(cls, **opts: "typing.Any") -> "MenuCommand":
+    def command(cls, **opts: typing.Any) -> MenuCommand:
         """Use to add a command menu item.
 
         >>> {Menu.command(label='labeltext', **opts): command_function}
@@ -704,7 +704,7 @@ class Menu:
         return nf
 
     @classmethod
-    def cascade(cls, **opts: "typing.Any") -> "MenuCommand":
+    def cascade(cls, **opts: typing.Any) -> MenuCommand:
         """Use to add a submenu to a menu.
 
         >>> {Menu.cascade(label='labeltext', **opts): {

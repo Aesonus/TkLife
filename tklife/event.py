@@ -1,3 +1,4 @@
+"""Module containing classes for generating and binding tkinter events."""
 from enum import Enum
 from tkinter import BaseWidget, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
@@ -15,28 +16,28 @@ __all__ = [
     "TtkTreeviewEvents",
 ]
 
-T_ActionCallable = Callable[..., Any]
-T_Widget = Union[BaseWidget, Tk, Toplevel]
+ActionCallable = Callable[..., Any]
+Widget = Union[BaseWidget, Tk, Toplevel]
 
 
 class BaseEvent:
     """Class representing a tkinter event.
 
     Can be used to generate events, bind events, and unbind events. This class should
-    not be instantiated directly, and should not be used as a base class.
+    not be instantiated directly.
 
     """
 
     value: str
 
-    def generate(self, widget: T_Widget, **kwargs) -> T_ActionCallable:
+    def generate(self, widget: Widget, **kwargs) -> ActionCallable:
         """Returns a callable that will generate this event on a widget.
 
-        Arguments:
-            widget {T_Widget} -- The widget to generate the event on
+        Args:
+            widget (T_Widget) - The widget to generate the event on
 
         Returns:
-            T_ActionCallable -- The callable that actually generates the event
+            T_ActionCallable - The callable that actually generates the event
 
         """
 
@@ -45,78 +46,88 @@ class BaseEvent:
 
         return generator
 
-    def bind(self, widget: T_Widget, action: T_ActionCallable, add="") -> str:
+    def bind(self, widget: Widget, action: ActionCallable, add="") -> str:
         """Binds a callback to an event on given widget. Kwargs are passed to the bind
         method.
 
-        Arguments:
-            widget {T_Widget} -- The widget the bind is on
-            action {T_ActionCallable} -- The callable called when the event is triggered
+        Args:
+            widget (T_Widget) - The widget the bind is on
+            action (T_ActionCallable) - The callable called when the event is triggered
 
         Returns:
-            str -- The event callback id, used to unbind events
+            str - The event callback id, used to unbind events
 
         """
         return widget.bind(self.value, action, add=add)
 
-    def bind_tag(
-        self, widget: T_Widget, tag: str, action: T_ActionCallable, add=""
-    ) -> str:
+    def bind_tag(self, widget: Widget, tag: str, action: ActionCallable, add="") -> str:
+        """Binds a callback to an event on given widget's tag.
+
+        Kwargs are passed to the bind method. This would be used primarily for binding
+        to a tag on a canvas, or text widget.
+
+        """
+        # Access the widget's private _bind method, which allows binding to tags.
+        # pylint: disable=protected-access
         return widget._bind(("bind", tag), self.value, action, add=add)  # type: ignore
 
-    def bind_all(self, widget: T_Widget, action: T_ActionCallable, add=""):
+    def bind_all(self, widget: Widget, action: ActionCallable, add="") -> str:
         """Binds a callback to an event on all widgets. Kwargs are passed to the bind
         method.
 
-        Arguments:
-            widget {T_Widget} -- The widget that will call bind_all
-            action {T_ActionCallable} -- The callable called when the event is triggered
+        Args:
+            widget (T_Widget) - The widget that will call bind_all
+            action (T_ActionCallable) - The callable called when the event is triggered
 
         Returns:
-            str -- The event callback id, used to unbind
+            str - The event callback id, used to unbind
 
         """
         return widget.bind_all(self.value, action, add=add)
 
     def bind_class(
-        self, widget: T_Widget, classname: str, action: T_ActionCallable, add=""
+        self, widget: Widget, classname: str, action: ActionCallable, add=""
     ) -> str:
         """Binds a callback to this event on all widgets in the given class. Kwargs are
         passed to the bind method.
 
-        Arguments:
-            widget {T_Widget} -- The widget that will call bind_class
-            classname {str} -- The widget class to bind on. See: https://tkdocs.com/shipman/binding-levels.html
-            action {T_ActionCallable} -- The callable called when the event is triggered
+        Args:
+            widget (T_Widget) - The widget that will call bind_class
+            classname (str) - The widget class to bind on. See:
+                https://tkdocs.com/shipman/binding-levels.html
+            action (T_ActionCallable) - The callable called when the event is triggered
 
         Returns:
-            str -- The event callback id, used to unbind
+            str - The event callback id, used to unbind
 
         """
         return widget.bind_class(classname, self.value, action, add=add)
 
-    def unbind(self, widget: T_Widget, funcid: Optional[str] = None) -> None:
+    def unbind(self, widget: Widget, funcid: Optional[str] = None) -> None:
         """Unbinds callback(s) on the event for the given widget.
 
-        Based on code found on Stack Overflow
-
-        See:
+        Note:
+            Based on code found on Stack Overflow, see:
             http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding-in-python
-            Modified
 
-        Arguments:
-            widget {T_Widget} -- The widget that will call unbind
+        Args:
+            widget (T_Widget) - The widget that will call unbind
 
-        Keyword Arguments:
-            funcid {Optional[str]} -- The callback id to remove, or None for all (default: {None})
+        Keyword Args:
+            funcid (Optional[str]) - The callback id to remove, or None for all
+                (default: None)
 
         """
+        # pylint: disable=protected-access
         if not funcid:
             widget.tk.call("bind", widget._w, self.value, "")  # type: ignore
             return
-        func_callbacks = widget.tk.call("bind", widget._w, self.value, None).split(  # type: ignore
-            "\n"
-        )
+        func_callbacks = widget.tk.call(  # type: ignore
+            "bind",
+            widget._w,
+            self.value,
+            None,
+        ).split("\n")
         new_callbacks = [l for l in func_callbacks if l[6 : 6 + len(funcid)] != funcid]
         widget.tk.call(
             "bind", widget._w, self.value, "\n".join(new_callbacks)  # type: ignore
@@ -139,8 +150,8 @@ class CompositeEvent(BaseEvent):
     def __init__(self, value: str) -> None:
         """Create a new CompositeEvent instance.
 
-        Arguments:
-            value {str} -- The event. Should be formatted like: <event>
+        Args:
+            value (str) - The event. Should be formatted like: <event>
 
         """
         self.value = value
@@ -151,12 +162,14 @@ class CompositeEvent(BaseEvent):
     ) -> "CompositeEvent":
         """Creates a composite event from two events.
 
-        Arguments:
-            modifier {Union[_EventMixin, str]} -- Prepends to the new event. Either should be an event type, or string like: "<Event>"
-            event {Union[_EventMixin, str]} -- Appends to the new event. Either should be an event type, or string like: "<Event>"
+        Args:
+            modifier (Union[_EventMixin, str]) - Prepends to the new event. Either
+                should be an event type, or string like: "<Event>"
+            event (Union[_EventMixin, str]) - Appends to the new event. Either
+                should be an event type, or string like: "<Event>"
 
         Returns:
-            CompositeEvent -- The new event, having value like <modifier-event>
+            CompositeEvent - The new event, having value like <modifier-event>
 
         """
         mod_value = modifier.value if not isinstance(modifier, str) else modifier
@@ -262,6 +275,8 @@ class TkEvent(EventsEnum):
 
 
 class TkVirtualEvents(EventsEnum):
+    """Standard tkinter virtual events."""
+
     ALT_UNDERLINED = "<<AltUnderlined>>"
     INVOKE = "<<Invoke>>"
     LISTBOX_SELECT = "<<ListboxSelect>>"
@@ -308,23 +323,33 @@ class TkVirtualEvents(EventsEnum):
 
 
 class TtkNotebookEvents(EventsEnum):
+    """Events for the ttk.Notebook widget."""
+
     NOTEBOOK_TAB_CHANGED = "<<NotebookTabChanged>>"
 
 
 class TtkPanedWindowEvents(EventsEnum):
+    """Events for the ttk.PanedWindow widget."""
+
     ENTERED_CHILD = "<<EnteredChild>>"
 
 
 class TtkSpinboxEvents(EventsEnum):
+    """Events for the ttk.Spinbox widget."""
+
     INCREMENT = "<<Increment>>"
     DECREMENT = "<<Decrement>>"
 
 
 class TtkComboboxEvents(EventsEnum):
+    """Events for the ttk.Combobox widget."""
+
     COMBOBOX_SELECTED = "<<ComboboxSelected>>"
 
 
 class TtkTreeviewEvents(EventsEnum):
+    """Events for the ttk.Treeview widget."""
+
     TREEVIEW_SELECT = "<<TreeviewSelect>>"
     TREEVIEW_OPEN = "<<TreeviewOpen>>"
     TREEVIEW_CLOSE = "<<TreeviewClose>>"

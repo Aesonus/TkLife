@@ -28,6 +28,8 @@ from tklife.skel import (
 )
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
+# pylint: disable=all
+
 
 class ExampleModal(ModalDialog):
     def __init__(self, master, **kwargs):

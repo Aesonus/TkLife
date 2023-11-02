@@ -1,3 +1,5 @@
+"""Constants for typical argument names for Tkinter widgets."""
+
 # Entry arguments
 from typing import Literal
 

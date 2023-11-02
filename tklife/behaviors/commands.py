@@ -1,5 +1,7 @@
 """Contains behaviors for ui functionality."""
 
+from __future__ import annotations
+
 import abc
 from typing import Any, Generator, Optional, Union
 
@@ -9,7 +11,7 @@ __all__ = ["CommandHistory", "Command"]
 class CommandHistory:
     """Saves command history for undo and redo."""
 
-    history: list["Command"]
+    history: list[Command]
     cursor: Union[int, None]
 
     def __init__(self) -> None:
@@ -19,7 +21,7 @@ class CommandHistory:
         # all history is undone or history is empty
         self.cursor = None
 
-    def add_history(self, command: "Command") -> None:
+    def add_history(self, command: Command) -> None:
         """Adds a command to the command chain and calls it's execute method."""
         self._clear_after_cursor()
         self.history.append(command)
@@ -74,7 +76,7 @@ class CommandHistory:
         indicators and warnings."""
         return len(tuple(self.iter_history()))
 
-    def iter_history(self) -> Generator["Command", None, None]:
+    def iter_history(self) -> Generator[Command, None, None]:
         """Yields each item in history up to the cursor position Useful for displaying
         all changes."""
         for command in (

@@ -45,6 +45,11 @@ class ModalDialog(SkeletonMixin, Toplevel):
 
     @classmethod
     def show(cls, master: Misc, **kwargs):
+        """Shows the dialog.
+
+        Returns the return value if not cancelled, otherwise None.
+
+        """
         dialog = cls(master, **kwargs)
         dialog.deiconify()
         dialog.grab_set()
@@ -52,7 +57,7 @@ class ModalDialog(SkeletonMixin, Toplevel):
         dialog.wait_window()
         return dialog.return_value
 
-    def __destroy_event_handler(self, event):
+    def __destroy_event_handler(self, __):
         if not self.cancelled:
             self.set_return_values()
 
@@ -127,7 +132,7 @@ class ScrolledFrame(Frame):
     def _self_configure_handler(self, *__):
         self.canvas.configure(scrollregion=self.canvas.bbox(ALL))
 
-    def _enter_canvas_handler(self, event: Event):
+    def _enter_canvas_handler(self, __):
         (TkEvent.BUTTON + "<4>").bind_all(
             self.winfo_toplevel(), self._mouse_scroll_handler
         )
@@ -178,12 +183,15 @@ class ScrolledListbox(Listbox):
 
 
 class AutoSearchCombobox(Entry):
+    """A combobox that automatically searches for the closest match to the current
+    contents."""
+
     def __init__(
         self,
         master: Misc,
         values: Optional[Iterable[str]] = None,
         height: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         Entry.__init__(self, master, **kwargs)
         self._ddtl = Toplevel(self, takefocus=False, relief=GROOVE, borderwidth=1)
@@ -253,21 +261,23 @@ class AutoSearchCombobox(Entry):
 
     @property
     def dropdown_is_visible(self) -> bool:
+        """Returns whether the dropdown is visible."""
         return self._ddtl.winfo_ismapped()
 
-    def _handle_lb_click(self, event: Event):
+    def _handle_lb_click(self, __):
         self.delete(0, END)
         self.insert(0, self._lb_current_selection)
         self._hide_tl()
 
-    def _handle_keypress(self, event: Event):
+    def _handle_keypress(  # pylint: disable=inconsistent-return-statements
+        self, event: Event
+    ):
         if "Left" in event.keysym:
             if self.dropdown_is_visible:
                 self._hide_tl()
                 return "break"
-            else:
-                return
-        elif (
+            return
+        if (
             ("Right" in event.keysym and self.text_after_cursor == "")
             or event.keysym in ["Return", "Tab"]
         ) and self.dropdown_is_visible:
@@ -277,7 +287,9 @@ class AutoSearchCombobox(Entry):
             self._hide_tl()
             return "break"
 
-    def _handle_keyrelease(self, event: Event):
+    def _handle_keyrelease(  # pylint: disable=inconsistent-return-statements
+        self, event: Event
+    ):
         if "Up" in event.keysym and self.dropdown_is_visible:
             previous_index = self._lb.index(ACTIVE)
             new_index = max(0, self._lb.index(ACTIVE) - 1)
@@ -315,7 +327,7 @@ class AutoSearchCombobox(Entry):
             else:
                 self._show_tl()
 
-    def _handle_focusout(self, event: Event):
+    def _handle_focusout(self, __):
         def cf():
             try:
                 if self.focus_get() != self._ddtl and self.focus_get() != self._lb:
@@ -327,21 +339,19 @@ class AutoSearchCombobox(Entry):
 
         self.after(1, cf)
 
-    def _handle_configure(self, event: Event):
+    def _handle_configure(self, __):
         if self._ddtl.winfo_ismapped():
             self._update_tl_pos()
 
     def _show_tl(self) -> None:
-        if self._ddtl.winfo_ismapped() == False:
+        if not self._ddtl.winfo_ismapped():
             self._update_tl_pos()
             self._ddtl.deiconify()
             self._ddtl.attributes("-topmost", True)
 
     def _update_tl_pos(self) -> None:
         self._ddtl.geometry(
-            "+{}+{}".format(
-                self.winfo_rootx(), self.winfo_rooty() + self.winfo_height() - 1
-            )
+            f"+{self.winfo_rootx()}+{self.winfo_rooty() + self.winfo_height() - 1}"
         )
 
     def _hide_tl(self) -> None:
