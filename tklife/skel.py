@@ -346,7 +346,7 @@ class SkeletonMixin(_Skel):
 
     @property
     @abc.abstractmethod
-    def template(self) -> "Iterable[Iterable[SkelWidget]]":
+    def template(self) -> "Iterable[Iterable[SkelWidget|None]]":
         """
         - Must be implemented in child class
         - Must be declared as @property
