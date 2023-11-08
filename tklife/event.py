@@ -1,4 +1,6 @@
 """Module containing classes for generating and binding tkinter events."""
+from __future__ import annotations
+
 from enum import Enum
 from tkinter import BaseWidget, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
@@ -158,8 +160,8 @@ class CompositeEvent(BaseEvent):
 
     @classmethod
     def factory(
-        cls, modifier: "Union[BaseEvent, str]", event: "Union[BaseEvent, str]"
-    ) -> "CompositeEvent":
+        cls, modifier: Union[BaseEvent, str], event: Union[BaseEvent, str]
+    ) -> CompositeEvent:
         """Creates a composite event from two events.
 
         Args:

@@ -119,7 +119,7 @@ class ExampleController(ControllerABC):
 class ExampleView(SkeletonMixin, MenuMixin, Tk):
     def __init__(
         self,
-        master: "Optional[Misc]" = None,
+        master: Optional[Misc] = None,
         example_controller: Optional[ExampleController] = None,
         **kwargs,
     ) -> None:

@@ -6,6 +6,7 @@ from it. This allows for easy access to the Ttk Style name, and configuration an
 options.
 
 """
+from __future__ import annotations
 
 from tkinter.ttk import Style, Widget
 from typing import Any, Literal, Optional
@@ -42,7 +43,7 @@ class _StyleMeta(type):
 
     """
 
-    defined_styles: dict[str, "BaseStyle"] = {}
+    defined_styles: dict[str, BaseStyle] = {}
 
     def __new__(mcs, name, bases, namespace):
         cls = super().__new__(mcs, name, bases, namespace)
@@ -93,7 +94,7 @@ class _StyleMeta(type):
         )
         return filtered_styles[stylename]
 
-    def define_all(cls, style: "Optional[Style]" = None):
+    def define_all(cls, style: Optional[Style] = None):
         """Defines all styles configured by classes that extend the BaseStyle class.
 
         Args:

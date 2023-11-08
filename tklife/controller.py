@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 class ControllerABC:
     """Abstract base class for controllers."""
 
-    view: "SkeletonProtocol"
+    view: SkeletonProtocol
 
-    def set_view(self, view: "SkeletonProtocol") -> None:
+    def set_view(self, view: SkeletonProtocol) -> None:
         """Sets the view associated with this controller.
 
         Arguments:
@@ -21,9 +21,9 @@ class ControllerABC:
                 methods
 
         """
-        self.view: "SkeletonProtocol" = view
+        self.view: SkeletonProtocol = view
 
-    def __getattr__(self, attr: "str") -> "CreatedWidget":
+    def __getattr__(self, attr: str) -> CreatedWidget:
         """Gets a created widget in this controller's view's created dictionary.
 
         Arguments:
