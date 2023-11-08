@@ -306,10 +306,10 @@ class SkeletonMixin(_Skel):
 
     def __init__(
         self,
-        master: "typing.Optional[tkinter.Misc]" = None,
-        controller: "typing.Optional[ControllerABC]" = None,
-        global_grid_args: "typing.Optional[dict[str, typing.Any]]" = None,
-        proxy_factory: "typing.Optional[CallProxyFactory]" = None,
+        master: typing.Optional[tkinter.Misc] = None,
+        controller: typing.Optional[ControllerABC] = None,
+        global_grid_args: typing.Optional[dict[str, typing.Any]] = None,
+        proxy_factory: typing.Optional[CallProxyFactory] = None,
         **kwargs,
     ) -> None:
         # Set the controller first
@@ -330,6 +330,7 @@ class SkeletonMixin(_Skel):
         self.__global_gridargs = global_grid_args if global_grid_args else {}
         self.__w_cache: dict[tuple[int, int], CachedWidget] = {}
         self._create_all()
+        self._grid_config()
         self.__after_widgets__()
         self._create_events()
 
@@ -346,7 +347,7 @@ class SkeletonMixin(_Skel):
 
     @property
     @abc.abstractmethod
-    def template(self) -> "Iterable[Iterable[SkelWidget|None]]":
+    def template(self) -> Iterable[Iterable[SkelWidget | None]]:
         """
         - Must be implemented in child class
         - Must be declared as @property
@@ -373,7 +374,7 @@ class SkeletonMixin(_Skel):
         return [], []
 
     @property
-    def widget_cache(self) -> "dict[tuple[int, int], CachedWidget]":
+    def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
         """Stores the widgets created as well as grid cooridates and arguments.
 
         Returns:
@@ -414,6 +415,9 @@ class SkeletonMixin(_Skel):
                 self._grid_widget(
                     row_index, col_index, w, **global_grid_args, **skel_widget.grid_args
                 )
+
+    def _grid_config(self):
+        """Configures the grid."""
         rows, cols = self.grid_config
         for index, col in enumerate(cols):
             if col:
@@ -423,10 +427,12 @@ class SkeletonMixin(_Skel):
                 self.rowconfigure(index, **row)
 
     def _grid_widget(self, row, column, widget, **grid_args):
+        """Grids a widget."""
         widget.grid(row=row, column=column, **grid_args)
         self.__w_cache[row, column] = CachedWidget(widget, grid_args)
 
     def _create_events(self):
+        """Binds events to widgets."""
         for event_def in self.events:
             bind_method = getattr(event_def["event"], event_def["bind_method"])
             widget = event_def.get("widget", self)
@@ -440,10 +446,13 @@ class SkeletonMixin(_Skel):
         Must return an iterable of SkelEventDef. The default implementation returns an
         empty iterable.
 
+        Returns:
+            Iterable[SkelEventDef] -- An iterable of SkelEventDef
+
         """
         return ()
 
-    def append_row(self, widget_row: "Iterable[typing.Union[SkelWidget,None]]") -> int:
+    def append_row(self, widget_row: Iterable[typing.Union[SkelWidget, None]]) -> int:
         """Appends a row.
 
         Arguments:
@@ -479,7 +488,7 @@ class SkeletonMixin(_Skel):
         return new_row
 
     def insert_row_at(
-        self, index: int, widget_row: "Iterable[typing.Union[SkelWidget, None]]"
+        self, index: int, widget_row: Iterable[typing.Union[SkelWidget, None]]
     ) -> int:
         """Inserts a row at the given index.
 
@@ -559,7 +568,7 @@ class SkeletonMixin(_Skel):
             if widget is not None and grid_args is not None:
                 widget.grid(row=row, column=col, **grid_args)
 
-    def find_row_of(self, label: str) -> "typing.Union[int, None]":
+    def find_row_of(self, label: str) -> typing.Union[int, None]:
         """Finds a row of a widget having label as defined in SkelWidget.
 
         Arguments:
@@ -580,7 +589,7 @@ class SkeletonMixin(_Skel):
         return None
 
     @property
-    def controller(self) -> "typing.Union[CallProxyFactory, ControllerABC]":
+    def controller(self) -> typing.Union[CallProxyFactory, ControllerABC]:
         """Returns the controller or a call proxy factory that will call controller
         methods if the controller is not set yet.
 
@@ -595,7 +604,7 @@ class SkeletonMixin(_Skel):
         return self.__controller
 
     @controller.setter
-    def controller(self, controller: "ControllerABC"):
+    def controller(self, controller: ControllerABC):
         """Sets the controller.
 
         Arguments:
@@ -624,7 +633,7 @@ class MenuMixin(abc.ABC):
     """
 
     def __init__(
-        self, master: "typing.Optional[tkinter.Misc]" = None, **kwargs: typing.Any
+        self, master: typing.Optional[tkinter.Misc] = None, **kwargs: typing.Any
     ) -> None:
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
