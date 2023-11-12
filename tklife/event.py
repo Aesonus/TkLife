@@ -126,7 +126,7 @@ class BaseEvent:
             return
         func_callbacks = widget.tk.call(  # type: ignore
             "bind",
-            widget._w,
+            widget._w,  # type: ignore
             self.value,
             None,
         ).split("\n")
