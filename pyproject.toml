@@ -19,6 +19,12 @@ isort = "^5.12.0"
 docformatter = "^1.7.5"
 pre-commit = "^3.5.0"
 
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "^7.2.6"
+m2r2 = "^0.3.3.post2"
+esbonio = "^0.16.2"
+
 [tool.pytest.ini_options]
 addopts = "--cov=tklife --cov-branch --cov-report xml --cov-report html -vvv"
 
