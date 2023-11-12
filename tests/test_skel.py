@@ -9,6 +9,7 @@ from tklife.controller import ControllerABC
 from tklife.event import BaseEvent
 from tklife.proxy import CallProxyFactory
 from tklife.skel import (
+    AppendableMixin,
     CreatedWidget,
     Menu,
     MenuMixin,
@@ -86,6 +87,20 @@ class TestSkelWidget:
         assert actual.label == "newlabel"
 
 
+@pytest.fixture
+def mock_mixin_class(mocker: MockerFixture):
+    class Misc:
+        def __init__(self, *args, **kwargs) -> None:
+            self.mocks = {}
+            self._init_args = args
+            self._init_kwargs = kwargs
+
+        def __getattr__(self, attrname):
+            if attrname not in self.mocks:
+                self.mocks[attrname] = mocker.MagicMock()
+            return self.mocks[attrname]
+
+
 class TestSkeletonMixin:
     @pytest.fixture
     def mock_master(self, mocker: MockerFixture):
@@ -94,21 +109,6 @@ class TestSkeletonMixin:
     @pytest.fixture
     def mock_controller(self, mocker: MockerFixture):
         return mocker.Mock(ControllerABC)
-
-    @pytest.fixture
-    def mock_mixin_class(self, mocker: MockerFixture):
-        class Misc:
-            def __init__(self, *args, **kwargs) -> None:
-                self.mocks = {}
-                self._init_args = args
-                self._init_kwargs = kwargs
-
-            def __getattr__(self, attrname):
-                if attrname not in self.mocks:
-                    self.mocks[attrname] = mocker.MagicMock()
-                return self.mocks[attrname]
-
-        return Misc
 
     @pytest.fixture
     def no_template_skeleton(self, mock_mixin_class):
@@ -491,6 +491,8 @@ class TestSkeletonMixin:
         created = Tested(mock_master)
         mock_event.bind.assert_called_once_with(created, mock_action, add="")
 
+
+class TestAppendableMixin:
     def test_append_row_appends_a_row_of_widgets(
         self,
         mock_master,
@@ -499,7 +501,7 @@ class TestSkeletonMixin:
         mocked_widget,
         mocker: MockerFixture,
     ):
-        class Tested(SkeletonMixin, mock_mixin_class):
+        class Tested(SkeletonMixin, AppendableMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
@@ -578,7 +580,7 @@ class TestSkeletonMixin:
         mocked_widget,
         mocker: MockerFixture,
     ):
-        class Tested(SkeletonMixin, mock_mixin_class):
+        class Tested(SkeletonMixin, AppendableMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
@@ -630,7 +632,7 @@ class TestSkeletonMixin:
     ):
         mocked_widgets = [mocker.Mock() for __ in range(3)]
 
-        class Tested(SkeletonMixin, mock_mixin_class):
+        class Tested(SkeletonMixin, AppendableMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
@@ -665,7 +667,7 @@ class TestSkeletonMixin:
             SkelWidget(mocked_widget, iarg, garg) for iarg, garg in expected_w_args
         ]
 
-        class Tested(SkeletonMixin, mock_mixin_class):
+        class Tested(SkeletonMixin, AppendableMixin, mock_mixin_class):
             @property
             def template(self):
                 return (
@@ -723,7 +725,7 @@ class TestSkeletonMixin:
             SkelWidget(mocked_widget, iarg, garg) for iarg, garg in expected_w_args
         ]
 
-        class Tested(SkeletonMixin, mock_mixin_class):
+        class Tested(SkeletonMixin, AppendableMixin, mock_mixin_class):
             @property
             def template(self):
                 return (

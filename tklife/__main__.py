@@ -19,12 +19,12 @@ from tklife.constants import (
 from tklife.controller import ControllerABC
 from tklife.event import TkEvent, TkEventMod
 from tklife.skel import (
+    AppendableMixin,
     Menu,
     MenuMixin,
     SkeletonMixin,
     SkelEventDef,
     SkelWidget,
-    cls_as_skel,
 )
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
@@ -64,7 +64,7 @@ class ExampleModal(ModalDialog):
         self.return_value = self.created["entry"][TEXTVARIABLE].get()
 
 
-class AppendExampleScrolledFrame(SkeletonMixin, ScrolledFrame):
+class AppendExampleScrolledFrame(SkeletonMixin, AppendableMixin, ScrolledFrame):
     @property
     def template(self):
         return [[]]
@@ -208,7 +208,7 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
             ],
             [
                 SkelWidget(
-                    cls_as_skel(ScrolledFrame),
+                    AppendExampleScrolledFrame,
                     {},
                     {COLUMNSPAN: 3, STICKY: NSEW},
                     "appendable_frame",
