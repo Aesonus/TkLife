@@ -39,6 +39,9 @@ class SkelEventDef(typing.TypedDict):
         add (Literal['', '+']) -- The add argument to pass to the bind method. This may
             be ommitted, and will default to ''. If you want to add to an existing bind,
             use '+'. If you want to replace an existing bind, use ''.
+        id (str) -- The id of the event. This may be ommitted. When included, this will
+            be used as the dict key of the event. This is useful when you want to
+            unbind the event later.
 
     """
 
@@ -47,6 +50,7 @@ class SkelEventDef(typing.TypedDict):
     bind_method: typing.Literal["bind", "bind_tag", "bind_all", "bind_class"]
     widget: typing.NotRequired[tkinter.Misc]
     add: typing.NotRequired[typing.Literal["", "+"]]
+    id: typing.NotRequired[str]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -324,6 +328,9 @@ class _Skel(metaclass=_SkeletonMeta):  # pylint: disable=too-few-public-methods
     pass
 
 
+TkEventId = str
+
+
 class SkeletonMixin(_Skel):
     """Must use this mixin first.
 
@@ -335,6 +342,7 @@ class SkeletonMixin(_Skel):
     created: CreatedWidgetDict
     _global_gridargs: dict[str, typing.Any]
     _w_cache: dict[tuple[int, int], CachedWidget]
+    assigned_events: dict[str, TkEventId]
 
     def __init__(
         self,
@@ -359,6 +367,7 @@ class SkeletonMixin(_Skel):
         self.__after_init__()
 
         self.created: CreatedWidgetDict = {}
+        self.assigned_events = {}
         self._global_gridargs = global_grid_args if global_grid_args else {}
         self._w_cache = {}
         self._create_all()
@@ -470,7 +479,9 @@ class SkeletonMixin(_Skel):
             bind_method = getattr(event_def["event"], event_def["bind_method"])
             widget = event_def.get("widget", self)
             add = event_def.get("add", "")
-            bind_method(widget, event_def["action"], add=add)
+            handle = bind_method(widget, event_def["action"], add=add)
+            if event_def.get("id", None):
+                self.assigned_events[event_def["id"]] = handle
 
     @property
     def events(self) -> Iterable[SkelEventDef]:
