@@ -100,66 +100,73 @@ def mock_mixin_class(mocker: MockerFixture):
                 self.mocks[attrname] = mocker.MagicMock()
             return self.mocks[attrname]
 
+    return Misc
+
+
+@pytest.fixture
+def mock_master(mocker: MockerFixture):
+    return mocker.Mock()
+
+
+@pytest.fixture
+def mock_controller(mocker: MockerFixture):
+    return mocker.Mock(ControllerABC)
+
+
+@pytest.fixture
+def no_template_skeleton(mock_mixin_class):
+    class TestedSkeleton(SkeletonMixin, mock_mixin_class):
+        def __init__(
+            self,
+            master=None,
+            controller=None,
+            global_grid_args=None,
+            proxy_factory=None,
+            **kwargs
+        ) -> None:
+            self._calls = []  # For tests
+            super().__init__(
+                master, controller, global_grid_args, proxy_factory, **kwargs
+            )
+
+        @property
+        def template(self):
+            return ([],)
+
+        def _create_events(self):
+            self._calls.append(call()._create_events())
+
+        def __before_init__(self):
+            self._calls.append(call().__before_init__())
+
+        def __after_init__(self):
+            self._calls.append(call().__after_init__())
+
+        def __after_widgets__(self):
+            self._calls.append(call().__after_widgets__())
+
+    return TestedSkeleton
+
+
+@pytest.fixture
+def mock_tk_var(mocker: MockerFixture):
+    return mocker.Mock(type(Variable))
+
+
+@pytest.fixture
+def mocked_widget(mocker):
+    return mocker.Mock()
+
 
 class TestSkeletonMixin:
-    @pytest.fixture
-    def mock_master(self, mocker: MockerFixture):
-        return mocker.Mock()
-
-    @pytest.fixture
-    def mock_controller(self, mocker: MockerFixture):
-        return mocker.Mock(ControllerABC)
-
-    @pytest.fixture
-    def no_template_skeleton(self, mock_mixin_class):
-        class TestedSkeleton(SkeletonMixin, mock_mixin_class):
-            def __init__(
-                self,
-                master=None,
-                controller=None,
-                global_grid_args=None,
-                proxy_factory=None,
-                **kwargs
-            ) -> None:
-                self._calls = []  # For tests
-                super().__init__(
-                    master, controller, global_grid_args, proxy_factory, **kwargs
-                )
-
-            @property
-            def template(self):
-                return ([],)
-
-            def _create_events(self):
-                self._calls.append(call()._create_events())
-
-            def __before_init__(self):
-                self._calls.append(call().__before_init__())
-
-            def __after_init__(self):
-                self._calls.append(call().__after_init__())
-
-            def __after_widgets__(self):
-                self._calls.append(call().__after_widgets__())
-
-        return TestedSkeleton
-
-    @pytest.fixture
-    def mock_tk_var(self, mocker: MockerFixture):
-        return mocker.Mock(type(Variable))
-
-    @pytest.fixture
-    def mocked_widget(self, mocker):
-        return mocker.Mock()
-
     def test_init(
         self, no_template_skeleton: SkeletonMixin, mock_master, mock_controller
     ):
         """Test that the sibling __init__ is called with correct arguments, and the
         controller is updated with the view."""
         skeleton = no_template_skeleton(mock_master, mock_controller)
-        assert skeleton._init_args == (mock_master,)
-        assert skeleton._init_kwargs == {}
+        assert skeleton._init_args == ()
+        assert skeleton._init_kwargs == {"master": mock_master}
         assert skeleton.controller == mock_controller
         mock_controller.set_view.assert_called_once_with(skeleton)
 
