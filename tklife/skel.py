@@ -5,14 +5,22 @@ from __future__ import annotations
 import abc
 import dataclasses
 import tkinter
-import typing
 from functools import partial, reduce
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Generic,
+    NamedTuple,
+    Protocol,
+    TypedDict,
+    TypeVar,
+)
 
 from .controller import ControllerABC
 from .proxy import CallProxyFactory
 
-if typing.TYPE_CHECKING:
-    from collections.abc import Iterable
+if TYPE_CHECKING:
+    from typing import Any, Iterable, Literal, NotRequired, Optional, Type, Union
 
     from .event import BaseEvent
 
@@ -22,10 +30,13 @@ __all__ = [
     "CachedWidget",
     "SkeletonMixin",
     "MenuMixin",
+    "Menu",
+    "SkelEventDef",
+    "AppendableMixin",
 ]
 
 
-class SkelEventDef(typing.TypedDict):
+class SkelEventDef(TypedDict):
     """Used in conjunction with `SkeletonMixin.events` attribute to define events.
 
     Attributes:
@@ -43,10 +54,10 @@ class SkelEventDef(typing.TypedDict):
     """
 
     event: BaseEvent
-    action: typing.Callable[[tkinter.Event], typing.Literal["break"] | None]
-    bind_method: typing.Literal["bind", "bind_tag", "bind_all", "bind_class"]
-    widget: typing.NotRequired[tkinter.Misc]
-    add: typing.NotRequired[typing.Literal["", "+"]]
+    action: Callable[[tkinter.Event], Literal["break"] | None]
+    bind_method: Literal["bind", "bind_tag", "bind_all", "bind_class"]
+    widget: NotRequired[tkinter.Misc]
+    add: NotRequired[Literal["", "+"]]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -54,28 +65,28 @@ class SkelWidget:
     """Represents a widget in a skeleton.
 
     Args:
-        widget (typing.Type[tkinter.Widget]): The widget class
-        init_args (dict[str, typing.Any]): The init arguments for the widget
-        grid_args (dict[str, typing.Any]): The grid arguments for the widget
-        label (typing.Optional[str]): The label of the widget
+        widget (Type[tkinter.Widget]): The widget class
+        init_args (dict[str, Any]): The init arguments for the widget
+        grid_args (dict[str, Any]): The grid arguments for the widget
+        label (Optional[str]): The label of the widget
 
     Attributes:
-        widget (typing.Type[tkinter.Widget]): The widget class
-        init_args (dict[str, typing.Any]): The init arguments for the widget
-        grid_args (dict[str, typing.Any]): The grid arguments for the widget
-        label (typing.Optional[str]): The label of the widget
+        widget (Type[tkinter.Widget]): The widget class
+        init_args (dict[str, Any]): The init arguments for the widget
+        grid_args (dict[str, Any]): The grid arguments for the widget
+        label (Optional[str]): The label of the widget
 
     """
 
-    widget: typing.Type[tkinter.Widget]
-    init_args: dict[str, typing.Any] = dataclasses.field(default_factory=dict)
-    grid_args: dict[str, typing.Any] = dataclasses.field(default_factory=dict)
-    label: typing.Optional[str] = None
+    widget: Type[tkinter.Widget]
+    init_args: dict[str, Any] = dataclasses.field(default_factory=dict)
+    grid_args: dict[str, Any] = dataclasses.field(default_factory=dict)
+    label: Optional[str] = None
 
     def __iter__(self):
         return iter((self.widget, self.init_args, self.grid_args, self.label))
 
-    def init(self, **merge_init_args: typing.Any) -> SkelWidget:
+    def init(self, **merge_init_args: Any) -> SkelWidget:
         """Creates a new SkelWidget with the same widget and grid_args as the current
         SkelWidget, but with updated init_args.
 
@@ -94,7 +105,7 @@ class SkelWidget:
             self.label,
         )
 
-    def grid(self, **merge_grid_args: typing.Any) -> SkelWidget:
+    def grid(self, **merge_grid_args: Any) -> SkelWidget:
         """Creates a new SkelWidget with the same widget and init_args as the current
         SkelWidget, but with updated grid_args.
 
@@ -120,43 +131,37 @@ class SkelWidget:
             new_label (str): The new label
 
         Returns:
-            SkelWidget -- The new SkelWidget with the new label
+            SkelWidget: The new SkelWidget with the new label
 
         """
         return SkelWidget(self.widget, self.init_args, self.grid_args, new_label)
 
 
-T_Widget = typing.TypeVar(  # pylint: disable=invalid-name
+T_Widget = TypeVar(  # pylint: disable=invalid-name
     "T_Widget",
     tkinter.Widget,
     tkinter.Misc,
 )
 
 
-class CreatedWidget(typing.Generic[T_Widget]):
+class CreatedWidget(Generic[T_Widget]):
     """Stores a widget and its variables.
 
     Args:
         widget (T_Widget): The widget
-        textvariable (typing.Optional[tkinter.Variable]): The textvariable of the widget
-        variable (typing.Optional[tkinter.Variable]): The variable of the widget
-        listvariable (typing.Optional[tkinter.Variable]): The listvariable of the widget
+        textvariable (Optional[tkinter.Variable]): The textvariable of the widget
+        variable (Optional[tkinter.Variable]): The variable of the widget
+        listvariable (Optional[tkinter.Variable]): The listvariable of the widget
         **custom_vars (tkinter.Variable): Any other variables
-
-    Attributes:
-        widget (T_Widget): The widget
-        textvariable (tkinter.Variable): The textvariable of the widget
-        variable (tkinter.Variable): The variable of the widget
-        listvariable (tkinter.Variable): The listvariable of the widget
 
     """
 
     def __init__(
         self,
         widget: T_Widget,
-        textvariable: typing.Optional[tkinter.Variable] = None,
-        variable: typing.Optional[tkinter.Variable] = None,
-        listvariable: typing.Optional[tkinter.Variable] = None,
+        textvariable: Optional[tkinter.Variable] = None,
+        variable: Optional[tkinter.Variable] = None,
+        listvariable: Optional[tkinter.Variable] = None,
         **custom_vars: tkinter.Variable,
     ) -> None:
         self.__widget: T_Widget = widget
@@ -185,7 +190,7 @@ class CreatedWidget(typing.Generic[T_Widget]):
         """Returns the widget.
 
         Returns:
-            T_Widget -- The widget
+            T_Widget: The widget
 
         """
         return self.__widget
@@ -195,7 +200,7 @@ class CreatedWidget(typing.Generic[T_Widget]):
         """Returns the textvariable of the widget.
 
         Returns:
-            tkinter.Variable -- The textvariable of the widget
+            tkinter.Variable: The textvariable of the widget
 
         Raises:
             IndexError: Raised when the widget does not have a textvariable
@@ -208,7 +213,7 @@ class CreatedWidget(typing.Generic[T_Widget]):
         """Returns the variable of the widget.
 
         Returns:
-            tkinter.Variable -- The variable of the widget
+            tkinter.Variable: The variable of the widget
 
         Raises:
             IndexError: Raised when the widget does not have a variable
@@ -221,7 +226,7 @@ class CreatedWidget(typing.Generic[T_Widget]):
         """Returns the listvariable of the widget.
 
         Returns:
-            tkinter.Variable -- The listvariable of the widget
+            tkinter.Variable: The listvariable of the widget
 
         Raises:
             IndexError: Raised when the widget does not have a listvariable
@@ -230,6 +235,15 @@ class CreatedWidget(typing.Generic[T_Widget]):
         return self["listvariable"]
 
     def __getattr__(self, attr: str) -> tkinter.Variable:
+        """Returns the variable with the given name.
+
+        Args:
+            attr (str): The name of the variable to return
+
+        Returns:
+            tkinter.Variable: The variable with the given name
+
+        """
         returned = self.__values.get(attr)
         if returned is None:
             raise AttributeError(f"'{attr}' not found")
@@ -237,16 +251,46 @@ class CreatedWidget(typing.Generic[T_Widget]):
         return returned
 
     def __getitem__(self, attr: str) -> tkinter.Variable:
+        """Returns the variable with the given name.
+
+        Args:
+            attr (str): The name of the variable to return
+
+        Returns:
+            tkinter.Variable: The variable with the given name
+
+        """
         returned = self.__values.get(attr)
         if returned is None:
             raise AttributeError(f"'{attr}' not found")
 
         return returned
 
-    def __setitem__(self, *args):
-        setattr(self, *args)
+    def __setitem__(self, __name: str, __value: Any) -> None:
+        """Sets the variable with the given name.
 
-    def __setattr__(self, __name: str, __value: typing.Any) -> None:
+        Args:
+            __name (str): The name of the variable to set
+            __value (Any): The value to set the variable to
+
+        Raises:
+            AttributeError: Raised when the variable cannot be set
+
+        """
+
+        setattr(self, __name, __value)
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        """Sets the variable with the given name.
+
+        Args:
+            __name (str): The name of the variable to set
+            __value (Any): The value to set the variable to
+
+        Raises:
+            AttributeError: Raised when the variable cannot be set
+
+        """
         if f"_{self.__class__.__name__}__" in __name:
             object.__setattr__(self, __name, __value)
         else:
@@ -254,11 +298,11 @@ class CreatedWidget(typing.Generic[T_Widget]):
                 f"Cannot set '{__name}'; {self.__class__} is read-only"
             )
 
-    def as_dict(self) -> dict[str, typing.Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Returns a dict of the widget and its variables.
 
         Returns:
-            dict[str, typing.Any] -- The widget and its variables
+            dict[str, Any]: The widget and its variables
 
         """
         return {**self.__values, "widget": self.widget}
@@ -267,14 +311,14 @@ class CreatedWidget(typing.Generic[T_Widget]):
 CreatedWidgetDict = dict[str, CreatedWidget]
 
 
-class CachedWidget(typing.NamedTuple):
+class CachedWidget(NamedTuple):
     """Stores a widget and its grid arguments."""
 
-    widget: typing.Union[tkinter.Widget, None]
-    grid_args: typing.Union[dict[str, typing.Any], None]
+    widget: Union[tkinter.Widget, None]
+    grid_args: Union[dict[str, Any], None]
 
 
-class SkeletonProtocol(typing.Protocol):
+class SkeletonProtocol(Protocol):
     """Protocol for SkeletonMixin."""
 
     @property
@@ -297,7 +341,7 @@ class SkeletonProtocol(typing.Protocol):
         row: int,
         column: int,
         widget: tkinter.Widget | None,
-        **grid_args: typing.Any,
+        **grid_args: Any,
     ) -> None:
         """Grids a widget."""
 
@@ -305,7 +349,7 @@ class SkeletonProtocol(typing.Protocol):
         """Binds events to widgets."""
 
     created: CreatedWidgetDict
-    _global_gridargs: dict[str, typing.Any]
+    _global_gridargs: dict[str, Any]
     _w_cache: dict[tuple[int, int], CachedWidget]
 
     @property
@@ -315,7 +359,7 @@ class SkeletonProtocol(typing.Protocol):
 
 class _SkeletonMeta(abc.ABCMeta):
     def __new__(mcs, name, bases: tuple[type, ...], namespace):
-        if typing.Generic not in bases and len(bases) > 1 and bases[0] != SkeletonMixin:
+        if Generic not in bases and len(bases) > 1 and bases[0] != SkeletonMixin:
             raise TypeError(f"{SkeletonMixin} should be first base class")
         return super().__new__(mcs, name, bases, namespace)
 
@@ -330,18 +374,28 @@ class SkeletonMixin(_Skel):
     Optionally can add a MenuMixin and/or an AppendableMixin. Then you put the Widget
     class to use.
 
+    Args:
+        master (Optional[tkinter.Misc]): The master widget
+        controller (Optional[ControllerABC]): The controller
+        global_grid_args (Optional[dict[str, Any]]): The global grid arguments
+        proxy_factory (Optional[CallProxyFactory]): The proxy factory
+        **kwargs: Additional keyword arguments
+
+    Attributes:
+        created (CreatedWidgetDict): The created widgets
+
     """
 
     created: CreatedWidgetDict
-    _global_gridargs: dict[str, typing.Any]
+    _global_gridargs: dict[str, Any]
     _w_cache: dict[tuple[int, int], CachedWidget]
 
     def __init__(
         self,
-        master: typing.Optional[tkinter.Misc] = None,
-        controller: typing.Optional[ControllerABC] = None,
-        global_grid_args: typing.Optional[dict[str, typing.Any]] = None,
-        proxy_factory: typing.Optional[CallProxyFactory] = None,
+        master: Optional[tkinter.Misc] = None,
+        controller: Optional[ControllerABC] = None,
+        global_grid_args: Optional[dict[str, Any]] = None,
+        proxy_factory: Optional[CallProxyFactory] = None,
         **kwargs,
     ) -> None:
         # Set the controller first
@@ -386,20 +440,18 @@ class SkeletonMixin(_Skel):
         - Only used for inititalization
 
         Returns:
-            An iterable yielding iterables that yield a SkelWidget
+            Iterable[Iterable[SkelWidget | None]]: An iterable yielding iterables that yield a SkelWidget
         """
 
     @property
     def grid_config(
         self,
-    ) -> tuple[
-        typing.Iterable[dict[str, typing.Any]], typing.Iterable[dict[str, typing.Any]]
-    ]:
+    ) -> tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
         """Returns the grid configuration for the widget. This can be overridden to
         provide a custom grid configuration.
 
         Returns:
-            tuple[Iterable[dict[str, typing.Any]], Iterable[dict[str, typing.Any]]] --
+            tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
                 Row and column config
 
         """
@@ -410,7 +462,7 @@ class SkeletonMixin(_Skel):
         """Stores the widgets created as well as grid cooridates and arguments.
 
         Returns:
-            dict[tuple[int, int], CachedWidget] -- Widget cache
+            dict[tuple[int, int], CachedWidget]: Widget cache
 
         """
         return self._w_cache
@@ -480,19 +532,22 @@ class SkeletonMixin(_Skel):
         empty iterable.
 
         Returns:
-            Iterable[SkelEventDef] -- An iterable of SkelEventDef
+            Iterable[SkelEventDef]: An iterable of SkelEventDef
 
         """
         return ()
 
     @property
-    def controller(self) -> typing.Union[CallProxyFactory, ControllerABC]:
+    def controller(self) -> Union[CallProxyFactory, ControllerABC]:
         """Returns the controller or a call proxy factory that will call controller
-        methods if the controller is not set yet. Do not override this property.
+        methods if the controller is not set yet. **Do not override this property**.
 
         Returns:
-            typing.Union[CallProxyFactory, ControllerABC] -- Call proxy or Controller
+            Union[CallProxyFactory, ControllerABC]: Call proxy or Controller
             instance
+
+        Raises:
+            TypeError: Raised when the controller type is not valid
 
         """
         if not self.__controller:
@@ -502,15 +557,6 @@ class SkeletonMixin(_Skel):
 
     @controller.setter
     def controller(self, controller: ControllerABC):
-        """Sets the controller. Do not override this property.
-
-        Arguments:
-            controller {ControllerABC} -- An instance of a controller
-
-        Raises:
-            TypeError: Raised when the controller type is not valid
-
-        """
         if not isinstance(controller, ControllerABC) and controller is not None:
             raise TypeError(f"Controller must be of type {ControllerABC.__name__}")
         self.__controller = controller
@@ -519,39 +565,43 @@ class SkeletonMixin(_Skel):
 
 
 class AppendableMixin:
-    """Mixin to allow for rows to be appended to a widget."""
+    """Mixin to allow for rows to be appended to a widget. Must appear after
+    SkeletonMixin, but before the tkinter Widget.
+
+    Attributes:
+        created (CreatedWidgetDict): The created widgets
+
+    """
 
     created: CreatedWidgetDict
-    _global_gridargs: dict[str, typing.Any]
+    _global_gridargs: dict[str, Any]
     _w_cache: dict[tuple[int, int], CachedWidget]
-    _widget_create: typing.Callable[
-        [SkelWidget | None, int, int], tkinter.Widget | None
-    ]
-    _grid_widget: typing.Callable[[int, int, tkinter.Widget | None], None]
+    _widget_create: Callable[[SkelWidget | None, int, int], tkinter.Widget | None]
+    _grid_widget: Callable[[int, int, tkinter.Widget | None], None]
 
     @property
     def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
         """Stores the widgets created as well as grid cooridates and arguments.
 
         Returns:
-            dict[tuple[int, int], CachedWidget] -- Widget cache
+            dict[tuple[int, int], CachedWidget]: Widget cache
 
         """
         # Use the super's widget cache. This mixin is only used with SkeletonMixin, so
         # we can safely assume that the super has a widget_cache attribute.
         return super()._w_cache  # type: ignore
 
-    def append_row(self, widget_row: Iterable[typing.Union[SkelWidget, None]]) -> int:
+    def append_row(self, widget_row: Iterable[Union[SkelWidget, None]]) -> int:
         """Appends a row.
 
-        Arguments:
-            row -- A row of SkelWidgets (use None for empty cells)
+        Args:
+            widget_row (Iterable[Union[SkelWidget, None]]): A row of widgets to append
 
         Raises:
             TypeError: Raised when row is not iterable
 
         Returns:
-            int -- The new row index
+            int: The new row index
 
         """
         # Find last row in cache and add 1 for new row
@@ -576,13 +626,13 @@ class AppendableMixin:
         return new_row
 
     def insert_row_at(
-        self, index: int, widget_row: Iterable[typing.Union[SkelWidget, None]]
+        self, index: int, widget_row: Iterable[Union[SkelWidget, None]]
     ) -> int:
         """Inserts a row at the given index.
 
         Args:
             index (int): The index to insert the row at
-            widget_row (Iterable[typing.Union[SkelWidget, None]]): The row to insert
+            widget_row (Iterable[Union[SkelWidget, None]]): The row to insert
 
         Raises:
             TypeError: Raised when widget_row is not iterable
@@ -635,8 +685,8 @@ class AppendableMixin:
     def destroy_row(self, row_index: int) -> None:
         """Destroys the row at given index.
 
-        Arguments:
-            row_index {int} -- Index of the row to delete
+        Args:
+            row_index (int): The row index to destroy
 
         """
         for (row, col), (widget, grid_args) in tuple(self._w_cache.items()):
@@ -655,14 +705,15 @@ class AppendableMixin:
             if widget is not None and grid_args is not None:
                 widget.grid(row=row, column=col, **grid_args)
 
-    def find_row_of(self, label: str) -> typing.Union[int, None]:
+    def find_row_of(self, label: str) -> Union[int, None]:
         """Finds a row of a widget having label as defined in SkelWidget.
 
-        Arguments:
-            label -- Widget label
+        Args:
+            label (str): The label of the widget to find
 
         Returns:
-            The row index containing the given widget or None if not found
+            Union[int, None]: The row index containing the given widget or None if
+                not found
 
         """
         try:
@@ -676,7 +727,7 @@ class AppendableMixin:
         return None
 
 
-MenuCommand = typing.Callable[[tkinter.Menu], None]
+MenuCommand = Callable[[tkinter.Menu], None]
 
 
 class MenuMixin(abc.ABC):
@@ -687,9 +738,7 @@ class MenuMixin(abc.ABC):
 
     """
 
-    def __init__(
-        self, master: typing.Optional[tkinter.Misc] = None, **kwargs: typing.Any
-    ) -> None:
+    def __init__(self, master: Optional[tkinter.Misc] = None, **kwargs: Any) -> None:
         # Init the frame or the menu mixin... or not
         super().__init__(master, **kwargs)  # type: ignore
         self._create_menu()
@@ -697,7 +746,12 @@ class MenuMixin(abc.ABC):
     @property
     @abc.abstractmethod
     def menu_template(self) -> dict:
-        """Returns a dict that is used to create the menu."""
+        """Returns a dict that is used to create the menu.
+
+        Returns:
+            dict: The menu template
+
+        """
 
     def _create_menu(self):
         def submenu(template: dict):
@@ -727,32 +781,32 @@ class Menu:
         raise ValueError("Cannot instantiate instance, use class methods instead")
 
     @classmethod
-    def add(cls, **opts: typing.Any) -> partial:
+    def add(cls, **opts: Any) -> partial:
         """Use to add a separator, radiobutton, or checkbutton menu item.
 
         >>> {Menu.add(**opts): 'separator'|'radiobutton'|'checkbutton'}
 
         Returns:
-            partial -- Partial function that will be called to create item
+            partial: Partial function that will be called to create item
 
         """
         return partial(tkinter.Menu.add, **opts)
 
     @classmethod
-    def command(cls, **opts: typing.Any) -> MenuCommand:
+    def command(cls, **opts: Any) -> MenuCommand:
         """Use to add a command menu item.
 
         >>> {Menu.command(label='labeltext', **opts): command_function}
 
         Returns:
-            T_MenuCommand -- Partial function that will be called to create item
+            T_MenuCommand: Partial function that will be called to create item
 
         """
         nf = partial(tkinter.Menu.add_command, **opts)
         return nf
 
     @classmethod
-    def cascade(cls, **opts: typing.Any) -> MenuCommand:
+    def cascade(cls, **opts: Any) -> MenuCommand:
         """Use to add a submenu to a menu.
 
         >>> {Menu.cascade(label='labeltext', **opts): {
@@ -760,7 +814,7 @@ class Menu:
         >>> }}
 
         Returns:
-            T_MenuCommand -- Partial function that will be called to create submenu
+            T_MenuCommand: Partial function that will be called to create submenu
 
         """
         nf = partial(tkinter.Menu.add_cascade, **opts)
