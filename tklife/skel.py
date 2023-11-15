@@ -526,7 +526,7 @@ class SkeletonMixin(_Skel):
             vardict = {
                 arg: val
                 for arg, val in (
-                    skel_widget.init_args.items() | skel_widget.config_args.items()
+                    {**skel_widget.init_args, **skel_widget.config_args}.items()
                 )
                 if isinstance(val, tkinter.Variable)
             }
