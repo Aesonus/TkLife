@@ -26,13 +26,20 @@ class TestSkelWidget:
 
     @pytest.fixture
     def skel_widget(self, mocked_widget):
-        return SkelWidget(mocked_widget, {"init": "args"}, {"grid": "args"}, "label")
+        return SkelWidget(
+            mocked_widget,
+            {"init": "args"},
+            {"grid": "args"},
+            {"config": "args"},
+            "label",
+        )
 
     def test_skel_widget_iterable(self, skel_widget: SkelWidget, mocked_widget):
-        widget, init_args, grid_args, label = skel_widget
+        widget, init_args, grid_args, config_args, label = skel_widget
         assert widget == mocked_widget
         assert init_args == {"init": "args"}
         assert grid_args == {"grid": "args"}
+        assert config_args == {"config": "args"}
         assert label == "label"
 
     @pytest.mark.parametrize(
@@ -53,6 +60,7 @@ class TestSkelWidget:
         assert actual.widget == mocked_widget
         assert actual.init_args == expected_init_args
         assert actual.grid_args == {"grid": "args"}
+        assert actual.config_args == {"config": "args"}
         assert actual.label == "label"
         assert actual != skel_widget
 
@@ -74,6 +82,29 @@ class TestSkelWidget:
         assert actual.widget == mocked_widget
         assert actual.init_args == {"init": "args"}
         assert actual.grid_args == expected_grid_args
+        assert actual.config_args == {"config": "args"}
+        assert actual.label == "label"
+        assert actual != skel_widget
+
+    @pytest.mark.parametrize(
+        "merged_config_args, expected_config_args",
+        [
+            ({"new": "configarg"}, {"config": "args", "new": "configarg"}),
+            ({"config": "configarg"}, {"config": "configarg"}),
+        ],
+    )
+    def test_skel_widget_config_method_returns_new_skel_widget_with_appended_args(
+        self,
+        merged_config_args,
+        expected_config_args,
+        mocked_widget,
+        skel_widget: SkelWidget,
+    ):
+        actual = skel_widget.config(**merged_config_args)
+        assert actual.widget == mocked_widget
+        assert actual.init_args == {"init": "args"}
+        assert actual.grid_args == {"grid": "args"}
+        assert actual.config_args == expected_config_args
         assert actual.label == "label"
         assert actual != skel_widget
 
@@ -84,6 +115,7 @@ class TestSkelWidget:
         assert actual.widget == mocked_widget
         assert actual.init_args == {"init": "args"}
         assert actual.grid_args == {"grid": "args"}
+        assert actual.config_args == {"config": "args"}
         assert actual.label == "newlabel"
 
 
@@ -227,18 +259,22 @@ class TestSkeletonMixin:
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=0),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=1),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=1, column=0),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=1, column=1),
         ]
 
@@ -263,12 +299,16 @@ class TestSkeletonMixin:
         actual = mocked_widget.mock_calls
         assert actual == [
             call(skeleton, arg1=True),
+            call().configure(),
             call().grid(row=0, column=0),
             call(skeleton, arg2=True),
+            call().configure(),
             call().grid(row=0, column=1),
             call(skeleton, arg3=True),
+            call().configure(),
             call().grid(row=1, column=0),
             call(skeleton, arg4=True),
+            call().configure(),
             call().grid(row=1, column=1),
         ]
 
@@ -293,12 +333,16 @@ class TestSkeletonMixin:
         actual = mocked_widget.mock_calls
         assert actual == [
             call(skeleton),
+            call().configure(),
             call().grid(row=0, column=0, arg1=True),
             call(skeleton),
+            call().configure(),
             call().grid(row=0, column=1, arg2=True),
             call(skeleton),
+            call().configure(),
             call().grid(row=1, column=0, arg3=True),
             call(skeleton),
+            call().configure(),
             call().grid(row=1, column=1, arg4=True),
         ]
 
@@ -323,13 +367,51 @@ class TestSkeletonMixin:
         actual = mocked_widget.mock_calls
         assert actual == [
             call(skeleton),
+            call().configure(),
             call().grid(row=0, column=0, garg=True, arg1=True),
             call(skeleton),
+            call().configure(),
             call().grid(row=0, column=1, garg=True, arg2=True),
             call(skeleton),
+            call().configure(),
             call().grid(row=1, column=0, garg=True, arg3=True),
             call(skeleton),
+            call().configure(),
             call().grid(row=1, column=1, garg=True, arg4=True),
+        ]
+
+    def test_create_all_creates_and_grids_widgets_from_template_with_config_args(
+        self, mock_master, mock_controller, mock_mixin_class, mocked_widget
+    ):
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [
+                        SkelWidget(mocked_widget, {}, {}, {"arg1": True}),
+                        SkelWidget(mocked_widget, {}, {}, {"arg2": True}),
+                    ],
+                    [
+                        SkelWidget(mocked_widget, {}, {}, {"arg3": True}),
+                        SkelWidget(mocked_widget, {}, {}, {"arg4": True}),
+                    ],
+                )
+
+        skeleton = Tested(mock_master, mock_controller)
+        actual = mocked_widget.mock_calls
+        assert actual == [
+            call(skeleton),
+            call().configure(arg1=True),
+            call().grid(row=0, column=0),
+            call(skeleton),
+            call().configure(arg2=True),
+            call().grid(row=0, column=1),
+            call(skeleton),
+            call().configure(arg3=True),
+            call().grid(row=1, column=0),
+            call(skeleton),
+            call().configure(arg4=True),
+            call().grid(row=1, column=1),
         ]
 
     def test_create_all_creates_and_grids_widgets_from_template_skipping_none(
@@ -352,14 +434,17 @@ class TestSkeletonMixin:
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=0),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=1),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=1, column=1),
         ]
 
@@ -415,13 +500,45 @@ class TestSkeletonMixin:
                 return (
                     [
                         SkelWidget(
-                            mocked_widget, {"arg1": mock_tk_var}, {}, "test_label"
+                            mocked_widget, {"arg1": mock_tk_var}, {}, {}, "test_label"
                         )
                     ],
                 )
 
         skeleton = Tested(mock_master, mock_controller)
         mocked_widget.assert_called_once_with(skeleton, arg1=mock_tk_var.return_value)
+
+        mocked_widget.return_value.grid.assert_called_once_with(row=0, column=0)
+
+        assert skeleton.created["test_label"].as_dict() == {
+            "widget": mocked_widget.return_value,
+            "arg1": mock_tk_var.return_value,
+        }
+
+    def test_create_all_creates_and_grids_widgets_from_template_with_var_in_config_args_and_creates_label(
+        self,
+        mock_master,
+        mock_controller,
+        mock_mixin_class,
+        mock_tk_var,
+        mocked_widget,
+        mocker,
+    ):
+        mock_tk_var.return_value = mocker.Mock(Variable)
+
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return (
+                    [
+                        SkelWidget(
+                            mocked_widget, {}, {}, {"arg1": mock_tk_var}, "test_label"
+                        )
+                    ],
+                )
+
+        skeleton = Tested(mock_master, mock_controller)
+        mocked_widget.assert_called_once_with(skeleton)
 
         mocked_widget.return_value.grid.assert_called_once_with(row=0, column=0)
 
@@ -530,20 +647,25 @@ class TestAppendableMixin:
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=0),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=1),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=1, column=1),
             call(skeleton, iarg1=True),
+            call().configure(),
             call().grid(row=2, column=0),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=2, column=1, garg1=True),
         ]
         assert skeleton.widget_cache == {
@@ -608,14 +730,17 @@ class TestAppendableMixin:
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=0, garg1=True),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=1),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=1, column=1, garg2=True),
             *destroy_calls,
             *grid_calls,
@@ -644,10 +769,10 @@ class TestAppendableMixin:
             def template(self):
                 return (
                     [
-                        SkelWidget(mocked_widgets[0], {}, {}, "0"),
-                        SkelWidget(mocked_widgets[1], {}, {}, "1"),
+                        SkelWidget(mocked_widgets[0], {}, {}, {}, "0"),
+                        SkelWidget(mocked_widgets[1], {}, {}, {}, "1"),
                     ],
-                    [None, SkelWidget(mocked_widgets[2], {}, {}, "2")],
+                    [None, SkelWidget(mocked_widgets[2], {}, {}, {}, "2")],
                 )
 
         skeleton = Tested(mock_master, mock_controller)
@@ -690,18 +815,23 @@ class TestAppendableMixin:
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=0),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=0, column=1),
             call(
                 skeleton,
             ),
+            call().configure(),
             call().grid(row=1, column=1),
             call(skeleton, iarg1=True),
+            call().configure(),
             call().grid(row=2, column=0),
             call(skeleton, iarg2=True),
+            call().configure(),
             call().grid(row=2, column=1, garg1=True),
         ]
 
@@ -747,11 +877,13 @@ class TestAppendableMixin:
         expected_calls = [
             # Inserted
             call(skeleton, iarg1=True),
+            call().configure(),
             call().grid(row=0, column=0),
             ##
             call().grid(row=1, column=0),
             # Inserted
             call(skeleton, iarg2=True),
+            call().configure(),
             call().grid(row=0, column=1, garg1=True),
             ##
             call().grid(row=1, column=1),
@@ -761,8 +893,8 @@ class TestAppendableMixin:
         skeleton.insert_row_at(index, new_row)
 
         assert skeleton.widget_cache == expected_cache
-        # Lop off the first 6 calls as those are setup calls
-        assert mocked_widget.mock_calls[6:] == expected_calls
+        # Lop off the first 9 calls as those are setup calls
+        assert mocked_widget.mock_calls[9:] == expected_calls
 
 
 class TestCreatedWidget:

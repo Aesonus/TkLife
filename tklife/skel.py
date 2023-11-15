@@ -72,12 +72,14 @@ class SkelWidget:
         widget (Type[tkinter.Widget]): The widget class
         init_args (dict[str, Any]): The init arguments for the widget
         grid_args (dict[str, Any]): The grid arguments for the widget
+        config_args (dict[str, Any]): The config arguments for the widget
         label (Optional[str]): The label of the widget
 
     Attributes:
         widget (Type[tkinter.Widget]): The widget class
         init_args (dict[str, Any]): The init arguments for the widget
         grid_args (dict[str, Any]): The grid arguments for the widget
+        config_args (dict[str, Any]): The config arguments for the widget
         label (Optional[str]): The label of the widget
 
     """
@@ -85,10 +87,13 @@ class SkelWidget:
     widget: Type[tkinter.Widget]
     init_args: dict[str, Any] = dataclasses.field(default_factory=dict)
     grid_args: dict[str, Any] = dataclasses.field(default_factory=dict)
+    config_args: dict[str, Any] = dataclasses.field(default_factory=dict)
     label: Optional[str] = None
 
     def __iter__(self):
-        return iter((self.widget, self.init_args, self.grid_args, self.label))
+        return iter(
+            (self.widget, self.init_args, self.grid_args, self.config_args, self.label)
+        )
 
     def init(self, **merge_init_args: Any) -> SkelWidget:
         """Creates a new SkelWidget with the same widget and grid_args as the current
@@ -106,6 +111,7 @@ class SkelWidget:
             self.widget,
             {**self.init_args, **merge_init_args},
             self.grid_args,
+            self.config_args,
             self.label,
         )
 
@@ -125,6 +131,27 @@ class SkelWidget:
             self.widget,
             self.init_args,
             {**self.grid_args, **merge_grid_args},
+            self.config_args,
+            self.label,
+        )
+
+    def config(self, **merge_config_args: Any) -> SkelWidget:
+        """Creates a new SkelWidget with the same widget and init_args as the current
+        SkelWidget, but with updated config_args.
+
+        Args:
+            **merge_config_args: Additional or updated config arguments to merge with
+                the current SkelWidget's config_args.
+
+        Returns:
+            SkelWidget: The new SkelWidget with the updated config_args.
+
+        """
+        return SkelWidget(
+            self.widget,
+            self.init_args,
+            self.grid_args,
+            {**self.config_args, **merge_config_args},
             self.label,
         )
 
@@ -138,7 +165,9 @@ class SkelWidget:
             SkelWidget: The new SkelWidget with the new label
 
         """
-        return SkelWidget(self.widget, self.init_args, self.grid_args, new_label)
+        return SkelWidget(
+            self.widget, self.init_args, self.grid_args, self.config_args, new_label
+        )
 
 
 T_Widget = TypeVar(  # pylint: disable=invalid-name
@@ -485,12 +514,20 @@ class SkeletonMixin(_Skel):
             if isinstance(val, type(tkinter.Variable)):
                 skel_widget.init_args[arg] = val()
 
+        for arg, val in skel_widget.config_args.items():
+            if isinstance(val, type(tkinter.Variable)):
+                skel_widget.config_args[arg] = val()
+
         w = skel_widget.widget(self, **skel_widget.init_args)
+        w.configure(**skel_widget.config_args)
+
         if skel_widget.label is not None:
             # And what is the vardict?
             vardict = {
                 arg: val
-                for arg, val in skel_widget.init_args.items()
+                for arg, val in (
+                    skel_widget.init_args.items() | skel_widget.config_args.items()
+                )
                 if isinstance(val, tkinter.Variable)
             }
 
