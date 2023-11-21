@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .skel import CreatedWidget, SkeletonProtocol
+    from . import CreatedWidget
+    from .core import SkeletonProtocol
 
 
 class ControllerABC:

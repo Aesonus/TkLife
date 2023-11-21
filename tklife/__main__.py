@@ -1,10 +1,12 @@
 """Shows an example of a skeleton window."""
 
+import tkinter as tk
 from random import random
 from tkinter import EW, NSEW, E, Misc, StringVar, Tk, W, ttk
 from tkinter.messagebox import showinfo
 from typing import Any, Iterable, Optional
 
+from tklife import SkeletonMixin, SkelEventDef, SkelWidget
 from tklife.constants import (
     COLUMNSPAN,
     COMMAND,
@@ -17,15 +19,9 @@ from tklife.constants import (
     WEIGHT,
 )
 from tklife.controller import ControllerABC
+from tklife.dynamic import AppendableMixin
 from tklife.event import TkEvent, TkEventMod
-from tklife.skel import (
-    AppendableMixin,
-    Menu,
-    MenuMixin,
-    SkeletonMixin,
-    SkelEventDef,
-    SkelWidget,
-)
+from tklife.menu import Menu, MenuMixin
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 # pylint: disable=all
@@ -47,7 +43,7 @@ class ExampleModal(ModalDialog):
                     AutoSearchCombobox,
                     {TEXTVARIABLE: StringVar, VALUES: ["test", "value"]},
                     {},
-                    "entry",
+                    label="entry",
                 ),
             ],
             [
@@ -99,7 +95,7 @@ class ExampleController(ControllerABC):
                 ttk.Button,
                 {TEXT: "x", COMMAND: self.get_delete_this_row_command(id)},
                 {STICKY: EW},
-                id,
+                label=id,
             ),
         ]
         add_to.append_row(new_row)
@@ -170,10 +166,11 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
     def template(self):
         return (
             [
-                SkelWidget(ttk.Label, {TEXT: "Label A:"}, {}),
-                SkelWidget(
-                    ttk.Entry, {TEXTVARIABLE: StringVar}, {STICKY: E + W}, "entry_a"
-                ),
+                SkelWidget(ttk.Label).init(text="Label A:"),
+                SkelWidget(ttk.Entry)
+                .init(textvariable=tk.StringVar)
+                .grid(sticky=tk.EW)
+                .set_label("entry_a"),
                 SkelWidget(
                     ttk.Button,
                     {TEXT: "Print contents", COMMAND: self.controller.button_a_command},
@@ -189,7 +186,7 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
                         "values": ["Default value", "other", "a thing to test"],
                     },
                     {STICKY: E + W},
-                    "entry_b",
+                    label="entry_b",
                 ),
                 SkelWidget(
                     ttk.Button,
@@ -211,7 +208,7 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
                     AppendExampleScrolledFrame,
                     {},
                     {COLUMNSPAN: 3, STICKY: NSEW},
-                    "appendable_frame",
+                    label="appendable_frame",
                 )
             ],
             [

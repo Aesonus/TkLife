@@ -6,6 +6,7 @@ from tkinter import BaseWidget, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
 
 __all__ = [
+    "BaseEvent",
     "EventsEnum",
     "CompositeEvent",
     "TkEventMod",
@@ -28,6 +29,10 @@ class BaseEvent:
     Can be used to generate events, bind events, and unbind events. This class should
     not be instantiated directly.
 
+    Note:
+        This class implements the composite pattern, and can be used to create
+        composite events. See the __add__ method.
+
     """
 
     value: str
@@ -36,10 +41,10 @@ class BaseEvent:
         """Returns a callable that will generate this event on a widget.
 
         Args:
-            widget (T_Widget) - The widget to generate the event on
+            widget (T_Widget): The widget to generate the event on
 
         Returns:
-            T_ActionCallable - The callable that actually generates the event
+            T_ActionCallable: The callable that actually generates the event
 
         """
 
@@ -53,11 +58,11 @@ class BaseEvent:
         method.
 
         Args:
-            widget (T_Widget) - The widget the bind is on
-            action (T_ActionCallable) - The callable called when the event is triggered
+            widget (T_Widget): The widget the bind is on
+            action (T_ActionCallable): The callable called when the event is triggered
 
         Returns:
-            str - The event callback id, used to unbind events
+            str: The event callback id, used to unbind events
 
         """
         return widget.bind(self.value, action, add=add)
@@ -78,11 +83,11 @@ class BaseEvent:
         method.
 
         Args:
-            widget (T_Widget) - The widget that will call bind_all
-            action (T_ActionCallable) - The callable called when the event is triggered
+            widget (T_Widget): The widget that will call bind_all
+            action (T_ActionCallable): The callable called when the event is triggered
 
         Returns:
-            str - The event callback id, used to unbind
+            str: The event callback id, used to unbind
 
         """
         return widget.bind_all(self.value, action, add=add)
@@ -94,13 +99,13 @@ class BaseEvent:
         passed to the bind method.
 
         Args:
-            widget (T_Widget) - The widget that will call bind_class
-            classname (str) - The widget class to bind on. See:
+            widget (T_Widget): The widget that will call bind_class
+            classname (str): The widget class to bind on. See:
                 https://tkdocs.com/shipman/binding-levels.html
-            action (T_ActionCallable) - The callable called when the event is triggered
+            action (T_ActionCallable): The callable called when the event is triggered
 
         Returns:
-            str - The event callback id, used to unbind
+            str: The event callback id, used to unbind
 
         """
         return widget.bind_class(classname, self.value, action, add=add)
@@ -113,10 +118,10 @@ class BaseEvent:
             http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding-in-python
 
         Args:
-            widget (T_Widget) - The widget that will call unbind
+            widget (T_Widget): The widget that will call unbind
 
         Keyword Args:
-            funcid (Optional[str]) - The callback id to remove, or None for all
+            funcid (Optional[str]): The callback id to remove, or None for all
                 (default: None)
 
         """
@@ -136,7 +141,17 @@ class BaseEvent:
         )
         widget.deletecommand(funcid)
 
-    def __add__(self, arg):
+    def __add__(self, arg: BaseEvent | str) -> CompositeEvent:
+        """Creates a composite event from this event and another.
+
+        Args:
+            arg (BaseEvent | str): The event to append to this one. Either should be
+                an event type, or string like: "<Event>"
+
+        Returns:
+            CompositeEvent: The new event, having value like <self-event>
+
+        """
         return CompositeEvent.factory(self, arg)
 
 
@@ -153,7 +168,7 @@ class CompositeEvent(BaseEvent):
         """Create a new CompositeEvent instance.
 
         Args:
-            value (str) - The event. Should be formatted like: <event>
+            value (str): The event. Should be formatted like: <event>
 
         """
         self.value = value
@@ -165,13 +180,13 @@ class CompositeEvent(BaseEvent):
         """Creates a composite event from two events.
 
         Args:
-            modifier (Union[_EventMixin, str]) - Prepends to the new event. Either
+            modifier (Union[_EventMixin, str]): Prepends to the new event. Either
                 should be an event type, or string like: "<Event>"
-            event (Union[_EventMixin, str]) - Appends to the new event. Either
+            event (Union[_EventMixin, str]): Appends to the new event. Either
                 should be an event type, or string like: "<Event>"
 
         Returns:
-            CompositeEvent - The new event, having value like <modifier-event>
+            CompositeEvent: The new event, having value like <modifier-event>
 
         """
         mod_value = modifier.value if not isinstance(modifier, str) else modifier
@@ -183,7 +198,12 @@ class CompositeEvent(BaseEvent):
 
 
 class TkEventMod(EventsEnum):
-    """Standard tkinter event modifiers."""
+    """Standard tkinter event modifiers.
+
+    Note:
+        These are not used to generate events, but are used to create composite events.
+
+    """
 
     ALT = "<Alt>"
     ANY = "<Any>"

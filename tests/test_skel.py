@@ -5,18 +5,12 @@ from unittest.mock import call
 import pytest
 from pytest_mock import MockerFixture
 
+from tklife import CreatedWidget, SkeletonMixin, SkelEventDef, SkelWidget
 from tklife.controller import ControllerABC
+from tklife.dynamic import AppendableMixin
 from tklife.event import BaseEvent
+from tklife.menu import Menu, MenuMixin
 from tklife.proxy import CallProxyFactory
-from tklife.skel import (
-    AppendableMixin,
-    CreatedWidget,
-    Menu,
-    MenuMixin,
-    SkeletonMixin,
-    SkelEventDef,
-    SkelWidget,
-)
 
 
 class TestSkelWidget:
@@ -214,7 +208,7 @@ class TestSkeletonMixin:
     def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class):
         with pytest.raises(
             TypeError,
-            match=r"\<class 'tklife\.skel\.SkeletonMixin'\> should be first base class",
+            match=r"\<class 'tklife\.core\.SkeletonMixin'\> should be first base class",
         ):
 
             class TestedSkeleton(mock_mixin_class, SkeletonMixin):
@@ -924,7 +918,7 @@ class TestCreatedWidget:
             AttributeError,
             match=r"Cannot set '"
             + attr
-            + r"'; <class 'tklife.skel.CreatedWidget'> is read-only",
+            + r"'; <class 'tklife.core.CreatedWidget'> is read-only",
         ):
             setattr(created_widget, attr, True)
 
@@ -944,7 +938,7 @@ class TestCreatedWidget:
             AttributeError,
             match=r"Cannot set '"
             + attr
-            + r"'; <class 'tklife.skel.CreatedWidget'> is read-only",
+            + r"'; <class 'tklife.core.CreatedWidget'> is read-only",
         ):
             created_widget[attr] = True
 
@@ -1017,7 +1011,7 @@ class TestMenuMixin:
 
     @pytest.fixture
     def tk_menu_patch(self, mocker: MockerFixture):
-        return mocker.patch("tklife.skel.tkinter")
+        return mocker.patch("tklife.menu.tkinter")
 
     def test_create_menu_calls_methods(
         self, mock_widget_class, mock_master, tk_menu_patch

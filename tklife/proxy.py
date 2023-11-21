@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .skel import SkeletonMixin
+    from . import SkeletonMixin
 
 
 class TklProxyError(RuntimeError):

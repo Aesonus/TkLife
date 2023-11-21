@@ -1,11 +1,8 @@
-"""Defines the SkelWidget, CreatedWidget, CachedWidget, SkeletonMixin, and MenuMixin."""
-
+"""Defines the SkelWidget, CreatedWidget, CachedWidget, and SkeletonMixin."""
 from __future__ import annotations
 
-import abc
 import dataclasses
 import tkinter
-from functools import partial, reduce
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -14,6 +11,7 @@ from typing import (
     Protocol,
     TypedDict,
     TypeVar,
+    final,
 )
 
 from .controller import ControllerABC
@@ -24,15 +22,13 @@ if TYPE_CHECKING:
 
     from .event import BaseEvent
 
+__version__ = "2.4.0-dev0"
 __all__ = [
+    "SkeletonMixin",
     "SkelWidget",
+    "SkelEventDef",
     "CreatedWidget",
     "CachedWidget",
-    "SkeletonMixin",
-    "MenuMixin",
-    "Menu",
-    "SkelEventDef",
-    "AppendableMixin",
 ]
 
 
@@ -390,7 +386,7 @@ class SkeletonProtocol(Protocol):
         """Stores the widgets created as well as grid cooridates and arguments."""
 
 
-class _SkeletonMeta(abc.ABCMeta):
+class _SkeletonMeta(type):
     def __new__(mcs, name, bases: tuple[type, ...], namespace):
         if Generic not in bases and len(bases) > 1 and bases[0] != SkeletonMixin:
             raise TypeError(f"{SkeletonMixin} should be first base class")
@@ -415,17 +411,23 @@ class SkeletonMixin(_Skel):
         controller (Optional[ControllerABC]): The controller
         global_grid_args (Optional[dict[str, Any]]): The global grid arguments
         proxy_factory (Optional[CallProxyFactory]): The proxy factory
-        **kwargs: Additional keyword arguments
+        **kwargs: Additional keyword arguments passed to the tkinter widget
 
     Attributes:
         created (CreatedWidgetDict): The created widgets
+        assigned_events (dict[str, TkEventId]): The assigned events
+
+    Raises:
+        TypeError: Raised when the controller type is not valid
+        ValueError: Raised when there is an error creating, configuring, or gridding a
+            widget
 
     """
 
     created: CreatedWidgetDict
+    assigned_events: dict[str, TkEventId]
     _global_gridargs: dict[str, Any]
     _w_cache: dict[tuple[int, int], CachedWidget]
-    assigned_events: dict[str, TkEventId]
 
     def __init__(
         self,
@@ -470,23 +472,24 @@ class SkeletonMixin(_Skel):
         creating events."""
 
     @property
-    @abc.abstractmethod
     def template(self) -> Iterable[Iterable[SkelWidget | None]]:
-        """
-        - Must be implemented in child class
-        - Must be declared as @property
-        - Only used for inititalization
+        """Override this property to define the template. This must return an iterable
+        of iterables that yield SkelWidget or None. The default implementation returns
+        an empty iterable. **Must be declared as @property**.
 
         Returns:
-            Iterable[Iterable[SkelWidget | None]]: An iterable yielding iterables that yield a SkelWidget
+            Iterable[Iterable[SkelWidget | None]]: An iterable yielding iterables that
+            yield a SkelWidget
+
         """
+        return ((),)
 
     @property
     def grid_config(
         self,
     ) -> tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
         """Returns the grid configuration for the widget. This can be overridden to
-        provide a custom grid configuration.
+        provide a custom grid configuration. **Must be declared as @property**.
 
         Returns:
             tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
@@ -496,8 +499,21 @@ class SkeletonMixin(_Skel):
         return [], []
 
     @property
+    def events(self) -> Iterable[SkelEventDef]:
+        """Override this property to define events. **Must be declared as @property**.
+        The default implementation returns an empty iterable.
+
+        Returns:
+            Iterable[SkelEventDef]: An iterable of SkelEventDef
+
+        """
+        return ()
+
+    @property
+    @final
     def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
-        """Stores the widgets created as well as grid cooridates and arguments.
+        """Stores the widgets created as well as grid cooridates and arguments. **Do not
+        override this property**.
 
         Returns:
             dict[tuple[int, int], CachedWidget]: Widget cache
@@ -510,16 +526,26 @@ class SkeletonMixin(_Skel):
         if skel_widget is None:
             self._w_cache[(row_index, col_index)] = CachedWidget(None, None)
             return None
-        for arg, val in skel_widget.init_args.items():
-            if isinstance(val, type(tkinter.Variable)):
-                skel_widget.init_args[arg] = val()
-
-        for arg, val in skel_widget.config_args.items():
-            if isinstance(val, type(tkinter.Variable)):
-                skel_widget.config_args[arg] = val()
-
-        w = skel_widget.widget(self, **skel_widget.init_args)
-        w.configure(**skel_widget.config_args)
+        try:
+            for arg, val in skel_widget.init_args.items():
+                if isinstance(val, type(tkinter.Variable)):
+                    skel_widget.init_args[arg] = val()
+            w = skel_widget.widget(self, **skel_widget.init_args)
+        except Exception as ex:
+            raise ValueError(
+                f"Error initializing widget at row {row_index}, column {col_index}: "
+                f"{ex}"
+            ) from ex
+        try:
+            for arg, val in skel_widget.config_args.items():
+                if isinstance(val, type(tkinter.Variable)):
+                    skel_widget.config_args[arg] = val()
+            w.configure(**skel_widget.config_args)
+        except Exception as ex:
+            raise ValueError(
+                f"Error configuring widget at row {row_index}, column {col_index}: "
+                f"{ex}"
+            ) from ex
 
         if skel_widget.label is not None:
             # And what is the vardict?
@@ -559,8 +585,13 @@ class SkeletonMixin(_Skel):
 
     def _grid_widget(self, row, column, widget, **grid_args):
         """Grids a widget."""
-        widget.grid(row=row, column=column, **grid_args)
-        self._w_cache[row, column] = CachedWidget(widget, grid_args)
+        try:
+            widget.grid(row=row, column=column, **grid_args)
+            self._w_cache[row, column] = CachedWidget(widget, grid_args)
+        except Exception as ex:
+            raise ValueError(
+                f"Error gridding widget at row {row}, column {column}: {ex}"
+            ) from ex
 
     def _create_events(self):
         """Binds events to widgets."""
@@ -571,19 +602,6 @@ class SkeletonMixin(_Skel):
             handle = bind_method(widget, event_def["action"], add=add)
             if event_def.get("id", None):
                 self.assigned_events[event_def["id"]] = handle
-
-    @property
-    def events(self) -> Iterable[SkelEventDef]:
-        """Override this property to define events.
-
-        Must return an iterable of SkelEventDef. The default implementation returns an
-        empty iterable.
-
-        Returns:
-            Iterable[SkelEventDef]: An iterable of SkelEventDef
-
-        """
-        return ()
 
     @property
     def controller(self) -> Union[CallProxyFactory, ControllerABC]:
@@ -604,266 +622,10 @@ class SkeletonMixin(_Skel):
         return self.__controller
 
     @controller.setter
+    @final
     def controller(self, controller: ControllerABC):
         if not isinstance(controller, ControllerABC) and controller is not None:
             raise TypeError(f"Controller must be of type {ControllerABC.__name__}")
         self.__controller = controller
         if controller is not None:
             controller.set_view(self)
-
-
-class AppendableMixin:
-    """Mixin to allow for rows to be appended to a widget. Must appear after
-    SkeletonMixin, but before the tkinter Widget.
-
-    Attributes:
-        created (CreatedWidgetDict): The created widgets
-
-    """
-
-    created: CreatedWidgetDict
-    _global_gridargs: dict[str, Any]
-    _w_cache: dict[tuple[int, int], CachedWidget]
-    _widget_create: Callable[[SkelWidget | None, int, int], tkinter.Widget | None]
-    _grid_widget: Callable[[int, int, tkinter.Widget | None], None]
-
-    @property
-    def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
-        """Stores the widgets created as well as grid cooridates and arguments.
-
-        Returns:
-            dict[tuple[int, int], CachedWidget]: Widget cache
-
-        """
-        # Use the super's widget cache. This mixin is only used with SkeletonMixin, so
-        # we can safely assume that the super has a widget_cache attribute.
-        return super()._w_cache  # type: ignore
-
-    def append_row(self, widget_row: Iterable[Union[SkelWidget, None]]) -> int:
-        """Appends a row.
-
-        Args:
-            widget_row (Iterable[Union[SkelWidget, None]]): A row of widgets to append
-
-        Raises:
-            TypeError: Raised when row is not iterable
-
-        Returns:
-            int: The new row index
-
-        """
-        # Find last row in cache and add 1 for new row
-        max_row = -1
-        for row, __ in self._w_cache:
-            if row > max_row:
-                max_row = row
-        new_row = max_row + 1
-
-        # Create the widgets in the row
-        for col_index, skel_widget in enumerate(widget_row):
-            if w := self._widget_create(skel_widget, new_row, col_index):
-                self._grid_widget(
-                    new_row,
-                    col_index,
-                    w,
-                    **self._global_gridargs,
-                    # Ignore the typing error because we have already checked for None
-                    **skel_widget.grid_args,  # type: ignore
-                )
-
-        return new_row
-
-    def insert_row_at(
-        self, index: int, widget_row: Iterable[Union[SkelWidget, None]]
-    ) -> int:
-        """Inserts a row at the given index.
-
-        Args:
-            index (int): The index to insert the row at
-            widget_row (Iterable[Union[SkelWidget, None]]): The row to insert
-
-        Raises:
-            TypeError: Raised when widget_row is not iterable
-            IndexError: Raised when index is out of range
-
-        Returns:
-            int: The new row index
-
-        """
-        if index == 1 + reduce(
-            lambda carry, value: max(carry, value[0]), self.widget_cache.keys(), 0
-        ):
-            self.append_row(widget_row)
-        else:
-            i_row = iter(widget_row)
-            for (row, col), (widget, grid_args) in tuple(self._w_cache.items()):
-                if row < index:
-                    continue
-                if row == index:
-                    # Make the insert
-                    skel_widget = next(i_row)
-                    if new_widget := self._widget_create(skel_widget, row, col):
-                        self._grid_widget(
-                            row,
-                            col,
-                            new_widget,
-                            **self._global_gridargs,
-                            # Ignore the typing error because we have already checked
-                            # for None (This check was done in __widget_create)
-                            **skel_widget.grid_args,  # type: ignore
-                        )
-                    else:
-                        self._w_cache[row, col] = CachedWidget(None, None)
-                    if widget is not None:
-                        self._grid_widget(
-                            row + 1, col, widget, **grid_args if grid_args else {}
-                        )
-                    else:
-                        self._w_cache[row + 1, col] = CachedWidget(None, None)
-                elif row > index:
-                    # Shift row
-                    if (widget, grid_args) != (None, None):
-                        self._grid_widget(
-                            row + 1, col, widget, **grid_args
-                        )  # type: ignore
-                    else:
-                        self._w_cache[row + 1, col] = CachedWidget(None, None)
-        return index
-
-    def destroy_row(self, row_index: int) -> None:
-        """Destroys the row at given index.
-
-        Args:
-            row_index (int): The row index to destroy
-
-        """
-        for (row, col), (widget, grid_args) in tuple(self._w_cache.items()):
-            if row == row_index:
-                if widget in (c.widget for c in self.created.values()):
-                    ind = [k for k, v in self.created.items() if v.widget == widget][0]
-                    del self.created[ind]
-                if widget is not None:
-                    widget.destroy()
-                del self._w_cache[row, col]
-            elif row > row_index:
-                w = self._w_cache[row, col]
-                del self._w_cache[row, col]
-                self._w_cache[row - 1, col] = w
-        for (row, col), (widget, grid_args) in self._w_cache.items():
-            if widget is not None and grid_args is not None:
-                widget.grid(row=row, column=col, **grid_args)
-
-    def find_row_of(self, label: str) -> Union[int, None]:
-        """Finds a row of a widget having label as defined in SkelWidget.
-
-        Args:
-            label (str): The label of the widget to find
-
-        Returns:
-            Union[int, None]: The row index containing the given widget or None if
-                not found
-
-        """
-        try:
-            widget = self.created[label].widget
-        except KeyError:
-            return None
-
-        for (row, __), cached in self.widget_cache.items():
-            if widget == cached.widget:
-                return row
-        return None
-
-
-MenuCommand = Callable[[tkinter.Menu], None]
-
-
-class MenuMixin(abc.ABC):
-    """Mixin to allow for a menu to be configured.
-
-    Must appear after SkeletonMixin, but before the tkinter Widget. Must implement the
-    menu_template() property method.
-
-    """
-
-    def __init__(self, master: Optional[tkinter.Misc] = None, **kwargs: Any) -> None:
-        # Init the frame or the menu mixin... or not
-        super().__init__(master, **kwargs)  # type: ignore
-        self._create_menu()
-
-    @property
-    @abc.abstractmethod
-    def menu_template(self) -> dict:
-        """Returns a dict that is used to create the menu.
-
-        Returns:
-            dict: The menu template
-
-        """
-
-    def _create_menu(self):
-        def submenu(template: dict):
-            menu = tkinter.Menu(self.winfo_toplevel())  # type: ignore
-            for menu_partial, data in template.items():
-                if menu_partial.func == tkinter.Menu.add_command:
-                    menu_partial(menu, command=data)
-                elif menu_partial.func == tkinter.Menu.add_cascade:
-                    if not isinstance(data, dict):
-                        raise ValueError(
-                            f"{menu_partial.func.__name__} must have dict for value"
-                        )
-                    menu_partial(menu, menu=submenu(data))
-                elif menu_partial.func == tkinter.Menu.add:
-                    menu_partial(menu, data)
-            return menu
-
-        self.option_add("*tearOff", 0)
-        main_menu = submenu(self.menu_template)
-        self["menu"] = main_menu
-
-
-class Menu:
-    """Class methods are used to define a menu template."""
-
-    def __new__(cls):
-        raise ValueError("Cannot instantiate instance, use class methods instead")
-
-    @classmethod
-    def add(cls, **opts: Any) -> partial:
-        """Use to add a separator, radiobutton, or checkbutton menu item.
-
-        >>> {Menu.add(**opts): 'separator'|'radiobutton'|'checkbutton'}
-
-        Returns:
-            partial: Partial function that will be called to create item
-
-        """
-        return partial(tkinter.Menu.add, **opts)
-
-    @classmethod
-    def command(cls, **opts: Any) -> MenuCommand:
-        """Use to add a command menu item.
-
-        >>> {Menu.command(label='labeltext', **opts): command_function}
-
-        Returns:
-            T_MenuCommand: Partial function that will be called to create item
-
-        """
-        nf = partial(tkinter.Menu.add_command, **opts)
-        return nf
-
-    @classmethod
-    def cascade(cls, **opts: Any) -> MenuCommand:
-        """Use to add a submenu to a menu.
-
-        >>> {Menu.cascade(label='labeltext', **opts): {
-        >>>     # submenu def
-        >>> }}
-
-        Returns:
-            T_MenuCommand: Partial function that will be called to create submenu
-
-        """
-        nf = partial(tkinter.Menu.add_cascade, **opts)
-        return nf

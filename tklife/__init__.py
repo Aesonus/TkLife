@@ -1,2 +1,5 @@
 """Make Tkinter life easier."""
-__version__ = "2.3.0-dev4"
+
+from .core import *  # noqa: F401
+
+__version__ = "2.4.0-dev0"

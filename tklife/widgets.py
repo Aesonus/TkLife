@@ -21,8 +21,8 @@ from tkinter.constants import ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E, N,
 from tkinter.ttk import Entry, Frame, Scrollbar
 from typing import Any, Iterable, Optional
 
+from tklife import SkeletonMixin
 from tklife.event import TkEvent
-from tklife.skel import SkeletonMixin
 
 __all__ = ["ScrolledListbox", "AutoSearchCombobox", "ScrolledFrame", "ModalDialog"]
 
