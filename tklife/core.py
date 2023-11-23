@@ -1,4 +1,4 @@
-"""Defines the SkelWidget, CreatedWidget, CachedWidget, and SkeletonMixin."""
+"""Contains classes to structure a tkinter application."""
 from __future__ import annotations
 
 import dataclasses
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from .event import BaseEvent
 
-__version__ = "2.4.0-dev0"
+
 __all__ = [
     "SkeletonMixin",
     "SkelWidget",
@@ -401,10 +401,11 @@ TkEventId = str
 
 
 class SkeletonMixin(_Skel):
-    """Must use this mixin first.
+    """This mixin is used to create a skeleton for a tkinter widget.
 
     Optionally can add a MenuMixin and/or an AppendableMixin. Then you put the Widget
     class to use.
+
 
     Args:
         master (Optional[tkinter.Misc]): The master widget
@@ -413,14 +414,14 @@ class SkeletonMixin(_Skel):
         proxy_factory (Optional[CallProxyFactory]): The proxy factory
         **kwargs: Additional keyword arguments passed to the tkinter widget
 
-    Attributes:
-        created (CreatedWidgetDict): The created widgets
-        assigned_events (dict[str, TkEventId]): The assigned events
-
     Raises:
         TypeError: Raised when the controller type is not valid
         ValueError: Raised when there is an error creating, configuring, or gridding a
             widget
+
+    Attributes:
+        created (CreatedWidgetDict): The created widgets
+        assigned_events (dict[str, TkEventId]): The assigned events
 
     """
 
