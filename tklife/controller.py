@@ -10,7 +10,14 @@ if TYPE_CHECKING:
 
 
 class ControllerABC:
-    """Abstract base class for controllers."""
+    """Abstract base class for controllers.
+
+    Controllers allow for access to created widgets in the view via attribute access.
+
+    Attributes:
+        view (SkeletonProtocol): The view associated with this controller
+
+    """
 
     view: SkeletonProtocol
 
@@ -18,7 +25,7 @@ class ControllerABC:
         """Sets the view associated with this controller.
 
         Arguments:
-            view {T_SkeletonProtocol} -- An instance that implements SkeletonMixin
+            view (SkeletonProtocol): An instance that implements SkeletonMixin
                 methods
 
         """
@@ -28,10 +35,10 @@ class ControllerABC:
         """Gets a created widget in this controller's view's created dictionary.
 
         Arguments:
-            attr {str} -- The label of the created widget
+            attr (str): The label of the created widget
 
         Returns:
-            CreatedWidget -- The created widget found
+            CreatedWidget: The created widget found
 
         """
         return self.view.created[attr]

@@ -14,6 +14,16 @@ tklife.core
     :special-members: __before_init__, __after_init__, __after_widgets__, __getitem__, __setitem__, __getattr__, __setattr__
     :member-order: bysource
 
+tklife.controller
+-----------------
+
+.. automodule:: tklife.controller
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :special-members: __getattr__
+    :member-order: bysource
+
 tklife.menu
 -----------
 

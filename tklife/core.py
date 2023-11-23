@@ -29,6 +29,7 @@ __all__ = [
     "SkelEventDef",
     "CreatedWidget",
     "CachedWidget",
+    "SkeletonProtocol",
 ]
 
 
