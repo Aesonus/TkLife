@@ -4,13 +4,13 @@ from unittest.mock import call
 import pytest
 from pytest_mock import MockerFixture
 
-from tklife.style.style import BaseStyle, TEntry
+from tklife.style import BaseStyle, TEntry
 
 parametrize = pytest.mark.parametrize
 
 
 class TestBaseStyle:
-    @pytest.mark.parametrize(
+    @parametrize(
         "subclass, expected",
         [
             (type("TestEntry", (TEntry,), {}), "TestEntry.TEntry"),

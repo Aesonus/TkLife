@@ -1,9 +1,27 @@
-"""This module contains the BaseStyle class, which is the base class for all styles.
+"""Package for configuring ttk styles."""
 
-It also contains all the styles that are defined by default, and the _StyleMeta class,
-which is a metaclass for BaseStyle that automatically registers all classes that inherit
-from it. This allows for easy access to the Ttk Style name, and configuration and map
-options.
+from . import progressbar, scale, scrollbar  # noqa: F401
+from .style import *  # noqa: F401, F403
 
-"""
-from .style import *  # noqa: F401
+__all__ = [
+    "progressbar",
+    "scrollbar",
+    "scale",
+    "BaseStyle",
+    "TButton",
+    "TCheckbutton",
+    "TCombobox",
+    "TEntry",
+    "TFrame",
+    "TLabel",
+    "TLabelFrame",
+    "TMenubutton",
+    "TNotebook",
+    "TPanedwindow",
+    "TProgressbar",
+    "TRadiobutton",
+    "TScale",
+    "TScrollbar",
+    "TSpinbox",
+    "Treeview",
+]

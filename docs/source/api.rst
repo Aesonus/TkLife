@@ -64,10 +64,46 @@ tklife.event
     :special-members: __add__
     :member-order: bysource
 
+tklife.style
+------------
+
+.. automodule:: tklife.style
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :member-order: bysource
+
+tklife.style.progressbar
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: tklife.style.progressbar
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :member-order: bysource
+
+tklife.style.scrollbar
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: tklife.style.scrollbar
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :member-order: bysource
+
+tklife.style.scale
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: tklife.style.scale
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :member-order: bysource
+
+
 tklife.constants
 ----------------
 
 .. automodule:: tklife.constants
     :members:
     :member-order: bysource
-    :undoc-members:

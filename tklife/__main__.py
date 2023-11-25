@@ -1,18 +1,20 @@
 """Shows an example of a skeleton window."""
+from __future__ import annotations
 
 import tkinter as tk
 from random import random
-from tkinter import EW, NSEW, E, Misc, StringVar, Tk, W, ttk
+from tkinter import EW, NSEW, E, Misc, StringVar, Tk, Toplevel, W, ttk
 from tkinter.messagebox import showinfo
 from typing import Any, Iterable, Optional
 
-from tklife import SkeletonMixin, SkelEventDef, SkelWidget
+from tklife import SkeletonMixin, SkelEventDef, SkelWidget, style
 from tklife.constants import (
     COLUMNSPAN,
     COMMAND,
     PADX,
     PADY,
     STICKY,
+    STYLE,
     TEXT,
     TEXTVARIABLE,
     VALUES,
@@ -25,6 +27,10 @@ from tklife.menu import Menu, MenuMixin
 from tklife.widgets import AutoSearchCombobox, ModalDialog, ScrolledFrame
 
 # pylint: disable=all
+
+
+class GreenLabelStyle(style.TLabel):
+    configure = {"foreground": "green"}
 
 
 class ExampleModal(ModalDialog):
@@ -61,12 +67,12 @@ class ExampleModal(ModalDialog):
 
 
 class AppendExampleScrolledFrame(SkeletonMixin, AppendableMixin, ScrolledFrame):
-    @property
-    def template(self):
-        return [[]]
+    pass
 
 
 class ExampleController(ControllerABC):
+    view: ExampleView
+
     def button_a_command(self, *__):
         showinfo(
             title="Information",
@@ -112,7 +118,7 @@ class ExampleController(ControllerABC):
         delete_from.destroy_row(int(len(delete_from.widget_cache) / 3) - 1)
 
 
-class ExampleView(SkeletonMixin, MenuMixin, Tk):
+class ExampleView(SkeletonMixin, MenuMixin, Toplevel):
     def __init__(
         self,
         master: Optional[Misc] = None,
@@ -178,7 +184,9 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
                 ),
             ],
             [
-                SkelWidget(ttk.Label, {TEXT: "Label B:"}, {}),
+                SkelWidget(
+                    ttk.Label, {TEXT: "Label B:", STYLE: GreenLabelStyle.ttk_style}, {}
+                ),
                 SkelWidget(
                     AutoSearchCombobox,
                     {
@@ -243,6 +251,10 @@ class ExampleView(SkeletonMixin, MenuMixin, Tk):
 
 
 if __name__ == "__main__":
-    example_view = ExampleView(None, None)  # None arguments are added for illustration
+    master = Tk()
+    style.BaseStyle.define_all()
+    example_view = ExampleView(master)
     example_view.controller = ExampleController()
-    example_view.mainloop()
+    master.withdraw()
+    example_view.wait_window()
+    master.quit()
