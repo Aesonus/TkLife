@@ -24,10 +24,30 @@ tklife.controller
     :special-members: __getattr__
     :member-order: bysource
 
+tklife.proxy
+------------
+
+.. automodule:: tklife.proxy
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :special-members: __getattr__, __call__
+    :member-order: bysource
+
 tklife.menu
 -----------
 
 .. automodule:: tklife.menu
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :special-members: __before_init__, __after_init__, __after_widgets__, __getitem__, __setitem__, __getattr__, __setattr__
+    :member-order: bysource
+
+tklife.dynamic
+--------------
+
+.. automodule:: tklife.dynamic
     :members:
     :show-inheritance:
     :inherited-members:
@@ -43,3 +63,11 @@ tklife.event
     :inherited-members:
     :special-members: __add__
     :member-order: bysource
+
+tklife.constants
+----------------
+
+.. automodule:: tklife.constants
+    :members:
+    :member-order: bysource
+    :undoc-members:

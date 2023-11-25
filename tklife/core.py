@@ -38,16 +38,17 @@ class SkelEventDef(TypedDict):
 
     Attributes:
 
-        event (BaseEvent) -- The event to bind
-        action (Callable[[tkinter.Event], Literal['break'] | None]) -- The action to
+        event (BaseEvent): The event to bind
+        action (Callable[[tkinter.Event], Literal["break"] | None]): The action to
             bind
-        bind_method (Literal['bind', 'bind_tag', 'bind_all']) -- The bind method to use
-        widget (tkinter.Misc) -- The widget to bind to. This may be
+        bind_method (Literal["bind", "bind_tag", "bind_all", "bind_class"]): The bind
+            method to use
+        widget (tkinter.Misc): The widget to bind to. This may be
             ommitted, and will default to self.
-        add (Literal['', '+']) -- The add argument to pass to the bind method. This may
-            be ommitted, and will default to ''. If you want to add to an existing bind,
-            use '+'. If you want to replace an existing bind, use ''.
-        id (str) -- The id of the event. This may be ommitted. When included, this will
+        add (Literal[", "+"]): The add argument to pass to the bind method. This may
+            be ommitted, and will default to "". If you want to add to an existing bind,
+            use "+". If you want to replace an existing bind, use ".
+        id (str): The id of the event. This may be ommitted. When included, this will
             be used as the dict key of the event. This is useful when you want to
             unbind the event later.
 
@@ -97,8 +98,8 @@ class SkelWidget:
         SkelWidget, but with updated init_args.
 
         Args:
-            **merge_init_args: Additional or updated init arguments to merge with the
-                current SkelWidget's init_args.
+            **merge_init_args (Any): Additional or updated init arguments to merge
+                with the current SkelWidget's init_args.
 
         Returns:
             SkelWidget: The new SkelWidget with the updated init_args.
@@ -117,8 +118,8 @@ class SkelWidget:
         SkelWidget, but with updated grid_args.
 
         Args:
-            **merge_grid_args: Additional or updated grid arguments to merge with the
-                current SkelWidget's grid_args.
+            **merge_grid_args (Any): Additional or updated grid arguments to merge
+                with the current SkelWidget's grid_args.
 
         Returns:
             SkelWidget: The new SkelWidget with the updated grid_args.
@@ -137,8 +138,8 @@ class SkelWidget:
         SkelWidget, but with updated config_args.
 
         Args:
-            **merge_config_args: Additional or updated config arguments to merge with
-                the current SkelWidget's config_args.
+            **merge_config_args (Any): Additional or updated config arguments to merge
+                with the current SkelWidget's config_args.
 
         Returns:
             SkelWidget: The new SkelWidget with the updated config_args.
