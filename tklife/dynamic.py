@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class AppendableMixin:
-    """Mixin to allow for rows to be appended to a widget.
+    """Mixin to allow for rows to be appended to and removed from a widget.
 
     Must appear after SkeletonMixin, but before the tkinter Widget.
 

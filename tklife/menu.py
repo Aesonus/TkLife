@@ -28,7 +28,8 @@ class MenuMixin:
 
     @property
     def menu_template(self) -> dict:
-        """Returns a dict that is used to create the menu.
+        """Returns a dict that is used to create the menu. **Must be declared as
+        @property**
 
         Returns:
             dict: The menu template
