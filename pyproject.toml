@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "tklife"
-version = "2.4.0-dev1"
+version = "2.4.0-dev2"
 description = "Make Tk life easier"
 authors = ["Cory Laughlin <corylcomposinger@gmail.com>"]
 license = "MIT"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
