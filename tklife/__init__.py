@@ -1,5 +1,5 @@
-from .mixins import *
-from .widgets import *
+"""Make Tkinter life easier."""
 
-name = 'tklife'
-__version__ = '1.0.0-alpha12'
+from .core import *  # noqa: F401
+
+__version__ = "2.4.0-dev1"
