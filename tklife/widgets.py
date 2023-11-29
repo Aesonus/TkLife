@@ -20,7 +20,7 @@ from tkinter import (
 )
 from tkinter.constants import ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E, N, S, W
 from tkinter.ttk import Entry, Frame, Scrollbar
-from typing import Generic, Iterable, Optional, TypeVar
+from typing import Any, Generic, Iterable, Optional, TypeVar
 
 from tklife import SkeletonMixin, SkelEventDef
 from tklife.event import BaseEvent, TkEvent
@@ -331,7 +331,8 @@ class AutoSearchCombobox(Entry):
             height=height,
             selectmode=SINGLE,
         )
-        self.values = tuple(values) if values else ()
+        self.__values: tuple = tuple()
+        self.configure(values=values)
         self._lb.pack(expand=True, fill=BOTH)
         self._hide_tl()
         self.winfo_toplevel().focus_set()
@@ -348,21 +349,33 @@ class AutoSearchCombobox(Entry):
         )
         (TkEvent.BUTTONRELEASE + "<1>").bind(self._lb, self._handle_lb_click)
 
-    @property
-    def values(self) -> tuple[str, ...]:
+    def cget(self, key: str) -> Any:
+        """Gets the value of the specified option."""
+        if key == "values":
+            return self._get_values()
+        return super().cget(key)
+
+    def configure(self, cnf=None, **kwargs):
+        """Configures the widget."""
+        if cnf is not None:
+            kwargs.update(cnf)
+        if "values" in kwargs:
+            self._set_values(kwargs.pop("values"))
+        super().configure(**kwargs)
+
+    def _get_values(self) -> tuple[str, ...]:
         """Gets the values."""
         try:
             return self.__values
         except AttributeError:
-            self.values = ()
-            return self.values
+            self.__values = ()
+            return self.__values
 
-    @values.setter
-    def values(self, values: Optional[Iterable[str]]) -> None:
+    def _set_values(self, values: Optional[Iterable[str]]) -> None:
         """Sorts and sets the values."""
         self.__values = tuple(sorted(values)) if values is not None else tuple()
         self._lb.delete(0, END)
-        self._lb.insert(END, *self.values)
+        self._lb.insert(END, *self.cget("values"))
         self._lb.selection_clear(0, END)
         self._lb.selection_set(0)
         self._lb.activate(0)
@@ -443,11 +456,11 @@ class AutoSearchCombobox(Entry):
             if self.get() != "":
                 new_values = tuple(
                     value
-                    for value in self.values
+                    for value in self.cget("values")
                     if value.lower().startswith(self.get().lower())
                 )
             else:
-                new_values = self.values
+                new_values = self.cget("values")
             self._lb.delete(0, END)
             self._lb.insert(END, *new_values)
             self._set_lb_index(0)
