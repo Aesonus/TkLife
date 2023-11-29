@@ -100,6 +100,13 @@ tklife.style.scale
     :inherited-members:
     :member-order: bysource
 
+tklife.widgets
+--------------
+
+.. automodule:: tklife.widgets
+    :members:
+    :show-inheritance:
+    :member-order: bysource
 
 tklife.constants
 ----------------
