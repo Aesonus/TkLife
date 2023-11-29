@@ -442,6 +442,28 @@ class TestSkeletonMixin:
             call().grid(row=1, column=1),
         ]
 
+    def test_create_all_stores_image_init_arg_as_attribute_on_created_widget(
+        self, mock_master, mock_controller, mock_mixin_class, mocked_widget
+    ):
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return ([SkelWidget(mocked_widget, {"image": "test"}, label="test")],)
+
+        skeleton = Tested(mock_master, mock_controller)
+        assert skeleton.created["test"].widget._image == "test"
+
+    def test_create_all_stores_image_config_arg_as_attribute_on_created_widget(
+        self, mock_master, mock_controller, mock_mixin_class, mocked_widget
+    ):
+        class Tested(SkeletonMixin, mock_mixin_class):
+            @property
+            def template(self):
+                return ([SkelWidget(mocked_widget, label="test").config(image="test")],)
+
+        skeleton = Tested(mock_master, mock_controller)
+        assert skeleton.created["test"].widget._image == "test"
+
     def test_create_all_updates_cache(
         self, mock_master, mock_controller, mock_mixin_class, mocked_widget
     ):

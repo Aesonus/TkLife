@@ -534,6 +534,8 @@ class SkeletonMixin(_Skel):
                 if isinstance(val, type(tkinter.Variable)):
                     skel_widget.init_args[arg] = val()
             w = skel_widget.widget(self, **skel_widget.init_args)
+            if "image" in skel_widget.init_args:
+                w._image = skel_widget.init_args["image"]
         except Exception as ex:
             raise ValueError(
                 f"Error initializing widget at row {row_index}, column {col_index}: "
@@ -544,6 +546,8 @@ class SkeletonMixin(_Skel):
                 if isinstance(val, type(tkinter.Variable)):
                     skel_widget.config_args[arg] = val()
             w.configure(**skel_widget.config_args)
+            if "image" in skel_widget.config_args:
+                w._image = skel_widget.config_args["image"]
         except Exception as ex:
             raise ValueError(
                 f"Error configuring widget at row {row_index}, column {col_index}: "
