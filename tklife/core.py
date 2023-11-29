@@ -515,8 +515,8 @@ class SkeletonMixin(_Skel):
     @property
     @final
     def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
-        """Stores the widgets created as well as grid cooridates and arguments. **Do not
-        override this property**.
+        """Stores the widgets created as well as grid cooridates and arguments (rows,
+        cols). **Do not override this property**.
 
         Returns:
             dict[tuple[int, int], CachedWidget]: Widget cache
