@@ -150,7 +150,6 @@ class ScrolledFrame(Frame):
         self.canvas = Canvas(self.container, relief="flat", highlightthickness=0)
         self.v_scroll = Scrollbar(self.container, orient=VERTICAL)
         self.h_scroll = Scrollbar(self.container, orient=HORIZONTAL)
-        self._modifier_keydown: str | None = None
         self._canvas_handlers: list[tuple[str, BaseEvent]] = []
 
         kwargs.update(master=self.canvas)
@@ -186,12 +185,6 @@ class ScrolledFrame(Frame):
         TkEvent.CONFIGURE.bind(self, self._self_configure_handler)
         TkEvent.ENTER.bind(self.canvas, self._enter_canvas_handler)
         TkEvent.LEAVE.bind(self.canvas, self._leave_canvas_handler)
-        TkEvent.KEYPRESS.bind(
-            self.winfo_toplevel(), self._modifier_keydown_handler, add="+"
-        )
-        TkEvent.KEYRELEASE.bind(
-            self.winfo_toplevel(), self._modifier_keyup_handler, add="+"
-        )
 
     def _container_configure_handler(self, event: Event):
         self.canvas.configure(
@@ -256,28 +249,18 @@ class ScrolledFrame(Frame):
             tkevent.unbind(self.winfo_toplevel(), handler)
         self._canvas_handlers = []
 
-    def _modifier_keydown_handler(self, event: Event):
-        self._modifier_keydown = event.keysym
-
-    def _modifier_keyup_handler(self, __):
-        self._modifier_keydown = None
-
     def _mouse_scroll_handler(self, event: Event):
         # Hold down shift to scroll horizontally
-        if (
-            self._modifier_keydown
-            and ("Shift" in self._modifier_keydown)
-            and self._can_h_scroll()
-        ):
-            if event.num == 4 or event.delta < 0:
+        if int(event.state) & 0x0001 and self._can_h_scroll():
+            if event.num == 4 or event.delta > 0:
                 self.canvas.xview_scroll(-1, "units")
-            if event.num == 5 or event.delta > 0:
+            if event.num == 5 or event.delta < 0:
                 self.canvas.xview_scroll(1, "units")
         # Otherwise scroll vertically
-        elif self._can_v_scroll():
-            if event.num == 4 or event.delta < 0:
+        elif self._can_v_scroll() and not int(event.state) & 0x0001:
+            if event.num == 4 or event.delta > 0:
                 self.canvas.yview_scroll(-1, "units")
-            if event.num == 5 or event.delta > 0:
+            if event.num == 5 or event.delta < 0:
                 self.canvas.yview_scroll(1, "units")
 
 

@@ -214,7 +214,7 @@ class ExampleView(SkeletonMixin, MenuMixin, Toplevel):
             [
                 SkelWidget(
                     AppendExampleScrolledFrame,
-                    {},
+                    {"show_hscroll": True},
                     {COLUMNSPAN: 3, STICKY: NSEW},
                     label="appendable_frame",
                 )
