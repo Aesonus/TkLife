@@ -133,7 +133,7 @@ class ScrolledFrame(Frame):
 
     Note:
         When created, this widget adds to the toplevel's bindings for <MouseWheel>,
-        <Button-4>, <Button-5>, <KeyPress>, and <KeyRelease>. This is to ensure that
+        <Button-4>, <Button-5>. This is to ensure that
         the scrolling works in both horizontal (with shift) and vertical directions
         with the mousewheel.
 
