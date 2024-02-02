@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tklife"
-version = "2.4.0-dev3"
+version = "2.4.0-dev4"
 description = "Make Tk life easier"
 authors = ["Cory Laughlin <corylcomposinger@gmail.com>"]
 license = "MIT"
@@ -31,7 +31,7 @@ addopts = "--cov=tklife --cov-branch --cov-report xml --cov-report html -vvv"
 
 [tool.mypy]
 ignore_missing_imports = true
-python_version = 3.11
+python_version = "3.11"
 
 [tool.coverage.report]
 exclude_also = ["if TYPE_CHECKING:"]

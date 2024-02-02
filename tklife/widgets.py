@@ -48,7 +48,7 @@ class ModalDialog(Generic[T_ReturnValue], SkeletonMixin, Toplevel):
     cancelled: bool
 
     def __init__(self, master, **kwargs):
-        super().__init__(None, **kwargs)
+        super().__init__(master, **kwargs)
         self.transient(master)
         self.withdraw()
         self.return_value = None
