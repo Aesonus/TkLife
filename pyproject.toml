@@ -34,7 +34,8 @@ ignore_missing_imports = true
 python_version = "3.11"
 
 [tool.coverage.report]
-exclude_also = ["if TYPE_CHECKING:"]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+omit = ["tklife/__main__.py"]
 
 [tool.autoflake]
 remove_all_unused_imports = true
