@@ -28,6 +28,9 @@ esbonio = "^0.16.2"
 
 [tool.pytest.ini_options]
 addopts = "--cov=tklife --cov-branch --cov-report xml --cov-report html -vvv"
+markers = [
+    "integration: mark a test as an integration test."
+]
 
 [tool.mypy]
 ignore_missing_imports = true
