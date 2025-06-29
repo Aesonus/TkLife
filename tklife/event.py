@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from enum import Enum
 from tkinter import BaseWidget, Tk, Toplevel
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Literal, Union
 
 __all__ = [
     "BaseEvent",
@@ -61,61 +61,33 @@ class BaseEvent:
 
         return generator
 
-    def bind(self, widget: Widget, action: ActionCallable, add="") -> str:
+    def bind(
+        self,
+        widget: Widget,
+        action: ActionCallable,
+        add: Literal["", "+"] = "",
+        classname: str | None = None,
+    ) -> FuncId:
         """Binds a callback to an event on given widget. Kwargs are passed to the bind
         method.
 
         Args:
-            widget (T_Widget): The widget the bind is on
-            action (T_ActionCallable): The callable called when the event is triggered
+            widget: The widget the bind is on or called on
+            action: The callable called when the event is triggered
+
+        Keyword Args:
+            add: If set to "+" the callback is added to the existing callbacks (default:
+                "")
+            classname: The classname to bind on, or None for widget (default: None); use
+                `"all"` to bind to all widgets or `"tag_name"` to bind to a specific
+                tag.
 
         Returns:
-            str: The event callback id, used to unbind events
+            The event callback id, used to unbind events
 
         """
-        return widget.bind(self.value, action, add=add)
-
-    def bind_tag(self, widget: Widget, tag: str, action: ActionCallable, add="") -> str:
-        """Binds a callback to an event on given widget's tag.
-
-        Kwargs are passed to the bind method. This would be used primarily for binding
-        to a tag on a canvas, or text widget.
-
-        """
-        # Access the widget's private _bind method, which allows binding to tags.
-        # pylint: disable=protected-access
-        return widget._bind(("bind", tag), self.value, action, add=add)  # type: ignore
-
-    def bind_all(self, widget: Widget, action: ActionCallable, add="") -> str:
-        """Binds a callback to an event on all widgets. Kwargs are passed to the bind
-        method.
-
-        Args:
-            widget (T_Widget): The widget that will call bind_all
-            action (T_ActionCallable): The callable called when the event is triggered
-
-        Returns:
-            str: The event callback id, used to unbind
-
-        """
-        return widget.bind_all(self.value, action, add=add)
-
-    def bind_class(
-        self, widget: Widget, classname: str, action: ActionCallable, add=""
-    ) -> str:
-        """Binds a callback to this event on all widgets in the given class. Kwargs are
-        passed to the bind method.
-
-        Args:
-            widget (T_Widget): The widget that will call bind_class
-            classname (str): The widget class to bind on. See:
-                https://tkdocs.com/shipman/binding-levels.html
-            action (T_ActionCallable): The callable called when the event is triggered
-
-        Returns:
-            str: The event callback id, used to unbind
-
-        """
+        if not classname:
+            return widget.bind(self.value, action, add=add)
         return widget.bind_class(classname, self.value, action, add=add)
 
     def unbind(self, widget: Widget, funcid: Optional[str] = None) -> None:
