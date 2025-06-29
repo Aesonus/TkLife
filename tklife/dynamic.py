@@ -169,8 +169,7 @@ class AppendableMixin:
             widget = self.created[label].widget
         except KeyError:
             return None
-
         for (row, __), cached in self.widget_cache.items():
             if widget == cached.widget:
                 return row
-        return None
+        return None  # pragma: no cover
