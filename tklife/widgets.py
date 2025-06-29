@@ -1,4 +1,5 @@
 """Creates some common widgets."""
+
 from __future__ import annotations
 
 from tkinter import (
@@ -62,17 +63,14 @@ class ModalDialog(Generic[T_ReturnValue], SkeletonMixin, Toplevel):
             {
                 "event": TkEvent.ESCAPE,
                 "action": self.cancel,
-                "bind_method": "bind",
             },
             {
                 "event": TkEvent.RETURN,
                 "action": lambda __: self.destroy(),
-                "bind_method": "bind",
             },
             {
                 "event": TkEvent.DESTROY,
                 "action": self.__destroy_event_handler,
-                "bind_method": "bind",
             },
         ]
 
