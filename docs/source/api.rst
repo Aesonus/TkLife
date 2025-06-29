@@ -70,7 +70,7 @@ tklife.style
 .. automodule:: tklife.style
     :members:
     :show-inheritance:
-    :inherited-members:
+    :inherited-members: define_all
     :member-order: bysource
 
 tklife.style.progressbar
