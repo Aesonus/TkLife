@@ -1,6 +1,8 @@
 """Shows an example of a skeleton window."""
+
 from __future__ import annotations
 
+import dataclasses
 import tkinter as tk
 from random import random
 from tkinter import EW, NSEW, E, Misc, StringVar, Tk, Toplevel, W, ttk
@@ -8,6 +10,7 @@ from tkinter.messagebox import showinfo
 from typing import Any, Iterable, Optional
 
 from tklife import SkeletonMixin, SkelEventDef, SkelWidget, style
+from tklife.behaviors import commands
 from tklife.constants import (
     COLUMNSPAN,
     COMMAND,
@@ -19,6 +22,7 @@ from tklife.constants import (
     TEXTVARIABLE,
     VALUES,
     WEIGHT,
+    WIDTH,
 )
 from tklife.controller import ControllerABC
 from tklife.dynamic import AppendableMixin
@@ -33,7 +37,11 @@ class GreenLabelStyle(style.TLabel):
     configure = {"foreground": "green"}
 
 
-class ExampleModal(ModalDialog):
+class GreenScrollbar(style.scrollbar.Horizontal):
+    configure = {"troughcolor": "green"}
+
+
+class ExampleModal(ModalDialog[str]):
     def __init__(self, master, **kwargs):
         super().__init__(master, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
 
@@ -67,11 +75,98 @@ class ExampleModal(ModalDialog):
 
 
 class AppendExampleScrolledFrame(SkeletonMixin, AppendableMixin, ScrolledFrame):
-    pass
+    def __after_init__(self):
+        GreenScrollbar.set_style(self.h_scroll)
+        super().__after_init__()
 
 
 class ExampleController(ControllerABC):
+    @dataclasses.dataclass()
+    class AddRowCommand(commands.Command):
+        appendable_frame: AppendExampleScrolledFrame
+        controller: ExampleController
+        id: str = dataclasses.field(default_factory=lambda: f"{random():.8f}")
+        entry_text: str = dataclasses.field(default="")
+        insert_at: int = dataclasses.field(default=-1)
+
+        def add_row(self) -> None:
+            id = self.id
+            add_to = self.appendable_frame
+            new_row = [
+                SkelWidget(ttk.Label, {TEXT: f"Appended Row {id}"}, {STICKY: EW}),
+                SkelWidget(ttk.Entry, {}, {STICKY: EW}),
+                SkelWidget(
+                    ttk.Button,
+                    {
+                        TEXT: "x",
+                        COMMAND: self.controller.get_delete_this_row_command(id),
+                        WIDTH: 2,
+                    },
+                    {STICKY: EW},
+                    label=id,
+                ),
+            ]
+            if self.insert_at == -1:
+                added_row = add_to.append_row(new_row)
+                add_to.widget_cache[added_row, 1].widget.insert(0, self.entry_text)  # type: ignore
+            else:
+                try:
+                    added_row = add_to.insert_row_at(self.insert_at, new_row)
+                    add_to.widget_cache[added_row, 1].widget.insert(0, self.entry_text)  # type: ignore
+                except KeyError:
+                    added_row = add_to.append_row(new_row)
+                    add_to.widget_cache[added_row, 1].widget.insert(0, self.entry_text)  # type: ignore
+
+        def _get_delete_this_row_command(self):
+            def delete_this_row():
+                destroy_row = self.appendable_frame.find_row_of(self.id)
+                self.entry_text = self.appendable_frame.widget_cache[
+                    destroy_row, 1
+                ].widget.get()
+                self.appendable_frame.destroy_row(destroy_row)
+                self.insert_at = destroy_row
+
+            return delete_this_row
+
+        def delete_row(self) -> None:
+            return self._get_delete_this_row_command()()
+
+        def execute(self) -> None:
+            self.add_row()
+
+        def reverse(self) -> None:
+            self.delete_row()
+
+    class DeleteRowCommand(AddRowCommand):
+        def execute(self) -> None:
+            self.delete_row()
+
+        def reverse(self) -> None:
+            self.add_row()
+
+    @dataclasses.dataclass()
+    class DeleteLastRowCommand(DeleteRowCommand):
+        def execute(self) -> None:
+            destroy_row = int(len(self.appendable_frame.widget_cache) / 3) - 1
+            self.entry_text = self.appendable_frame.widget_cache[  # type: ignore
+                destroy_row, 1
+            ].widget.get()
+            self.id = next(
+                lbl_
+                for lbl_, cr_w in self.appendable_frame.created.items()
+                if cr_w.widget
+                == self.appendable_frame.widget_cache[destroy_row, 2].widget
+            )
+            self.appendable_frame.destroy_row(destroy_row)
+
     view: ExampleView
+    command_history: commands.CommandHistory
+
+    def __init__(self, command_history: commands.CommandHistory | None = None) -> None:
+        self.command_history = (
+            commands.CommandHistory() if command_history is None else command_history
+        )
+        super().__init__()
 
     def button_a_command(self, *__):
         showinfo(
@@ -88,34 +183,33 @@ class ExampleController(ControllerABC):
         )
 
     def button_c_command(self, *__):
-        d = ExampleModal.show(self.view)
+        d = ExampleModal.create(self.view)
         showinfo(title="Information", message=f"{d}", parent=self.view)
 
     def add_row_command(self, *__):
-        add_to = self.appendable_frame.widget
-        id = f"{random():.8f}"
-        new_row = [
-            SkelWidget(ttk.Label, {TEXT: f"Appended Row {id}"}, {STICKY: EW}),
-            SkelWidget(ttk.Entry, {}, {STICKY: EW}),
-            SkelWidget(
-                ttk.Button,
-                {TEXT: "x", COMMAND: self.get_delete_this_row_command(id)},
-                {STICKY: EW},
-                label=id,
-            ),
-        ]
-        add_to.append_row(new_row)
+        command = self.AddRowCommand(self.appendable_frame.widget, self)
+        self.command_history.add_history(command)
 
-    def get_delete_this_row_command(self, last_label):
+    def get_delete_this_row_command(self, last_label: str):
         def delete_this_row():
-            delete_from = self.appendable_frame.widget
-            delete_from.destroy_row(delete_from.find_row_of(last_label))
+            command = self.DeleteRowCommand(
+                self.appendable_frame.widget, self, last_label
+            )
+            self.command_history.add_history(command)
 
         return delete_this_row
 
     def delete_last_row_command(self, *__):
-        delete_from = self.appendable_frame.widget
-        delete_from.destroy_row(int(len(delete_from.widget_cache) / 3) - 1)
+        if not self.appendable_frame.widget.widget_cache:
+            return
+        command = self.DeleteLastRowCommand(self.appendable_frame.widget, self)
+        self.command_history.add_history(command)
+
+    def control_z_event_handler(self, *__):
+        self.command_history.undo()
+
+    def control_y_event_handler(self, *__):
+        self.command_history.redo()
 
 
 class ExampleView(SkeletonMixin, MenuMixin, Toplevel):
@@ -139,18 +233,25 @@ class ExampleView(SkeletonMixin, MenuMixin, Toplevel):
             {
                 "event": TkEvent.ESCAPE,
                 "action": lambda __: self.destroy(),
-                "bind_method": "bind",
             },
             {
                 "event": TkEventMod.CONTROL + TkEvent.RETURN,
                 "action": lambda __: self.destroy(),
-                "bind_method": "bind",
             },
             {
                 "event": TkEvent.MAP,
                 "action": lambda event: print("Mapped", event.widget),
-                "bind_method": "bind",
                 "widget": self.created["entry_a"].widget,
+            },
+            {
+                "event": TkEventMod.CONTROL + TkEvent.KEYPRESS + "<z>",
+                "action": self.controller.control_z_event_handler,
+                "widget": self.winfo_toplevel(),
+            },
+            {
+                "event": TkEventMod.CONTROL + TkEvent.KEYPRESS + "<y>",
+                "action": self.controller.control_y_event_handler,
+                "widget": self.winfo_toplevel(),
             },
         ]
 
@@ -246,7 +347,15 @@ class ExampleView(SkeletonMixin, MenuMixin, Toplevel):
                 ): self.controller.button_c_command,
                 Menu.add(): "separator",
                 Menu.command(label="Exit", underline=1): self.destroy,
-            }
+            },
+            Menu.cascade(label="Edit", underline=0): {
+                Menu.command(
+                    label="Undo", underline=0, accelerator="Ctrl+Z"
+                ): self.controller.control_z_event_handler,
+                Menu.command(
+                    label="Redo", underline=0, accelerator="Ctrl+Y"
+                ): self.controller.control_y_event_handler,
+            },
         }
 
 
