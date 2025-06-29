@@ -1,4 +1,4 @@
-from tkinter import Misc
+import tkinter as tk
 from types import SimpleNamespace
 
 import pytest
@@ -20,7 +20,7 @@ class TestEventEnum:
 
     @pytest.fixture
     def mock_widget(self, mocker):
-        return mocker.Mock(Misc)
+        return mocker.Mock(tk.Misc)
 
     @pytest.mark.parametrize(
         "kwargs", [{}, {"add": "+"}], ids=["no kwargs", "with kwargs"]
@@ -35,17 +35,17 @@ class TestEventEnum:
         "kwargs", [{}, {"add": "+"}], ids=["no kwargs", "with kwargs"]
     )
     def test_bind_all_calls(self, custom_event, action_callable, mock_widget, kwargs):
-        custom_event.TEST.bind_all(mock_widget, action_callable, **kwargs)
-        mock_widget.bind_all.assert_called_once_with(
-            custom_event.TEST.value, action_callable, add=kwargs.get("add", "")
+        custom_event.TEST.bind(mock_widget, action_callable, classname="all", **kwargs)
+        mock_widget.bind_class.assert_called_once_with(
+            "all", custom_event.TEST.value, action_callable, add=kwargs.get("add", "")
         )
 
     @pytest.mark.parametrize(
         "kwargs", [{}, {"add": "+"}], ids=["no kwargs", "with kwargs"]
     )
     def test_bind_class_calls(self, custom_event, action_callable, mock_widget, kwargs):
-        custom_event.TEST.bind_class(
-            mock_widget, "classname", action_callable, **kwargs
+        custom_event.TEST.bind(
+            mock_widget, action_callable, classname="classname", **kwargs
         )
         mock_widget.bind_class.assert_called_once_with(
             "classname",
@@ -73,7 +73,9 @@ class TestCompositeEvent:
 
     @pytest.fixture
     def mock_widget(self, mocker):
-        return mocker.Mock(Misc)
+        mock = mocker.Mock(tk.Misc)
+        mock.tk = mocker.MagicMock()
+        return mock
 
     def test_composite_event_factory(self):
         expected = "<Mod-Event>"
@@ -102,9 +104,9 @@ class TestCompositeEvent:
     def test_bind_all_calls(
         self, composite_event, action_callable, mock_widget, kwargs
     ):
-        composite_event.bind_all(mock_widget, action_callable, **kwargs)
-        mock_widget.bind_all.assert_called_once_with(
-            composite_event.value, action_callable, add=kwargs.get("add", "")
+        composite_event.bind(mock_widget, action_callable, classname="all", **kwargs)
+        mock_widget.bind_class.assert_called_once_with(
+            "all", composite_event.value, action_callable, add=kwargs.get("add", "")
         )
 
     @pytest.mark.parametrize(
@@ -113,7 +115,9 @@ class TestCompositeEvent:
     def test_bind_class_calls(
         self, composite_event, action_callable, mock_widget, kwargs
     ):
-        composite_event.bind_class(mock_widget, "classname", action_callable, **kwargs)
+        composite_event.bind(
+            mock_widget, action_callable, classname="classname", **kwargs
+        )
         mock_widget.bind_class.assert_called_once_with(
             "classname",
             composite_event.value,
@@ -128,6 +132,12 @@ class TestCompositeEvent:
         callable_()
         mock_widget.event_generate.assert_called_once_with(composite_event.value)
 
+    def test_unbind_calls(self, composite_event, mock_widget):
+        composite_event.unbind(mock_widget)
+        mock_widget.tk.call.assert_called_once_with(
+            "bind", str(mock_widget), composite_event.value, ""
+        )
+
 
 @pytest.mark.parametrize(
     "term1, term2, expected",
@@ -139,3 +149,63 @@ class TestCompositeEvent:
 def test_event_addition(term1, term2, expected):
     actual = term1 + term2
     assert actual.value == expected
+
+
+@pytest.mark.integration
+class TestEvents:
+    @pytest.fixture
+    def widget(self, master):
+        return tk.Frame(master)
+
+    @staticmethod
+    def action(event):
+        """Used as a dummy action for testing."""
+
+    def test_get_bindings(self, widget):
+        event = TkEvent.BUTTON + "<1>"
+        funcid = event.bind(widget, self.action)
+        assert event.get_bindings(widget) == {
+            funcid: "{first}{funcid}{the_rest}".format(
+                first='if {"[',
+                funcid=funcid,
+                the_rest=(
+                    ' %# %b %f %h %k %s %t %w %x %y %A %E %K %N %W %T %X %Y %D]" '
+                    '== "break"} break'
+                ),
+            )
+        }
+
+    def test_get_bindings_none(self, widget):
+        event = TkEvent.BUTTON + "<1>"
+        assert event.get_bindings(widget) == {}
+
+    @pytest.mark.parametrize(
+        "action",
+        [
+            lambda event: None,
+            action,
+        ],
+    )
+    def test_bind(self, widget, action):
+        event = TkEvent.BUTTON + "<1>"
+
+        func_id = event.bind(widget, action)
+
+        assert func_id in event.get_bindings(widget)
+
+    @pytest.mark.parametrize("func_count", [1, 2, 3])
+    def test_bind_with_kwargs(self, widget, func_count):
+        event = TkEvent.BUTTON + "<1>"
+        expected_bindings = [
+            event.bind(widget, self.action, add="+") for _ in range(func_count)
+        ]
+
+        assert list(event.get_bindings(widget).keys()) == expected_bindings
+
+    def test_unbind(self, widget):
+        event = TkEvent.BUTTON + "<1>"
+        func_id = event.bind(widget, self.action)
+
+        event.unbind(widget, func_id)
+
+        assert func_id not in event.get_bindings(widget)

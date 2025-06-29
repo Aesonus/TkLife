@@ -6,6 +6,7 @@ from it. This allows for easy access to the Ttk Style name, and configuration an
 options.
 
 """
+
 from __future__ import annotations
 
 from tkinter.ttk import Style, Widget
@@ -67,9 +68,7 @@ class _StyleMeta(type):
 
     @property
     def ttk_style(cls) -> str:
-        """str: The Ttk Style name for the class.
-        This is the class name concatenated with the names of all its base classes,
-        separated by a period."""
+        """ttk_style class attribute."""
         return ".".join(
             (
                 b.__name__
@@ -95,8 +94,8 @@ class _StyleMeta(type):
         """Defines all styles configured by classes that extend the BaseStyle class.
 
         Args:
-            style (Optional[Style]): The Ttk Style object to define the styles on. By
-                default, a new Style object is created.
+            style: The Ttk Style object to define the styles on. By default, a new Style
+                object is created.
 
         """
         style = Style() if style is None else style
@@ -110,7 +109,7 @@ class _StyleMeta(type):
         Calling this method is equivalent to calling widget["style"] = cls.ttk_style.
 
         Args:
-            widget (Widget): The widget to set the style of.
+            widget: The widget to set the style of.
 
         Returns:
             None
@@ -124,8 +123,8 @@ class _StyleMeta(type):
         (**) operator.
 
         Returns:
-            dict[str, str] -- The dictionary with the key "style" and the value of
-            the Ttk Style name of the class.
+            The dictionary with the key "style" and the value of the Ttk Style name of
+            the class.
 
         """
         return {"style": cls.ttk_style}
@@ -146,7 +145,9 @@ class BaseStyle(metaclass=_StyleMeta):
     extend this class.
 
     Attributes:
-        ttk_style (str): The Ttk Style name for this style class
+        ttk_style: The Ttk Style name for this class. This is the class name
+            concatenated with the names of all its base classes, separated by a period.
+        EG: ``'TEntry.Green.Table'``.
 
     """
 

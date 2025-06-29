@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tklife"
-version = "2.4.0-dev2"
+version = "2.5.0-dev0"
 description = "Make Tk life easier"
 authors = ["Cory Laughlin <corylcomposinger@gmail.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ readme = "README.md"
 python = ">=3.9,<4.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest-cov = "^4.1.0"
+pytest-cov = "^6.2.1"
 pytest = "^7.4.3"
 pytest-mock = "^3.7.0"
 black = "^23.10.1"
@@ -28,13 +28,17 @@ esbonio = "^0.16.2"
 
 [tool.pytest.ini_options]
 addopts = "--cov=tklife --cov-branch --cov-report xml --cov-report html -vvv"
+markers = [
+    "integration: mark a test as an integration test."
+]
 
 [tool.mypy]
 ignore_missing_imports = true
-python_version = 3.11
+python_version = "3.11"
 
 [tool.coverage.report]
-exclude_also = ["if TYPE_CHECKING:"]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError"]
+omit = ["tklife/__main__.py"]
 
 [tool.autoflake]
 remove_all_unused_imports = true
@@ -49,6 +53,9 @@ recursive = true
 blank = true
 black = true
 in-place = true
+
+[tool.black]
+target-version = ["py39", "py310", "py311", "py312"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

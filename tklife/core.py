@@ -1,4 +1,5 @@
 """Contains classes to structure a tkinter application."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -7,6 +8,7 @@ from typing import (
     TYPE_CHECKING,
     Callable,
     Generic,
+    Literal,
     NamedTuple,
     Protocol,
     TypedDict,
@@ -14,13 +16,12 @@ from typing import (
     final,
 )
 
-from .controller import ControllerABC
-from .proxy import CallProxyFactory
+import tklife
+from tklife.controller import ControllerABC
+from tklife.proxy import CallProxyFactory
 
 if TYPE_CHECKING:
-    from typing import Any, Iterable, Literal, NotRequired, Optional, Type, Union
-
-    from .event import BaseEvent
+    from typing import Any, Iterable, NotRequired, Optional, Type, Union
 
 
 __all__ = [
@@ -34,59 +35,55 @@ __all__ = [
 
 
 class SkelEventDef(TypedDict):
-    """Used in conjunction with `SkeletonMixin.events` attribute to define events.
+    """Used in conjunction with `SkeletonMixin.events` attribute to define events."""
 
-    Attributes:
+    event: tklife.event.BaseEvent
+    """The event to bind."""
 
-        event (BaseEvent): The event to bind
-        action (Callable[[tkinter.Event], Literal["break"] | None]): The action to
-            bind
-        bind_method (Literal["bind", "bind_tag", "bind_all", "bind_class"]): The bind
-            method to use
-        widget (tkinter.Misc): The widget to bind to. This may be
-            ommitted, and will default to self.
-        add (Literal[", "+"]): The add argument to pass to the bind method. This may
-            be ommitted, and will default to "". If you want to add to an existing bind,
-            use "+". If you want to replace an existing bind, use ".
-        id (str): The id of the event. This may be ommitted. When included, this will
-            be used as the dict key of the event. This is useful when you want to
-            unbind the event later.
+    id: NotRequired[str]
+    """The key of the event in the ``SkeletonMixin.assigned_events`` dict, this may be
+    omitted."""
+
+    action: Callable[[tkinter.Event], Literal["break"] | None]
+    """The action to bind, this is a callable that takes an event and returns None or
+    "break"."""
+
+    widget: NotRequired[tkinter.Misc]
+    """The widget to bind to, this may be omitted, and will default to self."""
+
+    add: NotRequired[Literal["", "+"]]
+    """The add argument to pass to the bind method, this may be omitted, and will
+    default to ""."""
+
+    classname: NotRequired[str]
+    """The classname to bind to, this may be omitted.
+
+    When included, this will be used as the classname argument to the bind_class method.
 
     """
-
-    event: BaseEvent
-    id: NotRequired[str]
-    action: Callable[[tkinter.Event], Literal["break"] | None]
-    bind_method: Literal["bind", "bind_tag", "bind_all", "bind_class"]
-    widget: NotRequired[tkinter.Misc]
-    add: NotRequired[Literal["", "+"]]
 
 
 @dataclasses.dataclass(frozen=True)
 class SkelWidget:
-    """Represents a widget in a skeleton.
-
-    Args:
-        widget (Type[tkinter.Widget]): The widget class
-        init_args (dict[str, Any]): The init arguments for the widget
-        grid_args (dict[str, Any]): The grid arguments for the widget
-        config_args (dict[str, Any]): The config arguments for the widget
-        label (Optional[str]): The label of the widget
-
-    Attributes:
-        widget (Type[tkinter.Widget]): The widget class
-        init_args (dict[str, Any]): The init arguments for the widget
-        grid_args (dict[str, Any]): The grid arguments for the widget
-        config_args (dict[str, Any]): The config arguments for the widget
-        label (Optional[str]): The label of the widget
-
-    """
+    """Represents a widget in a skeleton definition."""
 
     widget: Type[tkinter.Widget]
+    """The widget class to create."""
+
     init_args: dict[str, Any] = dataclasses.field(default_factory=dict)
+    """The init arguments for the widget, these are passed to the widget's
+    constructor."""
+
     grid_args: dict[str, Any] = dataclasses.field(default_factory=dict)
+    """The grid arguments for the widget, these are passed to the widget's grid
+    method."""
+
     config_args: dict[str, Any] = dataclasses.field(default_factory=dict)
+    """The config arguments for the widget, these are passed to the widget's configure
+    method."""
+
     label: Optional[str] = None
+    """The label of the widget, this is used to store the widget for later use."""
 
     def __iter__(self):
         return iter(
@@ -98,11 +95,11 @@ class SkelWidget:
         SkelWidget, but with updated init_args.
 
         Args:
-            **merge_init_args (Any): Additional or updated init arguments to merge
-                with the current SkelWidget's init_args.
+            **merge_init_args: Additional or updated init arguments to merge with the
+                current SkelWidget's init_args.
 
         Returns:
-            SkelWidget: The new SkelWidget with the updated init_args.
+            The new SkelWidget with the updated init_args.
 
         """
         return SkelWidget(
@@ -118,11 +115,11 @@ class SkelWidget:
         SkelWidget, but with updated grid_args.
 
         Args:
-            **merge_grid_args (Any): Additional or updated grid arguments to merge
-                with the current SkelWidget's grid_args.
+            **merge_grid_args: Additional or updated grid arguments to merge with the
+                current SkelWidget's grid_args.
 
         Returns:
-            SkelWidget: The new SkelWidget with the updated grid_args.
+            The new SkelWidget with the updated grid_args.
 
         """
         return SkelWidget(
@@ -138,11 +135,11 @@ class SkelWidget:
         SkelWidget, but with updated config_args.
 
         Args:
-            **merge_config_args (Any): Additional or updated config arguments to merge
-                with the current SkelWidget's config_args.
+            **merge_config_args: Additional or updated config arguments to merge with
+                the current SkelWidget's config_args.
 
         Returns:
-            SkelWidget: The new SkelWidget with the updated config_args.
+            The new SkelWidget with the updated config_args.
 
         """
         return SkelWidget(
@@ -157,10 +154,10 @@ class SkelWidget:
         """Sets the label of the widget.
 
         Args:
-            new_label (str): The new label
+            new_label: The new label
 
         Returns:
-            SkelWidget: The new SkelWidget with the new label
+            The new SkelWidget with the new label
 
         """
         return SkelWidget(
@@ -179,11 +176,11 @@ class CreatedWidget(Generic[T_Widget]):
     """Stores a widget and its variables.
 
     Args:
-        widget (T_Widget): The widget
-        textvariable (Optional[tkinter.Variable]): The textvariable of the widget
-        variable (Optional[tkinter.Variable]): The variable of the widget
-        listvariable (Optional[tkinter.Variable]): The listvariable of the widget
-        **custom_vars (tkinter.Variable): Any other variables
+        widget: The widget
+        textvariable: The textvariable of the widget
+        variable: The variable of the widget
+        listvariable: The listvariable of the widget
+        **custom_vars: Any other variables
 
     """
 
@@ -221,7 +218,7 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns the widget.
 
         Returns:
-            T_Widget: The widget
+            The widget
 
         """
         return self.__widget
@@ -231,7 +228,7 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns the textvariable of the widget.
 
         Returns:
-            tkinter.Variable: The textvariable of the widget
+            The textvariable of the widget
 
         Raises:
             IndexError: Raised when the widget does not have a textvariable
@@ -244,7 +241,7 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns the variable of the widget.
 
         Returns:
-            tkinter.Variable: The variable of the widget
+            The variable of the widget
 
         Raises:
             IndexError: Raised when the widget does not have a variable
@@ -257,7 +254,7 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns the listvariable of the widget.
 
         Returns:
-            tkinter.Variable: The listvariable of the widget
+            The listvariable of the widget
 
         Raises:
             IndexError: Raised when the widget does not have a listvariable
@@ -269,10 +266,10 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns the variable with the given name.
 
         Args:
-            attr (str): The name of the variable to return
+            attr: The name of the variable to return
 
         Returns:
-            tkinter.Variable: The variable with the given name
+            The variable with the given name
 
         """
         returned = self.__values.get(attr)
@@ -285,15 +282,15 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns the variable with the given name.
 
         Args:
-            attr (str): The name of the variable to return
+            attr: The name of the variable to return
 
         Returns:
-            tkinter.Variable: The variable with the given name
+            The variable with the given name
 
         """
         returned = self.__values.get(attr)
         if returned is None:
-            raise AttributeError(f"'{attr}' not found")
+            raise KeyError(f"'{attr}' not found")
 
         return returned
 
@@ -301,8 +298,8 @@ class CreatedWidget(Generic[T_Widget]):
         """Sets the variable with the given name.
 
         Args:
-            __name (str): The name of the variable to set
-            __value (Any): The value to set the variable to
+            __name: The name of the variable to set
+            __value: The value to set the variable to
 
         Raises:
             AttributeError: Raised when the variable cannot be set
@@ -314,9 +311,11 @@ class CreatedWidget(Generic[T_Widget]):
     def __setattr__(self, __name: str, __value: Any) -> None:
         """Sets the variable with the given name.
 
+        This is defined so that private instance properties can be set.
+
         Args:
-            __name (str): The name of the variable to set
-            __value (Any): The value to set the variable to
+            __name: The name of the variable to set
+            __value: The value to set the variable to
 
         Raises:
             AttributeError: Raised when the variable cannot be set
@@ -333,7 +332,7 @@ class CreatedWidget(Generic[T_Widget]):
         """Returns a dict of the widget and its variables.
 
         Returns:
-            dict[str, Any]: The widget and its variables
+            The widget and its variables
 
         """
         return {**self.__values, "widget": self.widget}
@@ -408,12 +407,11 @@ class SkeletonMixin(_Skel):
     Optionally can add a MenuMixin and/or an AppendableMixin. Then you put the Widget
     class to use.
 
-
     Args:
-        master (Optional[tkinter.Misc]): The master widget
-        controller (Optional[ControllerABC]): The controller
-        global_grid_args (Optional[dict[str, Any]]): The global grid arguments
-        proxy_factory (Optional[CallProxyFactory]): The proxy factory
+        master: The master widget
+        controller: The controller
+        global_grid_args: The global grid arguments
+        proxy_factory: The proxy factory
         **kwargs: Additional keyword arguments passed to the tkinter widget
 
     Raises:
@@ -422,8 +420,8 @@ class SkeletonMixin(_Skel):
             widget
 
     Attributes:
-        created (CreatedWidgetDict): The created widgets
-        assigned_events (dict[str, TkEventId]): The assigned events
+        created: The created widgets
+        assigned_events: The assigned events
 
     """
 
@@ -481,8 +479,7 @@ class SkeletonMixin(_Skel):
         an empty iterable. **Must be declared as @property**.
 
         Returns:
-            Iterable[Iterable[SkelWidget | None]]: An iterable yielding iterables that
-            yield a SkelWidget
+            An iterable yielding iterables that yield a SkelWidget
 
         """
         return ((),)
@@ -495,8 +492,7 @@ class SkeletonMixin(_Skel):
         provide a custom grid configuration. **Must be declared as @property**.
 
         Returns:
-            tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
-                Row and column config
+            Row and column config
 
         """
         return [], []
@@ -507,7 +503,7 @@ class SkeletonMixin(_Skel):
         The default implementation returns an empty iterable.
 
         Returns:
-            Iterable[SkelEventDef]: An iterable of SkelEventDef
+            An iterable of SkelEventDef
 
         """
         return ()
@@ -515,11 +511,11 @@ class SkeletonMixin(_Skel):
     @property
     @final
     def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
-        """Stores the widgets created as well as grid cooridates and arguments. **Do not
-        override this property**.
+        """Stores the widgets created as well as grid cooridates and arguments (rows,
+        cols). **Do not override this property**.
 
         Returns:
-            dict[tuple[int, int], CachedWidget]: Widget cache
+            Widget cache
 
         """
         return self._w_cache
@@ -534,6 +530,8 @@ class SkeletonMixin(_Skel):
                 if isinstance(val, type(tkinter.Variable)):
                     skel_widget.init_args[arg] = val()
             w = skel_widget.widget(self, **skel_widget.init_args)
+            if "image" in skel_widget.init_args:
+                w.__image__ = skel_widget.init_args["image"]
         except Exception as ex:
             raise ValueError(
                 f"Error initializing widget at row {row_index}, column {col_index}: "
@@ -544,6 +542,8 @@ class SkeletonMixin(_Skel):
                 if isinstance(val, type(tkinter.Variable)):
                     skel_widget.config_args[arg] = val()
             w.configure(**skel_widget.config_args)
+            if "image" in skel_widget.config_args:
+                w.__image__ = skel_widget.config_args["image"]
         except Exception as ex:
             raise ValueError(
                 f"Error configuring widget at row {row_index}, column {col_index}: "
@@ -599,12 +599,14 @@ class SkeletonMixin(_Skel):
     def _create_events(self):
         """Binds events to widgets."""
         for event_def in self.events:
-            bind_method = getattr(event_def["event"], event_def["bind_method"])
-            widget = event_def.get("widget", self)
-            add = event_def.get("add", "")
-            handle = bind_method(widget, event_def["action"], add=add)
-            if event_def.get("id", None):
-                self.assigned_events[event_def["id"]] = handle
+            event_object = event_def.pop("event")
+            bind_method = getattr(event_object, event_def.pop("bind_method", "bind"))
+            widget = event_def.pop("widget", self)
+            add = event_def.pop("add", "")
+            id_ = event_def.pop("id", None)
+            handle = bind_method(widget, **event_def, add=add)
+            if id_:
+                self.assigned_events[id_] = (event_object, handle)
 
     @property
     def controller(self) -> Union[CallProxyFactory, ControllerABC]:
@@ -612,8 +614,7 @@ class SkeletonMixin(_Skel):
         methods if the controller is not set yet. **Do not override this property**.
 
         Returns:
-            Union[CallProxyFactory, ControllerABC]: Call proxy or Controller
-            instance
+            Call proxy or Controller instance
 
         Raises:
             TypeError: Raised when the controller type is not valid

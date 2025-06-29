@@ -1,9 +1,11 @@
 """Module containing classes for generating and binding tkinter events."""
+
 from __future__ import annotations
 
+import re
 from enum import Enum
 from tkinter import BaseWidget, Tk, Toplevel
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Literal, Union
 
 __all__ = [
     "BaseEvent",
@@ -20,7 +22,13 @@ __all__ = [
 ]
 
 ActionCallable = Callable[..., Any]
+"""A callable that can be used as a tkinter event callback."""
+
 Widget = Union[BaseWidget, Tk, Toplevel]
+"""A tkinter widget, or the root Tk instance."""
+
+FuncId = str
+"""A tkinter callback id."""
 
 
 class BaseEvent:
@@ -30,8 +38,8 @@ class BaseEvent:
     not be instantiated directly.
 
     Note:
-        This class implements the composite pattern, and can be used to create
-        composite events. See the __add__ method.
+        This class implements the composite pattern, and can be used to create composite
+        events. See the ``__add__`` method.
 
     """
 
@@ -41,10 +49,10 @@ class BaseEvent:
         """Returns a callable that will generate this event on a widget.
 
         Args:
-            widget (T_Widget): The widget to generate the event on
+            widget: The widget to generate the event on
 
         Returns:
-            T_ActionCallable: The callable that actually generates the event
+            The callable that actually generates the event
 
         """
 
@@ -53,64 +61,41 @@ class BaseEvent:
 
         return generator
 
-    def bind(self, widget: Widget, action: ActionCallable, add="") -> str:
+    def bind(
+        self,
+        widget: Widget,
+        action: ActionCallable,
+        add: Literal["", "+"] = "",
+        classname: str | None = None,
+    ) -> FuncId:
         """Binds a callback to an event on given widget. Kwargs are passed to the bind
         method.
 
         Args:
-            widget (T_Widget): The widget the bind is on
-            action (T_ActionCallable): The callable called when the event is triggered
+            widget: The widget the bind is on or called on
+            action: The callable called when the event is triggered
+
+        Keyword Args:
+            add: If set to "+" the callback is added to the existing callbacks (default:
+                "")
+            classname: The classname to bind on, or None for widget (default: None); use
+                `"all"` to bind to all widgets or `"tag_name"` to bind to a specific
+                tag.
 
         Returns:
-            str: The event callback id, used to unbind events
+            The event callback id, used to unbind events
 
         """
-        return widget.bind(self.value, action, add=add)
-
-    def bind_tag(self, widget: Widget, tag: str, action: ActionCallable, add="") -> str:
-        """Binds a callback to an event on given widget's tag.
-
-        Kwargs are passed to the bind method. This would be used primarily for binding
-        to a tag on a canvas, or text widget.
-
-        """
-        # Access the widget's private _bind method, which allows binding to tags.
-        # pylint: disable=protected-access
-        return widget._bind(("bind", tag), self.value, action, add=add)  # type: ignore
-
-    def bind_all(self, widget: Widget, action: ActionCallable, add="") -> str:
-        """Binds a callback to an event on all widgets. Kwargs are passed to the bind
-        method.
-
-        Args:
-            widget (T_Widget): The widget that will call bind_all
-            action (T_ActionCallable): The callable called when the event is triggered
-
-        Returns:
-            str: The event callback id, used to unbind
-
-        """
-        return widget.bind_all(self.value, action, add=add)
-
-    def bind_class(
-        self, widget: Widget, classname: str, action: ActionCallable, add=""
-    ) -> str:
-        """Binds a callback to this event on all widgets in the given class. Kwargs are
-        passed to the bind method.
-
-        Args:
-            widget (T_Widget): The widget that will call bind_class
-            classname (str): The widget class to bind on. See:
-                https://tkdocs.com/shipman/binding-levels.html
-            action (T_ActionCallable): The callable called when the event is triggered
-
-        Returns:
-            str: The event callback id, used to unbind
-
-        """
+        if not classname:
+            return widget.bind(self.value, action, add=add)
         return widget.bind_class(classname, self.value, action, add=add)
 
-    def unbind(self, widget: Widget, funcid: Optional[str] = None) -> None:
+    def unbind(
+        self,
+        widget: Widget,
+        funcid: FuncId | None = None,
+        classname: str | None = None,
+    ) -> None:
         """Unbinds callback(s) on the event for the given widget.
 
         Note:
@@ -118,38 +103,69 @@ class BaseEvent:
             http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding-in-python
 
         Args:
-            widget (T_Widget): The widget that will call unbind
+            widget: The widget that will call unbind
 
         Keyword Args:
-            funcid (Optional[str]): The callback id to remove, or None for all
-                (default: None)
+            funcid: The callback id to remove, or None for all (default: None)
+            classname: The classname to unbind on, or None for widget
 
         """
-        # pylint: disable=protected-access
         if not funcid:
-            widget.tk.call("bind", widget._w, self.value, "")  # type: ignore
+            widget.tk.call("bind", classname or str(widget), self.value, "")
             return
-        func_callbacks = widget.tk.call(  # type: ignore
-            "bind",
-            widget._w,  # type: ignore
-            self.value,
-            None,
-        ).split("\n")
-        new_callbacks = [l for l in func_callbacks if l[6 : 6 + len(funcid)] != funcid]
+        func_callbacks = self.get_bindings(widget, classname=classname)
+        new_callbacks = [v for k, v in func_callbacks.items() if k != funcid]
         widget.tk.call(
-            "bind", widget._w, self.value, "\n".join(new_callbacks)  # type: ignore
+            "bind", classname or str(widget), self.value, "\n".join(new_callbacks)
         )
         widget.deletecommand(funcid)
+
+    def get_bindings(
+        self, widget: Widget, classname: str | None = None
+    ) -> dict[FuncId, str]:
+        """Returns a dict of all bindings for this event on the given widget (if
+        applicable) and classname, if specified.
+
+        Args:
+            widget: The widget to get bindings for
+
+        Keyword Args:
+            classname: The classname to get bindings for, or None for widget (default:
+                widget name)
+
+        Returns:
+            A dict of callback ids to callbacks
+
+        """
+        func_id_re = re.compile(r"^[\w<>]+")
+        func_callbacks = (
+            widget.tk.call(  # type: ignore
+                "bind",
+                classname or str(widget),
+                self.value,
+                None,
+            )
+            .strip()
+            .split("\n")
+        )
+
+        def get_match(v):
+            match = func_id_re.match(v[6:])
+            if match:
+                return match.group()
+            return None
+
+        return {match: v for v in func_callbacks if (match := get_match(v))}
 
     def __add__(self, arg: BaseEvent | str) -> CompositeEvent:
         """Creates a composite event from this event and another.
 
         Args:
-            arg (BaseEvent | str): The event to append to this one. Either should be
-                an event type, or string like: "<Event>"
+            arg: The event to append to this one. Either should be an event type, or
+                string like: "<Event>"
 
         Returns:
-            CompositeEvent: The new event, having value like <self-event>
+            The new event, having value like <self-event>
 
         """
         return CompositeEvent.factory(self, arg)
@@ -168,7 +184,7 @@ class CompositeEvent(BaseEvent):
         """Create a new CompositeEvent instance.
 
         Args:
-            value (str): The event. Should be formatted like: <event>
+            value: The event. Should be formatted like: <event>
 
         """
         self.value = value
@@ -180,13 +196,13 @@ class CompositeEvent(BaseEvent):
         """Creates a composite event from two events.
 
         Args:
-            modifier (Union[_EventMixin, str]): Prepends to the new event. Either
-                should be an event type, or string like: "<Event>"
-            event (Union[_EventMixin, str]): Appends to the new event. Either
-                should be an event type, or string like: "<Event>"
+            modifier: Prepends to the new event. Either should be an event type, or
+                string like: "<Event>"
+            event: Appends to the new event. Either should be an event type, or string
+                like: "<Event>"
 
         Returns:
-            CompositeEvent: The new event, having value like <modifier-event>
+            The new event, having value like <modifier-event>
 
         """
         mod_value = modifier.value if not isinstance(modifier, str) else modifier
@@ -194,7 +210,7 @@ class CompositeEvent(BaseEvent):
         return cls(f"{mod_value[0:-1]}-{event_value[1:]}")
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.value})"
+        return f"<{self.__class__.__name__}: {self.value}>"
 
 
 class TkEventMod(EventsEnum):

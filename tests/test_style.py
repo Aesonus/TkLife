@@ -118,3 +118,33 @@ class TestBaseStyle:
     ):
         style_classes = dict(zip(("Table", "Green"), defined_styles))
         assert style_classes[clsname].as_dict() == expected
+
+    def test_dunder_dir_returns_returns_attributes_of_style_metaclass(self):
+        expected = (
+            "configure",
+            "map",
+            "ttk_style",
+            "as_dict",
+            "set_style",
+            "define_all",
+            "defined_styles",
+        )
+        assert len(set(dir(BaseStyle)) & set(expected)) == len(expected)
+
+    def test_dunder_dir_returns_returns_attributes_of_style_metaclass_for_subclass(
+        self,
+    ):
+        expected = (
+            "configure",
+            "map",
+        )
+        not_expected = (
+            "ttk_style",
+            "as_dict",
+            "set_style",
+            "define_all",
+            "defined_styles",
+        )
+
+        assert len(set(dir(TEntry)) & set(expected)) == len(expected)
+        assert len(set(dir(TEntry)) & set(not_expected)) == 0

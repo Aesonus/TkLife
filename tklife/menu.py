@@ -77,29 +77,52 @@ class Menu:
         return partial(tkinter.Menu.add, **opts)
 
     @classmethod
-    def command(cls, **opts: Any) -> MenuCommand:
+    def command(cls, label: str, **opts: Any) -> MenuCommand:
         """Use to add a command menu item.
 
-        >>> {Menu.command(label='labeltext', **opts): command_function}
+        >>> {Menu.command("labeltext", **opts): command_function}
 
         Returns:
             MenuCommand: Partial function that will be called to create item
 
         """
-        nf = partial(tkinter.Menu.add_command, **opts)
+        nf = partial(tkinter.Menu.add_command, label=label, **opts)
         return nf
 
     @classmethod
-    def cascade(cls, **opts: Any) -> MenuCommand:
+    def cascade(
+        cls,
+        label: str,
+        **opts,
+    ) -> MenuCommand:
         """Use to add a submenu to a menu.
 
-        >>> {Menu.cascade(label='labeltext', **opts): {
-        >>>     # submenu def
-        >>> }}
+        >>> {
+        ...     Menu.cascade("labeltext", **opts): {
+        ...         # ...
+        ...     }
+        ... }
+
+        Keyword Args:
+            accelerator (str): Shortcut key
+            activebackground (str): Background color when active
+            activeforeground (str): Foreground color when active
+            background (str): Background color
+            bitmap (str): Bitmap to display
+            columnbreak (int): Column to break to
+            command ((() -> object) | str): Command to call when item is selected
+            compound (Any): Compound style
+            font (Any): Font to use
+            foreground (str): Foreground color
+            hidemargin (bool): Hide margin
+            image (Any): Image to display
+            state (Literal['normal', 'active', 'disabled']): State of item
+            underline (int): Underline index
 
         Returns:
             MenuCommand: Partial function that will be called to create submenu
 
         """
-        nf = partial(tkinter.Menu.add_cascade, **opts)
+        nf = partial(tkinter.Menu.add_cascade, label=label, **opts)
+
         return nf

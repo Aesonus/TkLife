@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Generator, Optional, Union
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any, Generator, Optional
+
 
 __all__ = ["CommandHistory", "Command"]
 
@@ -12,7 +16,7 @@ class CommandHistory:
     """Saves command history for undo and redo."""
 
     history: list[Command]
-    cursor: Union[int, None]
+    cursor: Optional[int]
 
     def __init__(self) -> None:
         """Initializes the tracking dict."""
@@ -28,7 +32,7 @@ class CommandHistory:
         self.cursor = self.history.index(command)
         command.execute()
 
-    def undo(self) -> Union[int, None]:
+    def undo(self) -> Optional[int]:
         """Calls reverse on the previous command."""
         if self.cursor is None:
             return None
@@ -40,7 +44,7 @@ class CommandHistory:
         self.cursor = new_cursor
         return self.cursor
 
-    def redo(self) -> Union[int, None]:
+    def redo(self) -> Optional[int]:
         """Calls execute on the next command."""
         if (
             self.cursor is None and len(self.history) == 0
@@ -48,10 +52,10 @@ class CommandHistory:
             return None
         if self.cursor is None and len(self.history) > 0:
             self.cursor = -1
-        if self.cursor is not None:
-            self.cursor += 1
-            command = self.history[self.cursor]
-            command.execute()
+        # Will never be None at this point
+        self.cursor += 1  # type: ignore
+        command = self.history[self.cursor]
+        command.execute()
         return self.cursor
 
     def undo_all(self, until: Optional[int] = None) -> None:

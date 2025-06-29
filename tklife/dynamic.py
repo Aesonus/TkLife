@@ -1,18 +1,18 @@
 """Functionality for widgets using the ``tklife.skel.SkeletonMixin`` to have rows
 appended or removed from them dynamically."""
+
 from __future__ import annotations
 
 import tkinter
 from functools import reduce
 from typing import TYPE_CHECKING, Callable
 
-from . import CachedWidget  # pylint: disable=all
+from tklife.core import CachedWidget
 
 if TYPE_CHECKING:
     from typing import Any, Iterable, Union
 
-    from . import SkelWidget
-    from .core import CreatedWidgetDict
+    from tklife.core import CreatedWidgetDict, SkelWidget
 
 
 class AppendableMixin:
@@ -121,7 +121,7 @@ class AppendableMixin:
                         )
                     else:
                         self._w_cache[row + 1, col] = CachedWidget(None, None)
-                elif row > index:
+                else:
                     # Shift row
                     if (widget, grid_args) != (None, None):
                         self._grid_widget(
@@ -169,8 +169,7 @@ class AppendableMixin:
             widget = self.created[label].widget
         except KeyError:
             return None
-
         for (row, __), cached in self.widget_cache.items():
             if widget == cached.widget:
                 return row
-        return None
+        return None  # pragma: no cover
