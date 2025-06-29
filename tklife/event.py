@@ -49,10 +49,10 @@ class BaseEvent:
         """Returns a callable that will generate this event on a widget.
 
         Args:
-            widget (T_Widget): The widget to generate the event on
+            widget: The widget to generate the event on
 
         Returns:
-            T_ActionCallable: The callable that actually generates the event
+            The callable that actually generates the event
 
         """
 
@@ -162,11 +162,11 @@ class BaseEvent:
         """Creates a composite event from this event and another.
 
         Args:
-            arg (BaseEvent | str): The event to append to this one. Either should be
-                an event type, or string like: "<Event>"
+            arg: The event to append to this one. Either should be an event type, or
+                string like: "<Event>"
 
         Returns:
-            CompositeEvent: The new event, having value like <self-event>
+            The new event, having value like <self-event>
 
         """
         return CompositeEvent.factory(self, arg)
@@ -185,7 +185,7 @@ class CompositeEvent(BaseEvent):
         """Create a new CompositeEvent instance.
 
         Args:
-            value (str): The event. Should be formatted like: <event>
+            value: The event. Should be formatted like: <event>
 
         """
         self.value = value
@@ -197,13 +197,13 @@ class CompositeEvent(BaseEvent):
         """Creates a composite event from two events.
 
         Args:
-            modifier (Union[_EventMixin, str]): Prepends to the new event. Either
-                should be an event type, or string like: "<Event>"
-            event (Union[_EventMixin, str]): Appends to the new event. Either
-                should be an event type, or string like: "<Event>"
+            modifier: Prepends to the new event. Either should be an event type, or
+                string like: "<Event>"
+            event: Appends to the new event. Either should be an event type, or string
+                like: "<Event>"
 
         Returns:
-            CompositeEvent: The new event, having value like <modifier-event>
+            The new event, having value like <modifier-event>
 
         """
         mod_value = modifier.value if not isinstance(modifier, str) else modifier
