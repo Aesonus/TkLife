@@ -100,8 +100,7 @@ class BaseEvent:
 
         Note:
             Based on code found on Stack Overflow, see:
-            http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-
-            event-binding-in-python
+            http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding-in-python
 
         Args:
             widget: The widget that will call unbind
