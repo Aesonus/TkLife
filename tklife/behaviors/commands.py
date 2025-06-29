@@ -48,10 +48,10 @@ class CommandHistory:
             return None
         if self.cursor is None and len(self.history) > 0:
             self.cursor = -1
-        if self.cursor is not None:
-            self.cursor += 1
-            command = self.history[self.cursor]
-            command.execute()
+        # Will never be None at this point
+        self.cursor += 1  # type: ignore
+        command = self.history[self.cursor]
+        command.execute()
         return self.cursor
 
     def undo_all(self, until: Optional[int] = None) -> None:
