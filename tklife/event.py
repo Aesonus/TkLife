@@ -90,34 +90,34 @@ class BaseEvent:
             return widget.bind(self.value, action, add=add)
         return widget.bind_class(classname, self.value, action, add=add)
 
-    def unbind(self, widget: Widget, funcid: Optional[str] = None) -> None:
+    def unbind(
+        self,
+        widget: Widget,
+        funcid: FuncId | None = None,
+        classname: str | None = None,
+    ) -> None:
         """Unbinds callback(s) on the event for the given widget.
 
         Note:
             Based on code found on Stack Overflow, see:
-            http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-event-binding-in-python
+            http://stackoverflow.com/questions/6433369/deleting-and-changing-a-tkinter-
+            event-binding-in-python
 
         Args:
-            widget (T_Widget): The widget that will call unbind
+            widget: The widget that will call unbind
 
         Keyword Args:
-            funcid (Optional[str]): The callback id to remove, or None for all
-                (default: None)
+            funcid: The callback id to remove, or None for all (default: None)
+            classname: The classname to unbind on, or None for widget
 
         """
-        # pylint: disable=protected-access
         if not funcid:
-            widget.tk.call("bind", widget._w, self.value, "")  # type: ignore
+            widget.tk.call("bind", classname or str(widget), self.value, "")
             return
-        func_callbacks = widget.tk.call(  # type: ignore
-            "bind",
-            widget._w,  # type: ignore
-            self.value,
-            None,
-        ).split("\n")
-        new_callbacks = [l for l in func_callbacks if l[6 : 6 + len(funcid)] != funcid]
+        func_callbacks = self.get_bindings(widget, classname=classname)
+        new_callbacks = [v for k, v in func_callbacks.items() if k != funcid]
         widget.tk.call(
-            "bind", widget._w, self.value, "\n".join(new_callbacks)  # type: ignore
+            "bind", classname or str(widget), self.value, "\n".join(new_callbacks)
         )
         widget.deletecommand(funcid)
 
