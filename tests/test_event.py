@@ -104,9 +104,9 @@ class TestCompositeEvent:
     def test_bind_all_calls(
         self, composite_event, action_callable, mock_widget, kwargs
     ):
-        composite_event.bind_all(mock_widget, action_callable, **kwargs)
-        mock_widget.bind_all.assert_called_once_with(
-            composite_event.value, action_callable, add=kwargs.get("add", "")
+        composite_event.bind(mock_widget, action_callable, classname="all", **kwargs)
+        mock_widget.bind_class.assert_called_once_with(
+            "all", composite_event.value, action_callable, add=kwargs.get("add", "")
         )
 
     @pytest.mark.parametrize(
@@ -115,7 +115,9 @@ class TestCompositeEvent:
     def test_bind_class_calls(
         self, composite_event, action_callable, mock_widget, kwargs
     ):
-        composite_event.bind_class(mock_widget, "classname", action_callable, **kwargs)
+        composite_event.bind(
+            mock_widget, action_callable, classname="classname", **kwargs
+        )
         mock_widget.bind_class.assert_called_once_with(
             "classname",
             composite_event.value,
