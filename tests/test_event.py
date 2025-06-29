@@ -73,7 +73,9 @@ class TestCompositeEvent:
 
     @pytest.fixture
     def mock_widget(self, mocker):
-        return mocker.Mock(Misc)
+        mock = mocker.Mock(Misc)
+        mock.tk = mocker.MagicMock()
+        return mock
 
     def test_composite_event_factory(self):
         expected = "<Mod-Event>"
@@ -127,6 +129,12 @@ class TestCompositeEvent:
         callable_ = composite_event.generate(mock_widget)
         callable_()
         mock_widget.event_generate.assert_called_once_with(composite_event.value)
+
+    def test_unbind_calls(self, composite_event, mock_widget):
+        composite_event.unbind(mock_widget)
+        mock_widget.tk.call.assert_called_once_with(
+            "bind", str(mock_widget), composite_event.value, ""
+        )
 
 
 @pytest.mark.parametrize(
