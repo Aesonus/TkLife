@@ -2,36 +2,26 @@
 
 from __future__ import annotations
 
-from tkinter import (
-    BOTH,
-    END,
-    HORIZONTAL,
-    LEFT,
-    RIGHT,
-    VERTICAL,
-    Canvas,
-    Event,
-    Grid,
-    Listbox,
-    Misc,
-    Pack,
-    Place,
-    Toplevel,
-    Y,
-)
-from tkinter.constants import ACTIVE, ALL, GROOVE, INSERT, NW, SE, SINGLE, E, N, S, W
-from tkinter.ttk import Entry, Frame, Scrollbar
-from typing import Any, Generic, Iterable, Optional, TypeVar
+import tkinter as tk
+import typing
+from tkinter import ttk
 
-from tklife import SkeletonMixin, SkelEventDef
+import tklife as tkl
 from tklife.event import BaseEvent, TkEvent
+
+if typing.TYPE_CHECKING:
+    from tkinter import Canvas, Event, Misc
+    from tkinter.ttk import Frame, Scrollbar
+    from typing import Any, Iterable, Optional
+
+    from tklife.core import SkelEventDef
 
 __all__ = ["ScrolledListbox", "AutoSearchCombobox", "ScrolledFrame", "ModalDialog"]
 
-T_ReturnValue = TypeVar("T_ReturnValue")  # pylint: disable=invalid-name
+T_ReturnValue = typing.TypeVar("T_ReturnValue")  # pylint: disable=invalid-name
 
 
-class ModalDialog(Generic[T_ReturnValue], SkeletonMixin, Toplevel):
+class ModalDialog(typing.Generic[T_ReturnValue], tkl.core.SkeletonMixin, tk.Toplevel):
     """A dialog that demands focus.
 
     This is a base class for dialogs that demand focus. It is a toplevel widget that
@@ -61,15 +51,15 @@ class ModalDialog(Generic[T_ReturnValue], SkeletonMixin, Toplevel):
         """Returns the events for the dialog."""
         return [
             {
-                "event": TkEvent.ESCAPE,
+                "event": tkl.event.TkEvent.ESCAPE,
                 "action": self.cancel,
             },
             {
-                "event": TkEvent.RETURN,
+                "event": tkl.event.TkEvent.RETURN,
                 "action": lambda __: self.destroy(),
             },
             {
-                "event": TkEvent.DESTROY,
+                "event": tkl.event.TkEvent.DESTROY,
                 "action": self.__destroy_event_handler,
             },
         ]
@@ -124,7 +114,7 @@ class ModalDialog(Generic[T_ReturnValue], SkeletonMixin, Toplevel):
         self.destroy()
 
 
-class ScrolledFrame(Frame):
+class ScrolledFrame(ttk.Frame):
     """A scrolling frame inside a canvas.
 
     Based on code found in tkinter.scrolledtext.ScrolledText.
@@ -144,21 +134,21 @@ class ScrolledFrame(Frame):
 
     def __init__(self, master: Misc, show_hscroll=False, **kwargs):
         self._show_hscroll = show_hscroll
-        self.container = Frame(master)
-        self.canvas = Canvas(self.container, relief="flat", highlightthickness=0)
-        self.v_scroll = Scrollbar(self.container, orient=VERTICAL)
-        self.h_scroll = Scrollbar(self.container, orient=HORIZONTAL)
+        self.container = ttk.Frame(master)
+        self.canvas = tk.Canvas(self.container, relief="flat", highlightthickness=0)
+        self.v_scroll = ttk.Scrollbar(self.container, orient=tk.VERTICAL)
+        self.h_scroll = ttk.Scrollbar(self.container, orient=tk.HORIZONTAL)
         self._canvas_handlers: list[tuple[str, BaseEvent]] = []
 
         kwargs.update(master=self.canvas)
-        Frame.__init__(self, **kwargs)
+        ttk.Frame.__init__(self, **kwargs)
         self.__layout()
         self.__commands()
         self.__events()
         # Copy geometry methods of self.container without overriding Frame
         # methods -- hack!
-        text_meths = vars(Frame).keys()
-        methods = vars(Pack).keys() | vars(Grid).keys() | vars(Place).keys()
+        text_meths = vars(ttk.Frame).keys()
+        methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
         methods = methods.difference(text_meths)
 
         for m in methods:
@@ -166,11 +156,13 @@ class ScrolledFrame(Frame):
                 setattr(self, m, getattr(self.container, m))
 
     def __layout(self):
-        self.canvas.grid(column=0, row=0, sticky=NW + SE)
-        self.v_scroll.grid(column=1, row=0, sticky=N + S + E)
+        self.canvas.grid(column=0, row=0, sticky=tk.NW + tk.SE)
+        self.v_scroll.grid(column=1, row=0, sticky=tk.N + tk.SE)
         if self._show_hscroll:
-            self.h_scroll.grid(column=0, row=1, sticky=E + W + S)
-        self.scrolled_frame = self.canvas.create_window((0, 0), window=self, anchor=NW)
+            self.h_scroll.grid(column=0, row=1, sticky=tk.E + tk.SW)
+        self.scrolled_frame = self.canvas.create_window(
+            (0, 0), window=self, anchor=tk.NW
+        )
 
     def __commands(self):
         self.v_scroll.configure(command=self._v_scroll_command)
@@ -215,16 +207,17 @@ class ScrolledFrame(Frame):
             self.canvas.xview(*args)
 
     def _self_configure_handler(self, *__):
-        self.canvas.configure(scrollregion=self.canvas.bbox(ALL))
+        self.canvas.configure(scrollregion=self.canvas.bbox(tk.ALL))
 
     def _can_v_scroll(self) -> bool:
         """Returns whether the canvas can scroll vertically."""
-        return self.canvas.bbox(ALL)[3] >= self.canvas.winfo_height()
+        return self.canvas.bbox(tk.ALL)[3] >= self.canvas.winfo_height()
 
     def _can_h_scroll(self) -> bool:
         """Returns whether the canvas can scroll horizontally."""
         return (
-            self.canvas.bbox(ALL)[2] >= self.canvas.winfo_width() and self._show_hscroll
+            self.canvas.bbox(tk.ALL)[2] >= self.canvas.winfo_width()
+            and self._show_hscroll
         )
 
     def _enter_canvas_handler(self, __):
@@ -262,26 +255,26 @@ class ScrolledFrame(Frame):
                 self.canvas.yview_scroll(1, "units")
 
 
-class ScrolledListbox(Listbox):
+class ScrolledListbox(tk.Listbox):
     """A scrolled listbox, based on tkinter.scrolledtext.ScrolledText."""
 
     frame: Frame
     vbar: Scrollbar
 
     def __init__(self, master: Misc, **kw):
-        self.frame = Frame(master)
-        self.vbar = Scrollbar(self.frame)
-        self.vbar.pack(side=RIGHT, fill=Y)
+        self.frame = ttk.Frame(master)
+        self.vbar = ttk.Scrollbar(self.frame)
+        self.vbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         kw.update({"yscrollcommand": self.vbar.set})
-        Listbox.__init__(self, self.frame, **kw)
-        self.pack(side=LEFT, fill=BOTH, expand=True)
+        tk.Listbox.__init__(self, self.frame, **kw)
+        self.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.vbar["command"] = self.yview
 
         # Copy geometry methods of self.frame without overriding Listbox
         # methods -- hack!
-        text_meths = vars(Listbox).keys()
-        methods = vars(Pack).keys() | vars(Grid).keys() | vars(Place).keys()
+        text_meths = vars(tk.Listbox).keys()
+        methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
         methods = methods.difference(text_meths)
 
         for m in methods:
@@ -292,7 +285,7 @@ class ScrolledListbox(Listbox):
         return str(self.frame)
 
 
-class AutoSearchCombobox(Entry):
+class AutoSearchCombobox(ttk.Entry):
     """A combobox that automatically searches for the closest match to the current
     contents."""
 
@@ -303,18 +296,18 @@ class AutoSearchCombobox(Entry):
         height: Optional[int] = None,
         **kwargs,
     ):
-        Entry.__init__(self, master, **kwargs)
-        self._ddtl = Toplevel(self, takefocus=False, relief=GROOVE, borderwidth=1)
+        ttk.Entry.__init__(self, master, **kwargs)
+        self._ddtl = tk.Toplevel(self, takefocus=False, relief=tk.GROOVE, borderwidth=1)
         self._ddtl.wm_overrideredirect(True)
         self._lb = ScrolledListbox(
             self._ddtl,
             width=kwargs.pop("width", None),
             height=height,
-            selectmode=SINGLE,
+            selectmode=tk.SINGLE,
         )
         self.__values: tuple = tuple()
         self.configure(values=values)
-        self._lb.pack(expand=True, fill=BOTH)
+        self._lb.pack(expand=True, fill=tk.BOTH)
         self._hide_tl()
         self.winfo_toplevel().focus_set()
         TkEvent.KEYRELEASE.bind(self, self._handle_keyrelease)
@@ -355,9 +348,9 @@ class AutoSearchCombobox(Entry):
     def _set_values(self, values: Optional[Iterable[str]]) -> None:
         """Sorts and sets the values."""
         self.__values = tuple(sorted(values)) if values is not None else tuple()
-        self._lb.delete(0, END)
-        self._lb.insert(END, *self.cget("values"))
-        self._lb.selection_clear(0, END)
+        self._lb.delete(0, tk.END)
+        self._lb.insert(tk.END, *self.cget("values"))
+        self._lb.selection_clear(0, tk.END)
         self._lb.selection_set(0)
         self._lb.activate(0)
 
@@ -371,7 +364,7 @@ class AutoSearchCombobox(Entry):
         return self._lb.get(sel)
 
     def _set_lb_index(self, index):
-        self._lb.selection_clear(0, END)
+        self._lb.selection_clear(0, tk.END)
         self._lb.selection_set(index)
         self._lb.activate(index)
         self._lb.see(index)
@@ -380,7 +373,7 @@ class AutoSearchCombobox(Entry):
     def text_after_cursor(self) -> str:
         """Gets the entry text after the cursor."""
         contents = self.get()
-        return contents[self.index(INSERT) :]
+        return contents[self.index(tk.INSERT) :]
 
     @property
     def dropdown_is_visible(self) -> bool:
@@ -388,7 +381,7 @@ class AutoSearchCombobox(Entry):
         return self._ddtl.winfo_ismapped()
 
     def _handle_lb_click(self, __):
-        self.delete(0, END)
+        self.delete(0, tk.END)
         self.insert(0, self._lb_current_selection)
         self._hide_tl()
 
@@ -405,7 +398,7 @@ class AutoSearchCombobox(Entry):
             or event.keysym in ["Return", "Tab"]
         ) and self.dropdown_is_visible:
             # Completion and block next action
-            self.delete(0, END)
+            self.delete(0, tk.END)
             self.insert(0, self._lb_current_selection)
             self._hide_tl()
             return "break"
@@ -414,15 +407,15 @@ class AutoSearchCombobox(Entry):
         self, event: Event
     ):
         if "Up" in event.keysym and self.dropdown_is_visible:
-            previous_index = self._lb.index(ACTIVE)
-            new_index = max(0, self._lb.index(ACTIVE) - 1)
+            previous_index = self._lb.index(tk.ACTIVE)
+            new_index = max(0, self._lb.index(tk.ACTIVE) - 1)
             self._set_lb_index(new_index)
             if previous_index == new_index:
                 self._hide_tl()
             return
         if "Down" in event.keysym:
             if self.dropdown_is_visible:
-                current_index = self._lb.index(ACTIVE)
+                current_index = self._lb.index(tk.ACTIVE)
                 new_index = min(current_index + 1, self._lb.size() - 1)
                 self._set_lb_index(new_index)
                 return "break"
@@ -442,8 +435,8 @@ class AutoSearchCombobox(Entry):
                 )
             else:
                 new_values = self.cget("values")
-            self._lb.delete(0, END)
-            self._lb.insert(END, *new_values)
+            self._lb.delete(0, tk.END)
+            self._lb.insert(tk.END, *new_values)
             self._set_lb_index(0)
             if self._lb.size() < 1 or self.get() == self._lb_current_selection:
                 self._hide_tl()
