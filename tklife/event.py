@@ -38,8 +38,8 @@ class BaseEvent:
     not be instantiated directly.
 
     Note:
-        This class implements the composite pattern, and can be used to create
-        composite events. See the __add__ method.
+        This class implements the composite pattern, and can be used to create composite
+        events. See the ``__add__`` method.
 
     """
 
