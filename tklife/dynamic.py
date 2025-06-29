@@ -1,18 +1,18 @@
 """Functionality for widgets using the ``tklife.skel.SkeletonMixin`` to have rows
 appended or removed from them dynamically."""
+
 from __future__ import annotations
 
 import tkinter
 from functools import reduce
 from typing import TYPE_CHECKING, Callable
 
-from . import CachedWidget  # pylint: disable=all
+from tklife.core import CachedWidget
 
 if TYPE_CHECKING:
     from typing import Any, Iterable, Union
 
-    from . import SkelWidget
-    from .core import CreatedWidgetDict
+    from tklife.core import CreatedWidgetDict, SkelWidget
 
 
 class AppendableMixin:
