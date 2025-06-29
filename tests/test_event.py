@@ -1,4 +1,4 @@
-from tkinter import Misc
+import tkinter as tk
 from types import SimpleNamespace
 
 import pytest
@@ -20,7 +20,7 @@ class TestEventEnum:
 
     @pytest.fixture
     def mock_widget(self, mocker):
-        return mocker.Mock(Misc)
+        return mocker.Mock(tk.Misc)
 
     @pytest.mark.parametrize(
         "kwargs", [{}, {"add": "+"}], ids=["no kwargs", "with kwargs"]
@@ -73,7 +73,7 @@ class TestCompositeEvent:
 
     @pytest.fixture
     def mock_widget(self, mocker):
-        mock = mocker.Mock(Misc)
+        mock = mocker.Mock(tk.Misc)
         mock.tk = mocker.MagicMock()
         return mock
 
