@@ -1,4 +1,5 @@
 """Contains classes to structure a tkinter application."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -605,12 +606,14 @@ class SkeletonMixin(_Skel):
     def _create_events(self):
         """Binds events to widgets."""
         for event_def in self.events:
-            bind_method = getattr(event_def["event"], event_def["bind_method"])
-            widget = event_def.get("widget", self)
-            add = event_def.get("add", "")
-            handle = bind_method(widget, event_def["action"], add=add)
-            if event_def.get("id", None):
-                self.assigned_events[event_def["id"]] = handle
+            event_object = event_def.pop("event")
+            bind_method = getattr(event_object, event_def.pop("bind_method", "bind"))
+            widget = event_def.pop("widget", self)
+            add = event_def.pop("add", "")
+            id_ = event_def.pop("id", None)
+            handle = bind_method(widget, **event_def, add=add)
+            if id_:
+                self.assigned_events[id_] = (event_object, handle)
 
     @property
     def controller(self) -> Union[CallProxyFactory, ControllerABC]:
