@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from enum import Enum
 from tkinter import BaseWidget, Tk, Toplevel
 from typing import Any, Callable, Optional, Union
@@ -147,6 +148,43 @@ class BaseEvent:
             "bind", widget._w, self.value, "\n".join(new_callbacks)  # type: ignore
         )
         widget.deletecommand(funcid)
+
+    def get_bindings(
+        self, widget: Widget, classname: str | None = None
+    ) -> dict[FuncId, str]:
+        """Returns a dict of all bindings for this event on the given widget (if
+        applicable) and classname, if specified.
+
+        Args:
+            widget: The widget to get bindings for
+
+        Keyword Args:
+            classname: The classname to get bindings for, or None for widget (default:
+                widget name)
+
+        Returns:
+            A dict of callback ids to callbacks
+
+        """
+        func_id_re = re.compile(r"^[\w<>]+")
+        func_callbacks = (
+            widget.tk.call(  # type: ignore
+                "bind",
+                classname or str(widget),
+                self.value,
+                None,
+            )
+            .strip()
+            .split("\n")
+        )
+
+        def get_match(v):
+            match = func_id_re.match(v[6:])
+            if match:
+                return match.group()
+            return None
+
+        return {match: v for v in func_callbacks if (match := get_match(v))}
 
     def __add__(self, arg: BaseEvent | str) -> CompositeEvent:
         """Creates a composite event from this event and another.
