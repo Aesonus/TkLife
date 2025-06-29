@@ -211,7 +211,7 @@ class CompositeEvent(BaseEvent):
         return cls(f"{mod_value[0:-1]}-{event_value[1:]}")
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.value})"
+        return f"<{self.__class__.__name__}: {self.value}>"
 
 
 class TkEventMod(EventsEnum):
