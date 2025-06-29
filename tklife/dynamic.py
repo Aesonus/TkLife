@@ -121,7 +121,7 @@ class AppendableMixin:
                         )
                     else:
                         self._w_cache[row + 1, col] = CachedWidget(None, None)
-                elif row > index:
+                else:
                     # Shift row
                     if (widget, grid_args) != (None, None):
                         self._grid_widget(
