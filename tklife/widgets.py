@@ -220,7 +220,7 @@ class ScrolledFrame(ttk.Frame):
             and self._show_hscroll
         )
 
-    def _enter_canvas_handler(self, __):
+    def _enter_canvas_handler(self, *__):
         for tkevent in (
             TkEvent.BUTTON + "<4>",
             TkEvent.BUTTON + "<5>",
@@ -235,7 +235,7 @@ class ScrolledFrame(ttk.Frame):
                 )
             )
 
-    def _leave_canvas_handler(self, __):
+    def _leave_canvas_handler(self, *__):
         for handler, tkevent in self._canvas_handlers:
             tkevent.unbind(self.winfo_toplevel(), handler)
         self._canvas_handlers = []
