@@ -55,13 +55,6 @@ class SkelEventDef(TypedDict):
     """The add argument to pass to the bind method, this may be omitted, and will
     default to ""."""
 
-    tag: NotRequired[str]
-    """The tag to bind to, this may be omitted.
-
-    When included, this will be used as the tag argument to the bind_tag method.
-
-    """
-
     classname: NotRequired[str]
     """The classname to bind to, this may be omitted.
 
