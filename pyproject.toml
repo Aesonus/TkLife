@@ -51,6 +51,9 @@ blank = true
 black = true
 in-place = true
 
+[tool.black]
+target-version = ["py39", "py310", "py311", "py312"]
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
