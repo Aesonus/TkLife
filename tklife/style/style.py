@@ -6,6 +6,7 @@ from it. This allows for easy access to the Ttk Style name, and configuration an
 options.
 
 """
+
 from __future__ import annotations
 
 from tkinter.ttk import Style, Widget
@@ -67,9 +68,7 @@ class _StyleMeta(type):
 
     @property
     def ttk_style(cls) -> str:
-        """str: The Ttk Style name for the class.
-        This is the class name concatenated with the names of all its base classes,
-        separated by a period."""
+        """ttk_style class attribute."""
         return ".".join(
             (
                 b.__name__
@@ -146,7 +145,9 @@ class BaseStyle(metaclass=_StyleMeta):
     extend this class.
 
     Attributes:
-        ttk_style (str): The Ttk Style name for this style class
+        ttk_style (str): The Ttk Style name for this class. This is the class name
+            concatenated with the names of all its base classes, separated by a period.
+            EG: ``'TEntry.Green.Table'``.
 
     """
 
