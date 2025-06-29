@@ -1,4 +1,5 @@
 """Module containing classes for generating and binding tkinter events."""
+
 from __future__ import annotations
 
 from enum import Enum
@@ -20,7 +21,13 @@ __all__ = [
 ]
 
 ActionCallable = Callable[..., Any]
+"""A callable that can be used as a tkinter event callback."""
+
 Widget = Union[BaseWidget, Tk, Toplevel]
+"""A tkinter widget, or the root Tk instance."""
+
+FuncId = str
+"""A tkinter callback id."""
 
 
 class BaseEvent:
