@@ -35,17 +35,17 @@ class TestEventEnum:
         "kwargs", [{}, {"add": "+"}], ids=["no kwargs", "with kwargs"]
     )
     def test_bind_all_calls(self, custom_event, action_callable, mock_widget, kwargs):
-        custom_event.TEST.bind_all(mock_widget, action_callable, **kwargs)
-        mock_widget.bind_all.assert_called_once_with(
-            custom_event.TEST.value, action_callable, add=kwargs.get("add", "")
+        custom_event.TEST.bind(mock_widget, action_callable, classname="all", **kwargs)
+        mock_widget.bind_class.assert_called_once_with(
+            "all", custom_event.TEST.value, action_callable, add=kwargs.get("add", "")
         )
 
     @pytest.mark.parametrize(
         "kwargs", [{}, {"add": "+"}], ids=["no kwargs", "with kwargs"]
     )
     def test_bind_class_calls(self, custom_event, action_callable, mock_widget, kwargs):
-        custom_event.TEST.bind_class(
-            mock_widget, "classname", action_callable, **kwargs
+        custom_event.TEST.bind(
+            mock_widget, action_callable, classname="classname", **kwargs
         )
         mock_widget.bind_class.assert_called_once_with(
             "classname",
