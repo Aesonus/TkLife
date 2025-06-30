@@ -85,7 +85,7 @@ class TestModalDialog:
 
         def after():
             nonlocal actual
-            modal = master.nametowidget(".!dialog")
+            modal = master.winfo_children()[-1]  # The modal is the last widget created
             actual = modal.winfo_ismapped()
             modal.destroy()
 
