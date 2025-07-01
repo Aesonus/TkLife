@@ -49,20 +49,28 @@ class TestModalDialog:
 
         assert actual == True
 
-    def test_modal_dialog_returns_return_value_on_ok(self, modal_dialog: ModalDialog):
-        modal_dialog.after(5, modal_dialog.destroy)
+    def test_modal_dialog_returns_return_value_on_ok(
+        self, master, modal_dialog: ModalDialog
+    ):
+        modal_dialog.after(100, modal_dialog.destroy)
+        pump_events(master)
+
         actual = modal_dialog.show()
 
         assert actual == "foo"
 
-    def test_modal_dialog_returns_none_on_cancel(self, modal_dialog: ModalDialog):
-        modal_dialog.after(5, modal_dialog.cancel)
+    def test_modal_dialog_returns_none_on_cancel(
+        self, master, modal_dialog: ModalDialog
+    ):
+        modal_dialog.after(100, modal_dialog.cancel)
+        pump_events(master)
+
         actual = modal_dialog.show()
 
         assert actual == None
 
     def test_destroying_widget_in_modal_dialog_does_not_set_return_value(
-        self, modal_dialog: ModalDialog
+        self, master, modal_dialog: ModalDialog
     ):
         actual = None
 
@@ -73,7 +81,9 @@ class TestModalDialog:
 
             modal_dialog.after(5, modal_dialog.destroy)
 
-        modal_dialog.after(5, destroy_label)
+        modal_dialog.after(100, destroy_label)
+        pump_events(master)
+
         modal_dialog.show()
 
         assert actual is None
@@ -85,7 +95,7 @@ class TestModalDialog:
 
         def after():
             nonlocal actual
-            modal = master.nametowidget(".!dialog")
+            modal = master.winfo_children()[-1]  # The modal is the last widget created
             actual = modal.winfo_ismapped()
             modal.destroy()
 
@@ -105,6 +115,8 @@ class TestModalDialog:
             modal_dialog.event_generate("<Escape>")
 
         modal_dialog.after(100, after)
+        pump_events(master)
+
         actual = modal_dialog.show()
 
         assert actual is None
@@ -117,6 +129,8 @@ class TestModalDialog:
             modal_dialog.event_generate("<Return>")
 
         modal_dialog.after(100, after)
+        pump_events(master)
+
         actual = modal_dialog.show()
 
         assert actual == "foo"

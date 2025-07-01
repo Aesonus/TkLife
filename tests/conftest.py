@@ -43,10 +43,9 @@ def pump_events(root):
         pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def master():
     root = tk.Tk()
     root.geometry("0x0")
     pump_events(root)
     yield root
-    root.destroy()
