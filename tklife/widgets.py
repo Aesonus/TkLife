@@ -18,10 +18,18 @@ if typing.TYPE_CHECKING:
 
 __all__ = ["ScrolledListbox", "AutoSearchCombobox", "ScrolledFrame", "ModalDialog"]
 
+T_Controller = typing.TypeVar(  # pylint: disable=invalid-name
+    "T_Controller", bound="tkl.controller.ControllerABC | None"
+)
+
 T_ReturnValue = typing.TypeVar("T_ReturnValue")  # pylint: disable=invalid-name
 
 
-class ModalDialog(typing.Generic[T_ReturnValue], tkl.core.SkeletonMixin, tk.Toplevel):
+class ModalDialog(
+    tkl.core.SkeletonMixin[T_Controller],
+    typing.Generic[T_ReturnValue, T_Controller],
+    tk.Toplevel,
+):
     """A dialog that demands focus.
 
     This is a base class for dialogs that demand focus. It is a toplevel widget that
