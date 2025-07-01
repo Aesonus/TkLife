@@ -114,6 +114,8 @@ class BaseEvent:
             widget.tk.call("bind", classname or str(widget), self.value, "")
             return
         func_callbacks = self.get_bindings(widget, classname=classname)
+        if funcid not in func_callbacks:
+            raise KeyError(f"Function ID '{funcid}' not found in bindings")
         new_callbacks = [v for k, v in func_callbacks.items() if k != funcid]
         widget.tk.call(
             "bind", classname or str(widget), self.value, "\n".join(new_callbacks)
