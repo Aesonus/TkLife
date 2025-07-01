@@ -10,7 +10,6 @@ from typing import (
     Generic,
     Literal,
     NamedTuple,
-    Protocol,
     TypedDict,
     TypeVar,
     final,
@@ -30,7 +29,6 @@ __all__ = [
     "SkelEventDef",
     "CreatedWidget",
     "CachedWidget",
-    "SkeletonProtocol",
 ]
 
 
@@ -346,45 +344,6 @@ class CachedWidget(NamedTuple):
 
     widget: Union[tkinter.Widget, None]
     grid_args: Union[dict[str, Any], None]
-
-
-class SkeletonProtocol(Protocol):
-    """Protocol for SkeletonMixin."""
-
-    @property
-    def controller(self) -> ControllerABC | CallProxyFactory:
-        """Returns the controller or a call proxy factory that will call controller."""
-
-    def _widget_create(
-        self, skel_widget: SkelWidget | None, row_index: int, col_index: int
-    ) -> tkinter.Widget | None:
-        """Creates a widget."""
-
-    def _create_all(self) -> None:
-        """Creates all the widgets in template."""
-
-    def _grid_config(self) -> None:
-        """Configures the grid."""
-
-    def _grid_widget(
-        self,
-        row: int,
-        column: int,
-        widget: tkinter.Widget | None,
-        **grid_args: Any,
-    ) -> None:
-        """Grids a widget."""
-
-    def _create_events(self) -> None:
-        """Binds events to widgets."""
-
-    created: CreatedWidgetDict
-    _global_gridargs: dict[str, Any]
-    _w_cache: dict[tuple[int, int], CachedWidget]
-
-    @property
-    def widget_cache(self) -> dict[tuple[int, int], CachedWidget]:
-        """Stores the widgets created as well as grid cooridates and arguments."""
 
 
 class _SkeletonMeta(type):
