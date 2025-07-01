@@ -41,7 +41,7 @@ class GreenScrollbar(style.scrollbar.Horizontal):
     configure = {"troughcolor": "green"}
 
 
-class ExampleModal(ModalDialog[str]):
+class ExampleModal(ModalDialog[str, None]):
     def __init__(self, master, **kwargs):
         super().__init__(master, global_grid_args={PADX: 3, PADY: 3}, **kwargs)
 
