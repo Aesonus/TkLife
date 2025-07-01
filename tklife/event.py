@@ -109,6 +109,9 @@ class BaseEvent:
             funcid: The callback id to remove, or None for all (default: None)
             classname: The classname to unbind on, or None for widget
 
+        Raises:
+            KeyError: If the provided funcid is not found in the current bindings
+
         """
         if not funcid:
             widget.tk.call("bind", classname or str(widget), self.value, "")
