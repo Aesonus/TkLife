@@ -1,5 +1,5 @@
 import tkinter
-from typing import Any, Callable, Literal, Optional
+from typing import Any, Callable, Literal, NoReturn, Optional
 
 MenuCommand = Callable[[tkinter.Menu], None]
 
@@ -9,7 +9,7 @@ class MenuMixin:
     def menu_template(self) -> dict: ...
 
 class Menu:
-    def __new__(cls) -> None: ...
+    def __new__(cls) -> NoReturn: ...
     @classmethod
     def add(cls, **opts: Any) -> MenuCommand: ...
     @classmethod
