@@ -80,7 +80,7 @@ class AppendExampleScrolledFrame(SkeletonMixin, AppendableMixin, ScrolledFrame):
         super().__after_init__()
 
 
-class ExampleController(ControllerABC):
+class ExampleController(ControllerABC["ExampleView"]):
     @dataclasses.dataclass()
     class AddRowCommand(commands.Command):
         appendable_frame: AppendExampleScrolledFrame
