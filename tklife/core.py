@@ -359,8 +359,12 @@ class _Skel(metaclass=_SkeletonMeta):  # pylint: disable=too-few-public-methods
 
 TkEventId = str
 
+T_Controller = TypeVar(  # pylint: disable=invalid-name
+    "T_Controller", bound="ControllerABC | None"
+)
 
-class SkeletonMixin(_Skel):
+
+class SkeletonMixin(Generic[T_Controller], _Skel):
     """This mixin is used to create a skeleton for a tkinter widget.
 
     Optionally can add a MenuMixin and/or an AppendableMixin. Then you put the Widget
@@ -392,7 +396,7 @@ class SkeletonMixin(_Skel):
     def __init__(
         self,
         master: Optional[tkinter.Misc] = None,
-        controller: Optional[ControllerABC] = None,
+        controller: Optional[T_Controller] = None,
         global_grid_args: Optional[dict[str, Any]] = None,
         proxy_factory: Optional[CallProxyFactory] = None,
         **kwargs,
@@ -568,7 +572,7 @@ class SkeletonMixin(_Skel):
                 self.assigned_events[id_] = (event_object, handle)
 
     @property
-    def controller(self) -> Union[CallProxyFactory, ControllerABC]:
+    def controller(self) -> Union[CallProxyFactory, T_Controller]:
         """Returns the controller or a call proxy factory that will call controller
         methods if the controller is not set yet. **Do not override this property**.
 
@@ -586,7 +590,7 @@ class SkeletonMixin(_Skel):
 
     @controller.setter
     @final
-    def controller(self, controller: ControllerABC):
+    def controller(self, controller: T_Controller):
         if not isinstance(controller, ControllerABC) and controller is not None:
             raise TypeError(f"Controller must be of type {ControllerABC.__name__}")
         self.__controller = controller
