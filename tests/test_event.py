@@ -209,3 +209,22 @@ class TestEvents:
         event.unbind(widget, func_id)
 
         assert func_id not in event.get_bindings(widget)
+
+    def test_unbind_raises_keyerror_for_nonexistent_funcid(self, widget):
+        """Test that unbind raises a KeyError when trying to unbind a non-existent
+        funcid."""
+        event = TkEvent.BUTTON + "<1>"
+        nonexistent_funcid = "nonexistent123"
+
+        with pytest.raises(KeyError):
+            event.unbind(widget, nonexistent_funcid)
+
+    def test_unbind_keyerror_message_contains_funcid(self, widget):
+        """Test that the KeyError message contains the funcid that was not found."""
+        event = TkEvent.BUTTON + "<1>"
+        nonexistent_funcid = "nonexistent123"
+
+        with pytest.raises(
+            KeyError, match=r"Function ID 'nonexistent123' not found in bindings"
+        ):
+            event.unbind(widget, nonexistent_funcid)
