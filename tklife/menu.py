@@ -1,5 +1,6 @@
 """Menu functionality for ``tkinter.Tk`` and ``tkinter.Toplevel`` widgets that are used
 with the ``tklife.skel.SkeletonMixin``."""
+
 from __future__ import annotations
 
 import tkinter

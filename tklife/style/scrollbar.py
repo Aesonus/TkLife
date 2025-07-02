@@ -1,6 +1,5 @@
 """Scrollbar style module."""
 
-
 from .style import TScrollbar
 
 # pylint: disable=too-few-public-methods
