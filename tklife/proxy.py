@@ -8,17 +8,24 @@ controller has been assigned to the skeleton.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 if TYPE_CHECKING:
+    from tklife.controller import ControllerABC
     from tklife.core import SkeletonMixin
+
+
+T_Controller = TypeVar(  # pylint: disable=invalid-name
+    "T_Controller",
+    bound="ControllerABC|None",
+)
 
 
 class TklProxyError(RuntimeError):
     """Represents an error in a proxy call."""
 
 
-class CallProxyFactory:
+class CallProxyFactory(Generic[T_Controller]):
     """Factory for CallProxy objects.
 
     This is used to create a CallProxy object that will call the controller's function
@@ -34,9 +41,9 @@ class CallProxyFactory:
 
     """
 
-    skel: SkeletonMixin
+    skel: SkeletonMixin[T_Controller]
 
-    def __init__(self, skel: SkeletonMixin) -> None:
+    def __init__(self, skel: SkeletonMixin[T_Controller]) -> None:
         self.skel = skel
 
     def __getattr__(self, func: str) -> CallProxy:
@@ -55,7 +62,7 @@ class CallProxyFactory:
 
 
 @dataclass(frozen=True)
-class CallProxy:
+class CallProxy(Generic[T_Controller]):
     """Stand-in for a controller call. When called, it will call the controller's method
     or raise an error if the controller has not been assigned yet.
 
@@ -71,7 +78,7 @@ class CallProxy:
 
     """
 
-    skel: SkeletonMixin
+    skel: SkeletonMixin[T_Controller]
     func: str
 
     def __call__(self, *args, **kwargs):
