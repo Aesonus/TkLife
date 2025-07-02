@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     from tklife.core import CreatedWidget, SkeletonMixin
 
 T_View = TypeVar("T_View", bound="SkeletonMixin")  # pylint: disable=invalid-name
+"""A type variable that is bound to a class implementing the
+:class:`~tklife.core.SkeletonMixin` interface."""
 
 
 class ControllerABC(Generic[T_View]):
