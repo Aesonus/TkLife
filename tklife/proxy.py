@@ -8,17 +8,12 @@ controller has been assigned to the skeleton.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic
+
+from tklife.types import T_Controller
 
 if TYPE_CHECKING:
-    from tklife.controller import ControllerABC
     from tklife.core import SkeletonMixin
-
-
-T_Controller = TypeVar(  # pylint: disable=invalid-name
-    "T_Controller",
-    bound="ControllerABC|None",
-)
 
 
 class TklProxyError(RuntimeError):
