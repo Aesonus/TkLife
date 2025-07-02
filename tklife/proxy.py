@@ -35,13 +35,10 @@ class CallProxyFactory(Generic[T_Controller]):
         skel (SkeletonMixin): The skeleton that will be used to create the CallProxy
             object.
 
-    Attributes:
-        skel (SkeletonMixin): The skeleton that will be used to create the CallProxy
-            object.
-
     """
 
     skel: SkeletonMixin[T_Controller]
+    """The skeleton that will be used to create the CallProxy object."""
 
     def __init__(self, skel: SkeletonMixin[T_Controller]) -> None:
         self.skel = skel
