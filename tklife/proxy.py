@@ -37,7 +37,7 @@ class CallProxyFactory(Generic[T_Controller]):
     def __init__(self, skel: SkeletonMixin[T_Controller]) -> None:
         self.skel = skel
 
-    def __getattr__(self, func: str) -> CallProxy:
+    def __getattr__(self, func: str) -> CallProxy[T_Controller]:
         """Creates a CallProxy object that will call the controller's function when
         called.
 
