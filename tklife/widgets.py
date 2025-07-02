@@ -8,6 +8,7 @@ from tkinter import ttk
 
 import tklife as tkl
 from tklife.event import BaseEvent, TkEvent
+from tklife.types import T_Controller
 
 if typing.TYPE_CHECKING:
     from tkinter import Canvas, Event, Misc
@@ -18,9 +19,6 @@ if typing.TYPE_CHECKING:
 
 __all__ = ["ScrolledListbox", "AutoSearchCombobox", "ScrolledFrame", "ModalDialog"]
 
-T_Controller = typing.TypeVar(  # pylint: disable=invalid-name
-    "T_Controller", bound="tkl.controller.ControllerABC | None"
-)
 
 T_ReturnValue = typing.TypeVar("T_ReturnValue")  # pylint: disable=invalid-name
 
