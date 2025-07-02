@@ -212,14 +212,13 @@ class ExampleController(ControllerABC["ExampleView"]):
         self.command_history.redo()
 
 
-class ExampleView(SkeletonMixin, MenuMixin, Toplevel):
+class ExampleView(SkeletonMixin[ExampleController], MenuMixin, Toplevel):
     def __init__(
         self,
         master: Optional[Misc] = None,
         example_controller: Optional[ExampleController] = None,
         **kwargs,
     ) -> None:
-        self.controller: ExampleController
         super().__init__(
             master, example_controller, global_grid_args={PADX: 3, PADY: 3}, **kwargs
         )
