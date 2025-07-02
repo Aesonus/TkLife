@@ -398,7 +398,7 @@ class SkeletonMixin(Generic[T_Controller], _Skel):
         master: Optional[tkinter.Misc] = None,
         controller: Optional[T_Controller] = None,
         global_grid_args: Optional[dict[str, Any]] = None,
-        proxy_factory: Optional[CallProxyFactory] = None,
+        proxy_factory: Optional[CallProxyFactory[T_Controller]] = None,
         **kwargs,
     ) -> None:
         # Set the controller first
@@ -572,7 +572,7 @@ class SkeletonMixin(Generic[T_Controller], _Skel):
                 self.assigned_events[id_] = (event_object, handle)
 
     @property
-    def controller(self) -> Union[CallProxyFactory, T_Controller]:
+    def controller(self) -> Union[CallProxyFactory[T_Controller], T_Controller]:
         """Returns the controller or a call proxy factory that will call controller
         methods if the controller is not set yet. **Do not override this property**.
 
