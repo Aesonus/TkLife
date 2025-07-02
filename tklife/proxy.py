@@ -27,8 +27,7 @@ class CallProxyFactory(Generic[T_Controller]):
     when called.
 
     Args:
-        skel (SkeletonMixin): The skeleton that will be used to create the CallProxy
-            object.
+        skel: The skeleton that will be used to create the CallProxy object.
 
     """
 
@@ -43,10 +42,10 @@ class CallProxyFactory(Generic[T_Controller]):
         called.
 
         Args:
-            func (str): The name of the function to call.
+            func: The name of the function to call.
 
         Returns:
-            CallProxy: The CallProxy object that will call the controller's function
+            The CallProxy object that will call the controller's function
 
         """
         proxy = CallProxy(self.skel, func)
@@ -59,14 +58,12 @@ class CallProxy(Generic[T_Controller]):
     or raise an error if the controller has not been assigned yet.
 
     Args:
-        skel (SkeletonMixin): The skeleton that will be used to call the controller's
-            method.
-        func (str): The name of the function to call.
+        skel: The skeleton that will be used to call the controller's method.
+        func: The name of the function to call.
 
     Attributes:
-        skel (SkeletonMixin): The skeleton that will be used to call the controller's
-            method.
-        func (str): The name of the function to call.
+        skel: The skeleton that will be used to call the controller's method.
+        func: The name of the function to call.
 
     """
 

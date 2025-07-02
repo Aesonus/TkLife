@@ -33,7 +33,7 @@ class MenuMixin:
         @property**
 
         Returns:
-            dict: The menu template
+            The menu template
 
         """
         return {}
@@ -72,7 +72,7 @@ class Menu:
         >>> {Menu.add(**opts): 'separator'|'radiobutton'|'checkbutton'}
 
         Returns:
-            MenuCommand: Partial function that will be called to create item
+            Partial function that will be called to create item
 
         """
         return partial(tkinter.Menu.add, **opts)
@@ -84,7 +84,7 @@ class Menu:
         >>> {Menu.command("labeltext", **opts): command_function}
 
         Returns:
-            MenuCommand: Partial function that will be called to create item
+            Partial function that will be called to create item
 
         """
         nf = partial(tkinter.Menu.add_command, label=label, **opts)
@@ -105,23 +105,23 @@ class Menu:
         ... }
 
         Keyword Args:
-            accelerator (str): Shortcut key
-            activebackground (str): Background color when active
-            activeforeground (str): Foreground color when active
-            background (str): Background color
-            bitmap (str): Bitmap to display
-            columnbreak (int): Column to break to
-            command ((() -> object) | str): Command to call when item is selected
-            compound (Any): Compound style
-            font (Any): Font to use
-            foreground (str): Foreground color
-            hidemargin (bool): Hide margin
-            image (Any): Image to display
-            state (Literal['normal', 'active', 'disabled']): State of item
-            underline (int): Underline index
+            accelerator: Shortcut key
+            activebackground: Background color when active
+            activeforeground: Foreground color when active
+            background: Background color
+            bitmap: Bitmap to display
+            columnbreak: Column to break to
+            command: Command to call when item is selected
+            compound: Compound style
+            font: Font to use
+            foreground: Foreground color
+            hidemargin: Hide margin
+            image: Image to display
+            state: State of item
+            underline: Underline index
 
         Returns:
-            MenuCommand: Partial function that will be called to create submenu
+            Partial function that will be called to create submenu
 
         """
         nf = partial(tkinter.Menu.add_cascade, label=label, **opts)

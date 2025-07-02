@@ -31,9 +31,9 @@ class ModalDialog(
     """A dialog that demands focus.
 
     This is a base class for dialogs that demand focus. It is a toplevel widget that
-    demands focus and blocks the main window until it is destroyed. It also has a
-    return value that is set when the dialog is destroyed, and is None if the dialog
-    is cancelled.
+    demands focus and blocks the main window until it is destroyed. It also has a return
+    value that is set when the dialog is destroyed, and is None if the dialog is
+    cancelled.
 
     Note:
         This widget binds the <Destroy>, <Return>, and <Escape> events. Add to these
@@ -75,7 +75,7 @@ class ModalDialog(
         None.
 
         Returns:
-            T_ReturnValue | None: The return value if not cancelled, otherwise None.
+            The return value if not cancelled, otherwise None.
 
         """
         self.deiconify()
@@ -90,11 +90,11 @@ class ModalDialog(
         otherwise None.
 
         Args:
-            master (Misc): The master widget.
+            master: The master widget.
             **kwargs: The kwargs to pass to the dialog constructor.
 
         Returns:
-            T_ReturnValue | None: The return value if not cancelled, otherwise None.
+            The return value if not cancelled, otherwise None.
 
         """
         dialog = cls(master, **kwargs)
@@ -127,9 +127,8 @@ class ScrolledFrame(ttk.Frame):
 
     Note:
         When created, this widget adds to the toplevel's bindings for <MouseWheel>,
-        <Button-4>, <Button-5>. This is to ensure that
-        the scrolling works in both horizontal (with shift) and vertical directions
-        with the mousewheel.
+        <Button-4>, <Button-5>. This is to ensure that the scrolling works in both
+        horizontal (with shift) and vertical directions with the mousewheel.
 
     """
 
