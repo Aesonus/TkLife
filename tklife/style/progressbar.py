@@ -1,4 +1,5 @@
 """Progressbar style module."""
+
 from .style import TProgressbar
 
 # pylint: disable=too-few-public-methods
