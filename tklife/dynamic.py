@@ -33,7 +33,7 @@ class AppendableMixin:
         """Stores the widgets created as well as grid cooridates and arguments.
 
         Returns:
-            dict[tuple[int, int], CachedWidget]: Widget cache
+            Widget cache
 
         """
         # Use the super's widget cache. This mixin is only used with SkeletonMixin, so
@@ -44,13 +44,13 @@ class AppendableMixin:
         """Appends a row.
 
         Args:
-            widget_row (Iterable[Union[SkelWidget, None]]): A row of widgets to append
+            widget_row: A row of widgets to append
 
         Raises:
             TypeError: Raised when row is not iterable
 
         Returns:
-            int: The new row index
+            The new row index
 
         """
         # Find last row in cache and add 1 for new row
@@ -80,15 +80,15 @@ class AppendableMixin:
         """Inserts a row at the given index.
 
         Args:
-            index (int): The index to insert the row at
-            widget_row (Iterable[Union[SkelWidget, None]]): The row to insert
+            index: The index to insert the row at
+            widget_row: The row to insert
 
         Raises:
             TypeError: Raised when widget_row is not iterable
             IndexError: Raised when index is out of range
 
         Returns:
-            int: The new row index
+            The new row index
 
         """
         if index == 1 + reduce(
@@ -135,7 +135,7 @@ class AppendableMixin:
         """Destroys the row at given index.
 
         Args:
-            row_index (int): The row index to destroy
+            row_index: The row index to destroy
 
         """
         for (row, col), (widget, grid_args) in tuple(self._w_cache.items()):
@@ -158,11 +158,10 @@ class AppendableMixin:
         """Finds a row of a widget having label as defined in SkelWidget.
 
         Args:
-            label (str): The label of the widget to find
+            label: The label of the widget to find
 
         Returns:
-            Union[int, None]: The row index containing the given widget or None if
-                not found
+            The row index containing the given widget or None if not found
 
         """
         try:

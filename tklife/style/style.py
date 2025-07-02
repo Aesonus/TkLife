@@ -111,9 +111,6 @@ class _StyleMeta(type):
         Args:
             widget: The widget to set the style of.
 
-        Returns:
-            None
-
         """
         widget["style"] = cls.ttk_style
 
