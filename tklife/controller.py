@@ -34,10 +34,10 @@ class ControllerABC(Generic[T_View]):
         """Gets a created widget in this controller's view's created dictionary.
 
         Arguments:
-            attr (str): The label of the created widget
+            attr: The label of the created widget
 
         Returns:
-            CreatedWidget: The created widget found
+            The created widget found
 
         """
         return self.view.created[attr]
