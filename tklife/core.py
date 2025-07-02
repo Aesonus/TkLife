@@ -18,6 +18,7 @@ from typing import (
 import tklife
 from tklife.controller import ControllerABC
 from tklife.proxy import CallProxyFactory
+from tklife.types import T_Controller
 
 if TYPE_CHECKING:
     from typing import Any, Iterable, NotRequired, Optional, Type, Union
@@ -358,10 +359,6 @@ class _Skel(metaclass=_SkeletonMeta):  # pylint: disable=too-few-public-methods
 
 
 TkEventId = str
-
-T_Controller = TypeVar(  # pylint: disable=invalid-name
-    "T_Controller", bound="ControllerABC | None"
-)
 
 
 class SkeletonMixin(Generic[T_Controller], _Skel):
