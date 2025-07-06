@@ -30,7 +30,25 @@ __all__ = [
     "SkelEventDef",
     "CreatedWidget",
     "CachedWidget",
+    "GridRowConfig",
+    "GridColConfig",
 ]
+
+
+class GridRowConfig(TypedDict, total=False):
+    """Configuration options for a grid row."""
+
+    minsize: int
+    weight: int
+    pad: int
+
+
+class GridColConfig(TypedDict, total=False):
+    """Configuration options for a grid column."""
+
+    minsize: int
+    weight: int
+    pad: int
 
 
 class SkelEventDef(TypedDict):
@@ -447,7 +465,7 @@ class SkeletonMixin(Generic[T_Controller], _Skel):
     @property
     def grid_config(
         self,
-    ) -> tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
+    ) -> tuple[Iterable[GridRowConfig], Iterable[GridColConfig]]:
         """Returns the grid configuration for the widget. This can be overridden to
         provide a custom grid configuration. **Must be declared as @property**.
 
