@@ -182,11 +182,7 @@ class SkelWidget:
         )
 
 
-T_Widget = TypeVar(  # pylint: disable=invalid-name
-    "T_Widget",
-    tkinter.Widget,
-    tkinter.Misc,
-)
+T_Widget = TypeVar("T_Widget", bound=tkinter.Widget)  # pylint: disable=invalid-name
 
 
 class CreatedWidget(Generic[T_Widget]):
