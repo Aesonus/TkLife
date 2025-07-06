@@ -7,7 +7,7 @@ import tkinter as tk
 from random import random
 from tkinter import EW, NSEW, E, Misc, StringVar, Tk, Toplevel, W, ttk
 from tkinter.messagebox import showinfo
-from typing import Any, Iterable, Optional
+from typing import Iterable, Optional
 
 from tklife import SkeletonMixin, SkelEventDef, SkelWidget, style
 from tklife.behaviors import commands
@@ -25,6 +25,7 @@ from tklife.constants import (
     WIDTH,
 )
 from tklife.controller import ControllerABC
+from tklife.core import GridColConfig, GridRowConfig
 from tklife.dynamic import AppendableMixin
 from tklife.event import TkEvent, TkEventMod
 from tklife.menu import Menu, MenuMixin
@@ -255,7 +256,7 @@ class ExampleView(SkeletonMixin[ExampleController], MenuMixin, Toplevel):
         ]
 
     @property
-    def grid_config(self) -> tuple[Iterable[dict[str, Any]], Iterable[dict[str, Any]]]:
+    def grid_config(self) -> tuple[Iterable[GridRowConfig], Iterable[GridColConfig]]:
         return [
             {WEIGHT: 1},
             {WEIGHT: 1},
