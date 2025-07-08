@@ -886,5 +886,3 @@ class TestCreatedWidget:
     def test_dunder_setitem_raises_attribute_error(self, created_widget):
         with pytest.raises(AttributeError):
             created_widget["not_an_attribute"] = "value"
-            created_widget["not_an_attribute"] = "value"
-            created_widget["not_an_attribute"] = "value"
