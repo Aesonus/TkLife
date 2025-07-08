@@ -163,16 +163,21 @@ class TestSkeletonMixin:
             call()._create_events(),
         ]
 
-    def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class):
-        with pytest.raises(
-            TypeError,
-            match=r"\<class 'tklife\.core\.SkeletonMixin'\> should be first base class",
-        ):
+    @pytest.mark.parametrize(
+        "mixin_class",
+        [
+            SkeletonMixin,
+        ],
+    )
+    def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class, mixin_class):
+        with pytest.raises(TypeError) as exc:
 
-            class _TestedSkeleton(mock_mixin_class, SkeletonMixin):
+            class _TestedSkeleton(mock_mixin_class, mixin_class):
                 @property
                 def template(self):
                     return [[]]
+
+        assert str(exc.value) == f"{mixin_class} should be first base class"
 
     def test_meta_dunder_new_does_not_raise_error_with_SkeletonMixin_subclass_as_first_base(
         self, mock_mixin_class
@@ -879,4 +884,6 @@ class TestCreatedWidget:
 
     def test_dunder_setitem_raises_attribute_error(self, created_widget):
         with pytest.raises(AttributeError):
+            created_widget["not_an_attribute"] = "value"
+            created_widget["not_an_attribute"] = "value"
             created_widget["not_an_attribute"] = "value"
