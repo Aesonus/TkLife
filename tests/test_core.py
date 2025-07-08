@@ -174,6 +174,14 @@ class TestSkeletonMixin:
                 def template(self):
                     return [[]]
 
+    def test_meta_dunder_new_does_not_raise_error_with_SkeletonMixin_subclass_as_first_base(
+        self, mock_mixin_class
+    ):
+        class _TestedSkeleton(
+            type("SkeletonMixinSubclass", (SkeletonMixin,), {}), mock_mixin_class
+        ):
+            pass
+
     def test_controller_attrgetter_returns_proxy_factory_if_controller_not_set(
         self, no_template_skeleton, mock_master
     ):
