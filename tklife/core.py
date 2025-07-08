@@ -363,8 +363,13 @@ class CachedWidget(NamedTuple):
 
 class _SkeletonMeta(type):
     def __new__(mcs, name, bases: tuple[type, ...], namespace):
-        if Generic not in bases and len(bases) > 1 and bases[0] != SkeletonMixin:
-            raise TypeError(f"{SkeletonMixin} should be first base class")
+        if (
+            Generic not in bases
+            and len(bases) > 1
+            and not issubclass(bases[0], SkeletonMixin)
+        ):
+            mixin = next(b for b in bases if issubclass(b, SkeletonMixin))
+            raise TypeError(f"{mixin} should be first base class")
         return super().__new__(mcs, name, bases, namespace)
 
 
