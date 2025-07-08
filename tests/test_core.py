@@ -167,6 +167,7 @@ class TestSkeletonMixin:
         "mixin_class",
         [
             SkeletonMixin,
+            type("SkeletonMixinSubclass", (SkeletonMixin,), {}),
         ],
     )
     def test_meta_dunder_new_typechecks_bases(self, mock_mixin_class, mixin_class):
