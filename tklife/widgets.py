@@ -163,15 +163,7 @@ class ScrolledFrame(ttk.Frame):
         self.__layout()
         self.__commands()
         self.__events()
-        # Copy geometry methods of self.container without overriding Frame
-        # methods -- hack!
-        text_meths = vars(ttk.Frame).keys()
-        methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
-        methods = methods.difference(text_meths)
-
-        for m in methods:
-            if m[0] != "_" and m != "config" and m != "configure":
-                setattr(self, m, getattr(self.container, m))
+        copy_geometry_methods(self.container, self)
 
     def __layout(self):
         self.canvas.grid(column=0, row=0, sticky=tk.NW + tk.SE)
