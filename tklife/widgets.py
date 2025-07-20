@@ -23,9 +23,7 @@ __all__ = ["ScrolledListbox", "AutoSearchCombobox", "ScrolledFrame", "ModalDialo
 T_ReturnValue = typing.TypeVar("T_ReturnValue")  # pylint: disable=invalid-name
 
 
-def copy_geometry_methods(
-    source: Misc, target: Misc
-) -> None:
+def copy_geometry_methods(source: Misc, target: Misc) -> None:
     """Copies the geometry methods from source to target without overriding the target's
     methods, like in ``tkinter.scrolledtext.ScrolledText``."""
     text_meths = vars(type(source)).keys()
