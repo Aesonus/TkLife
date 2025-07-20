@@ -12,7 +12,7 @@ from tklife.types import T_Controller
 
 if typing.TYPE_CHECKING:
     from tkinter import Canvas, Event, Misc
-    from tkinter.ttk import Frame, Scrollbar
+    from tkinter.ttk import Scrollbar
     from typing import Any, Iterable, Optional
 
     from tklife.core import SkelEventDef
@@ -143,7 +143,7 @@ class ScrolledFrame(ttk.Frame):
 
     """
 
-    container: Frame
+    container: ttk.Frame
     canvas: Canvas
     v_scroll: Scrollbar
     h_scroll: Scrollbar
@@ -266,7 +266,7 @@ class ScrolledFrame(ttk.Frame):
 class ScrolledListbox(tk.Listbox):
     """A scrolled listbox, based on tkinter.scrolledtext.ScrolledText."""
 
-    frame: Frame
+    frame: ttk.Frame
     vbar: Scrollbar
 
     def __init__(self, master: Misc, **kw):
