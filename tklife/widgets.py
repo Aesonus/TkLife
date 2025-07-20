@@ -23,6 +23,19 @@ __all__ = ["ScrolledListbox", "AutoSearchCombobox", "ScrolledFrame", "ModalDialo
 T_ReturnValue = typing.TypeVar("T_ReturnValue")  # pylint: disable=invalid-name
 
 
+def copy_geometry_methods(
+    source: Misc, target: Misc
+) -> None:
+    """Copies the geometry methods from source to target without overriding the target's
+    methods, like in ``tkinter.scrolledtext.ScrolledText``."""
+    text_meths = vars(type(source)).keys()
+    methods = vars(tk.Pack).keys() | vars(tk.Grid).keys() | vars(tk.Place).keys()
+    methods = methods.difference(text_meths)
+    for method in methods:
+        if method[0] != "_" and method != "config" and method != "configure":
+            setattr(target, method, getattr(source, method))
+
+
 class ModalDialog(
     tkl.core.SkeletonMixin[T_Controller],
     typing.Generic[T_ReturnValue, T_Controller],
